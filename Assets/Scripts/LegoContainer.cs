@@ -1,0 +1,167 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using GPUInstancer;
+using System;
+
+public class LegoContainer
+{
+    public static LegoContainer Container { get; set; }
+
+    public static readonly int brickBatchSize = 100000;
+
+    GPUInstancerPrefabManager manager;
+    GPUInstancerPrefab brick;
+
+    Stack<int> indexStack;
+    Matrix4x4[] transformArray;
+    public Matrix4x4[] TransformArray { get { return transformArray; } }
+
+    Dictionary<DictPosition, int> legoDictionary;
+    public Dictionary<DictPosition, int> LegoDictionary { get { return legoDictionary; } }
+
+    bool logAddRemove = false;
+
+    public LegoContainer(GPUInstancerPrefabManager _manager, GPUInstancerPrefab _brick)
+    {
+        Container = this;
+        manager = _manager;
+        brick = _brick;
+
+        ResetContainer();
+    }
+
+    public void ResetContainer()
+    {
+        transformArray = new Matrix4x4[brickBatchSize];
+        indexStack = new Stack<int>();
+        legoDictionary = new Dictionary<DictPosition, int>();
+
+
+        for (int i = brickBatchSize - 1; i >= 0; --i)
+        {
+            transformArray[i] = Matrix4x4.zero;
+            indexStack.Push(i);
+        }
+
+        GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
+    }
+
+    public void AddBrick(Matrix4x4 _transform)
+    {
+        BrickToArray(_transform);
+        GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
+    }
+
+    public void AddBricks(Matrix4x4[] matrices)
+    {
+        DateTime start = DateTime.Now;
+        int counter = 0;
+
+        foreach (Matrix4x4 matrix4x4 in matrices)
+            if (BrickToArray(matrix4x4)) ++counter;
+
+        TimeSpan duration = DateTime.Now - start;
+        if (logAddRemove) Debug.Log("Added " + counter + " bricks of " + matrices.Length + " possible. Took " + duration.TotalMilliseconds.ToString("F1") + " milliseconds");
+
+        GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
+    }
+
+    public void RemoveBricks(Matrix4x4[] _transforms)
+    {
+        DateTime start = DateTime.Now;
+        int counter = 0;
+
+        foreach (Matrix4x4 _transform in _transforms)
+            if (BrickFromArray(_transform)) ++counter;
+
+        TimeSpan duration = DateTime.Now - start;
+        if (logAddRemove) Debug.Log("Removed " + counter + " bricks of " + _transforms.Length + " possible. Took " + duration.TotalMilliseconds.ToString("F1") + " milliseconds");
+
+        GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
+    }
+
+    bool BrickToArray(Matrix4x4 _transform)
+    {
+        if (indexStack.Count == 0)
+            NewBatch();
+
+        DictPosition key = new DictPosition(_transform.GetPosition());
+        if (!legoDictionary.ContainsKey(key))
+        {
+            int idx = indexStack.Pop();
+            legoDictionary.Add(key, idx);
+            transformArray[idx] = _transform;
+            return true;
+        }
+        else
+            return false;
+    }
+
+    void NewBatch()
+    {
+        Matrix4x4[] tempTransformArray = new Matrix4x4[transformArray.Length + brickBatchSize];
+
+        for (int i = 0; i < transformArray.Length; ++i)
+        {
+            tempTransformArray[i] = transformArray[i];
+        }
+        for (int i = transformArray.Length; i < tempTransformArray.Length; ++i)
+        {
+            indexStack.Push(i);
+            tempTransformArray[i] = Matrix4x4.zero;
+        }
+
+        transformArray = tempTransformArray;
+        GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
+    }
+
+    bool BrickFromArray(Matrix4x4 _transform)
+    {
+        DictPosition key = new DictPosition(_transform.GetPosition());
+        if (legoDictionary.ContainsKey(key))
+        {
+            transformArray[legoDictionary[key]] = Matrix4x4.zero;
+            indexStack.Push(legoDictionary[key]);
+            legoDictionary.Remove(key);
+            return true;
+        }
+        else
+            return false;
+    }
+
+    public int GetCount()
+    {
+        return legoDictionary.Count;
+    }
+}
+
+public struct DictPosition
+{
+    public int x;
+    public int y;
+    public int z;
+
+    public DictPosition(Vector3 vec)
+    {
+        x = Mathf.RoundToInt(vec.x * 100000);
+        y = Mathf.RoundToInt(vec.y * 100000);
+        z = Mathf.RoundToInt(vec.z * 100000);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (typeof(DictPosition) != obj.GetType())
+            return false;
+        DictPosition other = (DictPosition)obj;
+        if (other.x == x && other.y == y && other.z == z)
+            return true;
+        else
+            return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(x, y, z);
+    }
+}

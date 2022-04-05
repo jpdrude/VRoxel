@@ -1,0 +1,209 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56e7abe4972b13146bc96fa26b271370, type: 3}
+  m_Name: VoxelMap_-1593704
+  m_EditorClassIdentifier: 
+  VoxelData:
+    IsValid: 1
+    SubdivisionPower: 2
+    RootSize: 64
+    VoxelCount: 36
+    VoxelData:
+    - X: 48
+      Y: 48
+      Z: 48
+      ID: 0
+      Depth: 1
+    - X: 16
+      Y: 48
+      Z: 48
+      ID: 0
+      Depth: 1
+    - X: 56
+      Y: 24
+      Z: 56
+      ID: 0
+      Depth: 2
+    - X: 40
+      Y: 24
+      Z: 56
+      ID: 0
+      Depth: 2
+    - X: 56
+      Y: 8
+      Z: 56
+      ID: 255
+      Depth: 2
+    - X: 40
+      Y: 8
+      Z: 56
+      ID: 255
+      Depth: 2
+    - X: 56
+      Y: 24
+      Z: 40
+      ID: 0
+      Depth: 2
+    - X: 40
+      Y: 24
+      Z: 40
+      ID: 0
+      Depth: 2
+    - X: 56
+      Y: 8
+      Z: 40
+      ID: 255
+      Depth: 2
+    - X: 40
+      Y: 8
+      Z: 40
+      ID: 255
+      Depth: 2
+    - X: 24
+      Y: 24
+      Z: 56
+      ID: 0
+      Depth: 2
+    - X: 8
+      Y: 24
+      Z: 56
+      ID: 0
+      Depth: 2
+    - X: 24
+      Y: 8
+      Z: 56
+      ID: 255
+      Depth: 2
+    - X: 8
+      Y: 8
+      Z: 56
+      ID: 255
+      Depth: 2
+    - X: 24
+      Y: 24
+      Z: 40
+      ID: 0
+      Depth: 2
+    - X: 8
+      Y: 24
+      Z: 40
+      ID: 0
+      Depth: 2
+    - X: 24
+      Y: 8
+      Z: 40
+      ID: 255
+      Depth: 2
+    - X: 8
+      Y: 8
+      Z: 40
+      ID: 255
+      Depth: 2
+    - X: 48
+      Y: 48
+      Z: 16
+      ID: 0
+      Depth: 1
+    - X: 16
+      Y: 48
+      Z: 16
+      ID: 0
+      Depth: 1
+    - X: 56
+      Y: 24
+      Z: 24
+      ID: 0
+      Depth: 2
+    - X: 40
+      Y: 24
+      Z: 24
+      ID: 0
+      Depth: 2
+    - X: 56
+      Y: 8
+      Z: 24
+      ID: 255
+      Depth: 2
+    - X: 40
+      Y: 8
+      Z: 24
+      ID: 255
+      Depth: 2
+    - X: 56
+      Y: 24
+      Z: 8
+      ID: 0
+      Depth: 2
+    - X: 40
+      Y: 24
+      Z: 8
+      ID: 0
+      Depth: 2
+    - X: 56
+      Y: 8
+      Z: 8
+      ID: 255
+      Depth: 2
+    - X: 40
+      Y: 8
+      Z: 8
+      ID: 255
+      Depth: 2
+    - X: 24
+      Y: 24
+      Z: 24
+      ID: 0
+      Depth: 2
+    - X: 8
+      Y: 24
+      Z: 24
+      ID: 0
+      Depth: 2
+    - X: 24
+      Y: 8
+      Z: 24
+      ID: 255
+      Depth: 2
+    - X: 8
+      Y: 8
+      Z: 24
+      ID: 255
+      Depth: 2
+    - X: 24
+      Y: 24
+      Z: 8
+      ID: 0
+      Depth: 2
+    - X: 8
+      Y: 24
+      Z: 8
+      ID: 0
+      Depth: 2
+    - X: 24
+      Y: 8
+      Z: 8
+      ID: 255
+      Depth: 2
+    - X: 8
+      Y: 8
+      Z: 8
+      ID: 255
+      Depth: 2
+    DimensionCount: 2
+    AdditionalData:
+    - VoxelCount: 1
+      VoxelData:
+      - X: 32
+        Y: 32
+        Z: 32
+        ID: 0
+        Depth: 0
