@@ -23,6 +23,8 @@ public class TargetSpawner : MonoBehaviour
 
     void Update()
     {
+        if (LegoContainer.Container == null) return;
+
         CheckMovement();
         CheckScale();
         CheckExport();

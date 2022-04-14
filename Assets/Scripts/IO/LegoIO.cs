@@ -118,6 +118,7 @@ public class LegoIO : MonoBehaviour
     
     public static void NewGame()
     {
+        if (LegoContainer.Container == null) return;
         LegoContainer.Container.ResetContainer();
     }
 
@@ -260,15 +261,19 @@ public class LegoIO : MonoBehaviour
 
     static List<Brick> MatrixTo4x2Brick(List<Matrix4x4> matrices, doubleVector offset)
     {
+        float xSpacing = GameManager.Bond.XSpacing;
+        float ySpacing = GameManager.Bond.YSpacing;
+        float zSpacing = GameManager.Bond.ZSpacing;
+
         List<Brick> bricks = new List<Brick>();
         foreach (Matrix4x4 matrix in matrices)
         {
             Matrix4x4 matrix4x4 = conversionMatrix * matrix;
             if (Mathf.Abs(matrix4x4.rotation.eulerAngles.y) < 0.001f)
             {
-                int posX = (int)System.Math.Round((matrix4x4.m03 - offset.X) / GameManager.xzSpacing) - 1;
-                int posY = (int)System.Math.Round((matrix4x4.m13 - offset.Y) / GameManager.xzSpacing) - 2;
-                int posZ = (int)System.Math.Round((matrix4x4.m23 - offset.Z) / GameManager.ySpacing);
+                int posX = (int)System.Math.Round((matrix4x4.m03 - offset.X) / xSpacing) - 1;
+                int posY = (int)System.Math.Round((matrix4x4.m13 - offset.Y) / zSpacing) - 2;
+                int posZ = (int)System.Math.Round((matrix4x4.m23 - offset.Z) / ySpacing);
 
                 intVector size = new intVector(2, 4, 1);
 
@@ -278,9 +283,9 @@ public class LegoIO : MonoBehaviour
             }
             else
             {
-                int posX = (int)System.Math.Round((matrix4x4.m03 - offset.X) / GameManager.xzSpacing) - 2;
-                int posY = (int)System.Math.Round((matrix4x4.m13 - offset.Y) / GameManager.xzSpacing) - 1;
-                int posZ = (int)System.Math.Round((matrix4x4.m23 - offset.Z) / GameManager.ySpacing);
+                int posX = (int)System.Math.Round((matrix4x4.m03 - offset.X) / xSpacing) - 2;
+                int posY = (int)System.Math.Round((matrix4x4.m13 - offset.Y) / zSpacing) - 1;
+                int posZ = (int)System.Math.Round((matrix4x4.m23 - offset.Z) / ySpacing);
 
                 intVector size = new intVector(4, 2, 1);
 
@@ -314,7 +319,7 @@ public class LegoIO : MonoBehaviour
     static void BoundsToLegoSpace(ref Vector3 min, ref Vector3 max, out intVector minLego, out doubleVector offset)
     {
         min = GameManager.Bond.GetBondBase(min);
-        max = GameManager.Bond.GetBondBase(max) + new Vector3(GameManager.Bond.XSize * GameManager.xzSpacing, GameManager.Bond.YSize * GameManager.ySpacing, GameManager.Bond.ZSize * GameManager.xzSpacing);
+        max = GameManager.Bond.GetBondBase(max) + new Vector3(GameManager.Bond.XSize * GameManager.Bond.XSpacing, GameManager.Bond.YSize * GameManager.Bond.YSpacing, GameManager.Bond.ZSize * GameManager.Bond.ZSpacing);
 
         Vector3 minConvert = conversionMatrix * min;
         Vector3 maxConvert = conversionMatrix * max;
@@ -350,7 +355,7 @@ public class LegoIO : MonoBehaviour
                 max.z = matrix4x4.m23;
         }
 
-        min -= new Vector3(5 * GameManager.Bond.XSize * GameManager.xzSpacing, 5 * GameManager.Bond.YSize * GameManager.ySpacing, 5 * GameManager.Bond.ZSize * GameManager.xzSpacing);
+        min -= new Vector3(5 * GameManager.Bond.XSize * GameManager.Bond.XSpacing, 5 * GameManager.Bond.YSize * GameManager.Bond.YSpacing, 5 * GameManager.Bond.ZSize * GameManager.Bond.ZSpacing);
     }
 }
 

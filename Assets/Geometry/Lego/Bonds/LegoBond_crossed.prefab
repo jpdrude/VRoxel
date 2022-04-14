@@ -49,6 +49,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bondName: CrossBond
+  brickPrefab: {fileID: 7458500517809170239, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
   bricks:
   - {fileID: 6835247707364210379}
   - {fileID: 4574713613763557596}
@@ -57,6 +58,9 @@ MonoBehaviour:
   xSize: 4
   ySize: 2
   zSize: 4
+  xSpacing: 0.008
+  ySpacing: 0.0096
+  zSpacing: 0.008
 --- !u!1001 &1129587625479548696
 PrefabInstance:
   m_ObjectHideFlags: 0

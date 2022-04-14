@@ -11,6 +11,8 @@ public class LegoBond : MonoBehaviour
 
     [Header("Bricks")]
     [SerializeField]
+    GPUInstancerPrefab brickPrefab;
+    [SerializeField]
     List<Transform> bricks = new List<Transform>();
 
     [Space]
@@ -22,9 +24,24 @@ public class LegoBond : MonoBehaviour
     [SerializeField]
     int zSize;
 
+    [Space]
+    [Header("Units")]
+    [SerializeField]
+    float xSpacing;
+    [SerializeField]
+    float ySpacing;
+    [SerializeField]
+    float zSpacing;
+
     public int XSize { get { return xSize; } }
     public int YSize { get { return ySize; } }
     public int ZSize { get { return zSize; } }
+
+    public float XSpacing { get { return xSpacing; } }
+    public float YSpacing { get { return ySpacing; } }
+    public float ZSpacing { get { return zSpacing; } }
+
+    public GPUInstancerPrefab BrickPrefab { get { return brickPrefab; } }
 
     public Matrix4x4 GetClosestBrick(Vector3 position)
     {
@@ -41,9 +58,9 @@ public class LegoBond : MonoBehaviour
 
     public Vector3 GetBondBase(Vector3 position)
     {
-        int legoX = Mathf.FloorToInt(position.x / GameManager.xzSpacing);
-        int legoY = Mathf.FloorToInt(position.y / GameManager.ySpacing);
-        int legoZ = Mathf.FloorToInt(position.z / GameManager.xzSpacing);
+        int legoX = Mathf.FloorToInt(position.x / GameManager.Bond.XSpacing);
+        int legoY = Mathf.FloorToInt(position.y / GameManager.Bond.YSpacing);
+        int legoZ = Mathf.FloorToInt(position.z / GameManager.Bond.ZSpacing);
 
         legoX /= XSize;
         legoY /= YSize;
@@ -52,7 +69,7 @@ public class LegoBond : MonoBehaviour
         legoY *= YSize;
         legoZ *= ZSize;
 
-        Vector3 bondBase = new Vector3(legoX * GameManager.xzSpacing, legoY * GameManager.ySpacing, legoZ * GameManager.xzSpacing);
+        Vector3 bondBase = new Vector3(legoX * GameManager.Bond.XSpacing, legoY * GameManager.Bond.YSpacing, legoZ * GameManager.Bond.ZSpacing);
         return bondBase;
     }
 
@@ -62,10 +79,10 @@ public class LegoBond : MonoBehaviour
         Vector3 min = GetBondBase(position - Vector3.one * radius);
         Vector3 max = position + Vector3.one * radius;
 
-        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.xzSpacing)
+        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.Bond.XSpacing)
         {
-            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.ySpacing)
-                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.xzSpacing)
+            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.Bond.YSpacing)
+                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.Bond.ZSpacing)
                 {
                     foreach (Transform brick in GameManager.Bond.bricks)
                     {
@@ -82,10 +99,10 @@ public class LegoBond : MonoBehaviour
     {
         List<Matrix4x4> bricks = new List<Matrix4x4>();
 
-        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.xzSpacing)
+        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.Bond.XSpacing)
         {
-            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.ySpacing)
-                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.xzSpacing)
+            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.Bond.YSpacing)
+                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.Bond.ZSpacing)
                 {
                     foreach (Transform brick in GameManager.Bond.bricks)
                     {
@@ -104,10 +121,10 @@ public class LegoBond : MonoBehaviour
 
         List<Matrix4x4> bricks = new List<Matrix4x4>();
 
-        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.xzSpacing)
+        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.Bond.XSpacing)
         {
-            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.ySpacing)
-                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.xzSpacing)
+            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.Bond.YSpacing)
+                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.Bond.ZSpacing)
                 {
                     foreach (Transform brick in GameManager.Bond.bricks)
                     {

@@ -85,6 +85,7 @@ public class SteamVR_LegoSpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (LegoContainer.Container == null) return; 
         CheckTrigger();
         CheckSphereScale();
         CheckBoxScale();

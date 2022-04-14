@@ -9,12 +9,6 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     GPUInstancerPrefabManager GPUIPrefabManager;
 
-    [Header("Brick Info")]
-    [SerializeField]
-    GPUInstancerPrefab brick;
-
-    [SerializeField]
-    LegoBond bond;
     static LegoBond _bond;
     public static LegoBond Bond { get { return _bond; } set { _bond = value; } }
 
@@ -27,20 +21,15 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     Valve.VR.SteamVR_ActionSet actionSet;
 
-    public static readonly float xzSpacing = 0.008f;
-    public static readonly float ySpacing = 0.0096f;
     public static Vector3 Spacing
     {
-        get { return new Vector3(xzSpacing, ySpacing, xzSpacing); }
+        get { return new Vector3(_bond.XSpacing, _bond.YSpacing, _bond.ZSpacing); }
     }
 
     LegoContainer container;
 
     void Awake()
     {
-        container = new LegoContainer(GPUIPrefabManager, brick);
-        _bond = bond;
-
         foreach (LegoBond bond in availableBonds)
             if (!_availableBonds.ContainsKey(bond.name))
                 _availableBonds.Add(bond.name, bond);
@@ -66,6 +55,8 @@ public class GameManager : MonoBehaviour
         NewGame();
 
         Bond = b;
+
+        container = new LegoContainer(GPUIPrefabManager, _bond.BrickPrefab);
 
         actionSet.Activate();
     }
