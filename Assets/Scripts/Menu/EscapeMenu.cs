@@ -310,10 +310,10 @@ public class EscapeMenu : MonoBehaviour
 
     public void SetVRPlayer()
     {
-        UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
-        UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.StartSubsystems();
+        //UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
+        //UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.StartSubsystems();
 
-        Valve.VR.SteamVR_Settings.instance.autoEnableVR = true;
+        //Valve.VR.SteamVR_Settings.instance.autoEnableVR = true;
 
         startCamera.SetActive(false);
         vrController.SetActive(true);

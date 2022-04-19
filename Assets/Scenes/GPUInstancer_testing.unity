@@ -2171,7 +2171,7 @@ MonoBehaviour:
   useThreading: 0
   showDebug: 0
   displayPoints: 1
-  renderOnlyMainCam: 1
+  renderOnlyMainCam: 0
   containsRGB: 0
   totalPoints: 0
   totalMaxPoints: 0
@@ -5135,7 +5135,7 @@ GameObject:
   - component: {fileID: 760075384}
   m_Layer: 0
   m_Name: startCamera
-  m_TagString: MainCamera
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -15956,7 +15956,7 @@ MonoBehaviour:
   isOcclusionCulling: 1
   minCullingDistance: 0
   selectedPrototypeList:
-  - {fileID: 11400000, guid: 5b827707d383ae34aa48e13b08ca3535, type: 2}
+  - {fileID: 11400000, guid: 4abea7dc4214b0544829aa97d564787e, type: 2}
   isPrototypeTextMode: 0
   showSceneSettingsBox: 1
   showPrototypeBox: 1
