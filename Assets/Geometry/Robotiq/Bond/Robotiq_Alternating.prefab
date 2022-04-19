@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8778166112430402788}
   - component: {fileID: 2539468125826957579}
   m_Layer: 0
-  m_Name: Robotiq_Bond
+  m_Name: Robotiq_Alternating
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -68,7 +68,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d2c7597527bc29438d92463be6a9621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bondName: RobotiqBond
+  bondName: RobotiqAlternating
   brickPrefab: {fileID: 3766870109021926139, guid: 9a426916bf2808e4db942d5ba1c83bdf, type: 3}
   bricks:
   - {fileID: 657916831140767017}
