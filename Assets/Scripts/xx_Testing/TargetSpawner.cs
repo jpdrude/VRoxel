@@ -23,48 +23,32 @@ public class TargetSpawner : MonoBehaviour
 
     void Update()
     {
-        if (LegoContainer.Container == null) return;
+        if (ModuleContainer.Container == null) return;
 
         CheckMovement();
         CheckScale();
-        CheckExport();
 
         if (Input.GetKey(KeyCode.Return))
             SpawnBricksAtPosition(transform.position, radius);
         if (Input.GetKey(KeyCode.Backspace))
             RemoveBricksAtPosition(transform.position, radius);
 
-        MessageSystem.DisplayPermanentMessage(LegoContainer.Container.GetCount() + " Bricks placed");
+        MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Bricks placed");
     }
 
     void SpawnBrickAtPosition(Vector3 pos)
     {
-        LegoContainer.Container.AddBrick(GameManager.Bond.GetClosestBrick(pos));
+        ModuleContainer.Container.AddBrick(GameManager.Bond.GetClosestBrick(pos));
     }
 
     void SpawnBricksAtPosition(Vector3 pos, float radius)
     {
-        LegoContainer.Container.AddBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
+        ModuleContainer.Container.AddBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
     }
 
     void RemoveBricksAtPosition(Vector3 pos, float radius)
     {
-        LegoContainer.Container.RemoveBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
-    }
-
-    void CheckExport()
-    {
-        if (Input.GetKeyDown(KeyCode.F2))
-            LegoIO.SaveLegoLayout("E:/02_Forschung/Unity/2022/VoxelLego_Data/save/testSave.json");
-
-        if (Input.GetKeyDown(KeyCode.F3))
-            LegoIO.ExportLegoLayoutToAssembly("E:/02_Forschung/Unity/2022/VoxelLego_Data/save/testAssembly.json");
-
-        if (Input.GetKeyDown(KeyCode.F4))
-            LegoIO.LoadLegoLayout("E:/02_Forschung/Unity/2022/VoxelLego_Data/save/testSave.json");
-
-        if (Input.GetKeyDown(KeyCode.F5))
-            LegoIO.NewGame();
+        ModuleContainer.Container.RemoveBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
     }
 
     void CheckScale()

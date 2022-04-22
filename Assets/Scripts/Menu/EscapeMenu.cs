@@ -102,7 +102,7 @@ public class EscapeMenu : MonoBehaviour
 
     public void ReallyNewGame()
     {
-        LegoIO.NewGame();
+        AssemblyIO.NewGame();
         Destroy(player);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
     }
@@ -297,13 +297,13 @@ public class EscapeMenu : MonoBehaviour
         string[] split = path.Split('.');
         if (split[split.Length - 1].ToLower() != "json")
             path = path + "/json";
-        LegoIO.SaveLegoLayout(path);
+        AssemblyIO.SaveAssemblyLayout(path);
     }
 
     void OnLoadSuccess(string[] paths)
     {
         foreach(string path in paths)
-            LegoIO.LoadLegoLayout(path);
+            AssemblyIO.LoadAssemblyLayout(path);
 
         Resume();
     }

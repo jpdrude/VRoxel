@@ -9,13 +9,13 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     GPUInstancerPrefabManager GPUIPrefabManager;
 
-    static LegoBond _bond;
-    public static LegoBond Bond { get { return _bond; } set { _bond = value; } }
+    static Bond _bond;
+    public static Bond Bond { get { return _bond; } set { _bond = value; } }
 
     [SerializeField]
-    List<LegoBond> availableBonds;
-    static Dictionary<string, LegoBond> _availableBonds = new Dictionary<string, LegoBond>();
-    public static Dictionary<string, LegoBond> AvailableBonds { get { return _availableBonds; } }
+    List<Bond> availableBonds;
+    static Dictionary<string, Bond> _availableBonds = new Dictionary<string, Bond>();
+    public static Dictionary<string, Bond> AvailableBonds { get { return _availableBonds; } }
 
     [Header("VR Info")]
     [SerializeField]
@@ -26,37 +26,37 @@ public class GameManager : MonoBehaviour
         get { return new Vector3(_bond.XSpacing, _bond.YSpacing, _bond.ZSpacing); }
     }
 
-    LegoContainer container;
+    ModuleContainer container;
 
     void Awake()
     {
-        foreach (LegoBond bond in availableBonds)
+        foreach (Bond bond in availableBonds)
             if (!_availableBonds.ContainsKey(bond.name))
                 _availableBonds.Add(bond.name, bond);
     }
 
     public void Save()
     {
-        LegoIO.SaveLegoLayout(Application.persistentDataPath + "/quickSave.json");
+        AssemblyIO.SaveAssemblyLayout(Application.persistentDataPath + "/quickSave.json");
     }
 
     public void Load()
     {
-        LegoIO.LoadLegoLayout(Application.persistentDataPath + "/quickSave.json");
+        AssemblyIO.LoadAssemblyLayout(Application.persistentDataPath + "/quickSave.json");
     }
 
     public void NewGame()
     {
-        LegoIO.NewGame();
+        AssemblyIO.NewGame();
     }
 
-    public void SetBond(LegoBond b)
+    public void SetBond(Bond b)
     {
         NewGame();
 
         Bond = b;
 
-        container = new LegoContainer(GPUIPrefabManager, _bond.BrickPrefab);
+        container = new ModuleContainer(GPUIPrefabManager, _bond.BrickPrefab);
 
         actionSet.Activate();
     }

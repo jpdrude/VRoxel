@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using GPUInstancer;
 
-public class LegoBond : MonoBehaviour
+public class Bond : MonoBehaviour
 {
     [Header("BondInfo")]
     [SerializeField]
@@ -58,18 +58,18 @@ public class LegoBond : MonoBehaviour
 
     public Vector3 GetBondBase(Vector3 position)
     {
-        int legoX = Mathf.FloorToInt(position.x / GameManager.Bond.XSpacing);
-        int legoY = Mathf.FloorToInt(position.y / GameManager.Bond.YSpacing);
-        int legoZ = Mathf.FloorToInt(position.z / GameManager.Bond.ZSpacing);
+        int x = Mathf.FloorToInt(position.x / GameManager.Bond.XSpacing);
+        int y = Mathf.FloorToInt(position.y / GameManager.Bond.YSpacing);
+        int z = Mathf.FloorToInt(position.z / GameManager.Bond.ZSpacing);
 
-        legoX /= XSize;
-        legoY /= YSize;
-        legoZ /= ZSize;
-        legoX *= XSize;
-        legoY *= YSize;
-        legoZ *= ZSize;
+        x /= XSize;
+        y /= YSize;
+        z /= ZSize;
+        x *= XSize;
+        y *= YSize;
+        z *= ZSize;
 
-        Vector3 bondBase = new Vector3(legoX * GameManager.Bond.XSpacing, legoY * GameManager.Bond.YSpacing, legoZ * GameManager.Bond.ZSpacing);
+        Vector3 bondBase = new Vector3(x * GameManager.Bond.XSpacing, y * GameManager.Bond.YSpacing, z * GameManager.Bond.ZSpacing);
         return bondBase;
     }
 

@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using LegoAssembly;
 using System;
 
-public class LegoIO : MonoBehaviour
+public class AssemblyIO : MonoBehaviour
 {
     static Matrix4x4 conversionMatrix = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0, 1));
 
@@ -24,7 +24,7 @@ public class LegoIO : MonoBehaviour
         {
             if (loadBond != GameManager.Bond.name)
             {
-                if (LegoContainer.Container.GetCount() < 1000 && GameManager.AvailableBonds.ContainsKey(loadBond))
+                if (ModuleContainer.Container.GetCount() < 1000 && GameManager.AvailableBonds.ContainsKey(loadBond))
                 {
                     NewGame();
                     GameManager.Bond = GameManager.AvailableBonds[loadBond];
@@ -39,13 +39,13 @@ public class LegoIO : MonoBehaviour
                 }
             }
 
-            LegoContainer.Container.AddBricks(loadContainer);
+            ModuleContainer.Container.AddBricks(loadContainer);
             loadContainer = null;
             loadBond = null;
         }
     }
 
-    public static void SaveLegoLayout(string path)
+    public static void SaveAssemblyLayout(string path)
     {
         if (currentSaveTargets.Contains(path))
         {
@@ -55,14 +55,14 @@ public class LegoIO : MonoBehaviour
 
         JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.name);
 
-        foreach (Matrix4x4 matrix4x4 in LegoContainer.Container.TransformArray)
+        foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.TransformArray)
         {
             if (matrix4x4 != Matrix4x4.zero)
                 container.matrices.Add(new JsonMatrix(conversionMatrix * matrix4x4));
         }
 
         currentSaveTargets.Add(path);
-        SaveLegoDelegate saveDelegate = new SaveLegoDelegate(SaveAsync);
+        SaveAssemblyDelegate saveDelegate = new SaveAssemblyDelegate(SaveAsync);
         saveDelegate.BeginInvoke(path, container, null, null);
     }
 
@@ -78,9 +78,9 @@ public class LegoIO : MonoBehaviour
             currentSaveTargets.Remove(path);
     }
 
-    public static void LoadLegoLayout(string path)
+    public static void LoadAssemblyLayout(string path)
     {
-        LoadLegoDelegate loadDelegate = new LoadLegoDelegate(LoadAsync);
+        LoadAssemblyDelegate loadDelegate = new LoadAssemblyDelegate(LoadAsync);
         loadDelegate.BeginInvoke(path, null, null);
     }
 
@@ -118,17 +118,17 @@ public class LegoIO : MonoBehaviour
     
     public static void NewGame()
     {
-        if (LegoContainer.Container == null) return;
-        LegoContainer.Container.ResetContainer();
+        if (ModuleContainer.Container == null) return;
+        ModuleContainer.Container.ResetContainer();
     }
 
-    public static void ExportLegoLayoutToAssembly(string path)
+    public static void ExportAssemblyLayoutToLegoAssembly(string path)
     {
-        Assembly assembly = SceneToAssembly();
+        Assembly assembly = SceneToLegoAssembly();
         ExportAssembly.Export(path, assembly);
     }
 
-    static Assembly SceneToAssembly()
+    static Assembly SceneToLegoAssembly()
     {
         Vector3 boundsMin;
         Vector3 boundsMax;
@@ -305,7 +305,7 @@ public class LegoIO : MonoBehaviour
 
         foreach(Matrix4x4 brick in allBricks)
         {
-            if (LegoContainer.Container.LegoDictionary.ContainsKey(new DictPosition(brick.GetPosition())))
+            if (ModuleContainer.Container.ModuleDictionary.ContainsKey(new DictPosition(brick.GetPosition())))
             {
                 bricks.Add(brick);
             }
@@ -335,7 +335,7 @@ public class LegoIO : MonoBehaviour
 
         
 
-        foreach (Matrix4x4 matrix4x4 in LegoContainer.Container.TransformArray)
+        foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.TransformArray)
         {
             if (matrix4x4 == Matrix4x4.zero) continue;
 
@@ -359,8 +359,8 @@ public class LegoIO : MonoBehaviour
     }
 }
 
-public delegate void SaveLegoDelegate(string path, JsonMatrixContainer container);
-public delegate void LoadLegoDelegate(string path);
+public delegate void SaveAssemblyDelegate(string path, JsonMatrixContainer container);
+public delegate void LoadAssemblyDelegate(string path);
 
 public class JsonMatrixContainer
 {

@@ -4,9 +4,9 @@ using UnityEngine;
 using GPUInstancer;
 using System;
 
-public class LegoContainer
+public class ModuleContainer
 {
-    public static LegoContainer Container { get; set; }
+    public static ModuleContainer Container { get; set; }
 
     public static readonly int brickBatchSize = 100000;
 
@@ -17,12 +17,12 @@ public class LegoContainer
     Matrix4x4[] transformArray;
     public Matrix4x4[] TransformArray { get { return transformArray; } }
 
-    Dictionary<DictPosition, int> legoDictionary;
-    public Dictionary<DictPosition, int> LegoDictionary { get { return legoDictionary; } }
+    Dictionary<DictPosition, int> moduleDictionary;
+    public Dictionary<DictPosition, int> ModuleDictionary { get { return moduleDictionary; } }
 
     bool logAddRemove = false;
 
-    public LegoContainer(GPUInstancerPrefabManager _manager, GPUInstancerPrefab _brick)
+    public ModuleContainer(GPUInstancerPrefabManager _manager, GPUInstancerPrefab _brick)
     {
         Container = this;
         manager = _manager;
@@ -35,7 +35,7 @@ public class LegoContainer
     {
         transformArray = new Matrix4x4[brickBatchSize];
         indexStack = new Stack<int>();
-        legoDictionary = new Dictionary<DictPosition, int>();
+        moduleDictionary = new Dictionary<DictPosition, int>();
 
 
         for (int i = brickBatchSize - 1; i >= 0; --i)
@@ -87,10 +87,10 @@ public class LegoContainer
             NewBatch();
 
         DictPosition key = new DictPosition(_transform.GetPosition());
-        if (!legoDictionary.ContainsKey(key))
+        if (!moduleDictionary.ContainsKey(key))
         {
             int idx = indexStack.Pop();
-            legoDictionary.Add(key, idx);
+            moduleDictionary.Add(key, idx);
             transformArray[idx] = _transform;
             return true;
         }
@@ -119,11 +119,11 @@ public class LegoContainer
     bool BrickFromArray(Matrix4x4 _transform)
     {
         DictPosition key = new DictPosition(_transform.GetPosition());
-        if (legoDictionary.ContainsKey(key))
+        if (moduleDictionary.ContainsKey(key))
         {
-            transformArray[legoDictionary[key]] = Matrix4x4.zero;
-            indexStack.Push(legoDictionary[key]);
-            legoDictionary.Remove(key);
+            transformArray[moduleDictionary[key]] = Matrix4x4.zero;
+            indexStack.Push(moduleDictionary[key]);
+            moduleDictionary.Remove(key);
             return true;
         }
         else
@@ -132,7 +132,7 @@ public class LegoContainer
 
     public int GetCount()
     {
-        return legoDictionary.Count;
+        return moduleDictionary.Count;
     }
 }
 

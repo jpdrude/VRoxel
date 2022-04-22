@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Valve.VR;
 
-public class SteamVR_LegoSpawner : MonoBehaviour
+public class SteamVR_AssemblySpawner : MonoBehaviour
 {
     [Header("VR-Input")]
     [SerializeField]
@@ -85,11 +85,11 @@ public class SteamVR_LegoSpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (LegoContainer.Container == null) return; 
+        if (ModuleContainer.Container == null) return; 
         CheckTrigger();
         CheckSphereScale();
         CheckBoxScale();
-        MessageSystem.DisplayPermanentMessage(LegoContainer.Container.GetCount() + " Bricks");
+        MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Bricks");
     }
 
     void CheckTrigger()
@@ -173,22 +173,22 @@ public class SteamVR_LegoSpawner : MonoBehaviour
 
     void SpawnBricksAtPosition(Vector3 pos, float radius)
     {
-        LegoContainer.Container.AddBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
+        ModuleContainer.Container.AddBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
     }
 
     void RemoveBricksAtPosition(Vector3 pos, float radius)
     {
-        LegoContainer.Container.RemoveBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
+        ModuleContainer.Container.RemoveBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
     }
 
     void SpawnBricksInBox()
     {
-        LegoContainer.Container.AddBricks(GameManager.Bond.GetBricksInBox(cubeBehaviour.Min, cubeBehaviour.Max));
+        ModuleContainer.Container.AddBricks(GameManager.Bond.GetBricksInBox(cubeBehaviour.Min, cubeBehaviour.Max));
     }
 
     void RemoveBricksInBox()
     {
-        LegoContainer.Container.RemoveBricks(GameManager.Bond.GetBricksInBox(cubeBehaviour.Min, cubeBehaviour.Max));
+        ModuleContainer.Container.RemoveBricks(GameManager.Bond.GetBricksInBox(cubeBehaviour.Min, cubeBehaviour.Max));
     }
 
     void UpdateSphereScale()
