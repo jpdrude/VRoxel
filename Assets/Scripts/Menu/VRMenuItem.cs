@@ -11,6 +11,8 @@ public class VRMenuItem : MonoBehaviour
     SteamVR_Action_Boolean trigger;
     [SerializeField]
     UnityEvent action;
+    [SerializeField]
+    UnityEvent actionPressed;
 
     [Header("Focus Animation Settings")]
     [SerializeField]
@@ -48,6 +50,9 @@ public class VRMenuItem : MonoBehaviour
     {
         if (focused && trigger.GetStateDown(SteamVR_Input_Sources.RightHand))
             action.Invoke();
+
+        if (focused && trigger.GetState(SteamVR_Input_Sources.RightHand))
+            actionPressed.Invoke();
 
         focused = false;
 

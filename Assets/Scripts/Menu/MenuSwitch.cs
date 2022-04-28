@@ -1,6 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Valve.VR.InteractionSystem;
+using Valve.VR;
+using UnityEngine.XR;
+using UnityEngine.UI;
+using UnityEngine.ProBuilder;
+using UnityEngine.ProBuilder.MeshOperations;
 
 public class MenuSwitch : MonoBehaviour
 {
@@ -11,6 +17,7 @@ public class MenuSwitch : MonoBehaviour
     [SerializeField]
     GameObject menuSelector;
 
+    [Space]
     [Header("Menu Options")]
     [SerializeField]
     GameObject icons;
@@ -19,6 +26,20 @@ public class MenuSwitch : MonoBehaviour
     [SerializeField]
     GameObject reallyLoad;
 
+    [Space]
+    [Header("VR Player Elevation")]
+    [SerializeField]
+    GameObject vrPlayer;
+    [SerializeField]
+    float elevationSpeed = 0.5f;
+    [SerializeField]
+    Material platformMaterial;
+    [SerializeField]
+    SteamVR_PlayArea playArea;
+
+    float playerHeight = 0;
+    GameObject platform = null;
+
     private void Start()
     {
         activeAggregationTool.SetActive(true);
@@ -26,6 +47,9 @@ public class MenuSwitch : MonoBehaviour
 
         reallyLoad.SetActive(false);
         reallyNew.SetActive(false);
+
+        Teleport.Player.Listen(PlayerTeleported);
+        platform = PlatformMesh.GeneratePlatformMesh(platformMaterial);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -62,4 +86,39 @@ public class MenuSwitch : MonoBehaviour
         reallyNew.SetActive(false);
         reallyLoad.SetActive(false);
     }
+
+    public void RaisePlayer()
+    {
+        playerHeight += Time.deltaTime * elevationSpeed;
+
+        SetPlayerHeight();
+    }
+
+    public void LowerPlayer()
+    {
+        playerHeight -= Time.deltaTime * elevationSpeed;
+        if (playerHeight < 0) playerHeight = 0;
+
+        SetPlayerHeight();
+    }
+
+    void SetPlayerHeight()
+    {
+        Vector3 currentPos = vrPlayer.transform.position;
+        currentPos.y = playerHeight;
+        vrPlayer.transform.position = currentPos;
+
+        platform.transform.localScale = new Vector3(1, playerHeight, 1);
+        platform.transform.position = vrPlayer.transform.position;
+
+        if (playerHeight == 0)
+            platform.SetActive(false);
+        else
+            platform.SetActive(true);
+    }
+
+    void PlayerTeleported(TeleportMarkerBase marker)
+    {
+        SetPlayerHeight();
+    } 
 }
