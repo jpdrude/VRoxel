@@ -109,7 +109,7 @@ public class MenuSwitch : MonoBehaviour
         vrPlayer.transform.position = currentPos;
 
         platform.transform.localScale = new Vector3(1, playerHeight, 1);
-        platform.transform.position = vrPlayer.transform.position;
+        platform.transform.position = new Vector3(vrPlayer.transform.position.x, 0, vrPlayer.transform.position.z);
 
         if (playerHeight == 0)
             platform.SetActive(false);

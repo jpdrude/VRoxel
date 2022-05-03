@@ -18,8 +18,9 @@ public static class PlatformMesh
 
         foreach (var bound in collisionBounds)
         {
-            boundaryList.Add(new Vector3(bound.vCorners0.v0, bound.vCorners0.v1, bound.vCorners0.v2));
+            boundaryList.Add(new Vector3(bound.vCorners0.v0, 0, -bound.vCorners0.v2));
         }
+        boundaryList.Reverse();
         boundary = boundaryList.ToArray();
 
         var mr = platform.AddComponent<MeshRenderer>();
@@ -31,6 +32,7 @@ public static class PlatformMesh
 
         return platform;
     }
+
 
     public static Mesh ExtrudeMeshFromPoints(Vector3[] floorVertices)
     {
