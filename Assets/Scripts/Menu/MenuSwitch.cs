@@ -102,6 +102,11 @@ public class MenuSwitch : MonoBehaviour
         SetPlayerHeight();
     }
 
+    public void ModulesToPointCloud()
+    {
+        PointCloudIO.ModulesToCloud(ModuleContainer.Container.ModulesToPC());
+    }
+
     void SetPlayerHeight()
     {
         Vector3 currentPos = vrPlayer.transform.position;
@@ -121,4 +126,6 @@ public class MenuSwitch : MonoBehaviour
     {
         SetPlayerHeight();
     } 
+
+
 }

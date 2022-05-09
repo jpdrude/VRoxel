@@ -17,6 +17,9 @@ public class ModuleContainer
     Matrix4x4[] transformArray;
     public Matrix4x4[] TransformArray { get { return transformArray; } }
 
+    Matrix4x4[] pcTransforms;
+    public Matrix4x4[] PcTransforms { get { return pcTransforms; } }
+
     Dictionary<DictPosition, int> moduleDictionary;
     public Dictionary<DictPosition, int> ModuleDictionary { get { return moduleDictionary; } }
 
@@ -31,11 +34,32 @@ public class ModuleContainer
         ResetContainer();
     }
 
-    public void ResetContainer()
+    public Matrix4x4[] ModulesToPC()
+    {
+        if (pcTransforms == null)
+            pcTransforms = transformArray;
+        else
+        {
+            Matrix4x4[] combinedTransforms = new Matrix4x4[transformArray.Length + pcTransforms.Length];
+            Array.Copy(pcTransforms, combinedTransforms, pcTransforms.Length);
+            Array.Copy(transformArray, 0, combinedTransforms, pcTransforms.Length, transformArray.Length);
+            pcTransforms = combinedTransforms;
+        }
+
+        var returnArray = transformArray;
+
+        ResetContainer(true);
+
+        return returnArray;
+    }
+
+    public void ResetContainer(bool keepDictionary = false)
     {
         transformArray = new Matrix4x4[brickBatchSize];
         indexStack = new Stack<int>();
-        moduleDictionary = new Dictionary<DictPosition, int>();
+        
+        if (!keepDictionary)
+            moduleDictionary = new Dictionary<DictPosition, int>();
 
 
         for (int i = brickBatchSize - 1; i >= 0; --i)
@@ -102,10 +126,8 @@ public class ModuleContainer
     {
         Matrix4x4[] tempTransformArray = new Matrix4x4[transformArray.Length + brickBatchSize];
 
-        for (int i = 0; i < transformArray.Length; ++i)
-        {
-            tempTransformArray[i] = transformArray[i];
-        }
+        Array.Copy(transformArray, tempTransformArray, transformArray.Length);
+
         for (int i = transformArray.Length; i < tempTransformArray.Length; ++i)
         {
             indexStack.Push(i);

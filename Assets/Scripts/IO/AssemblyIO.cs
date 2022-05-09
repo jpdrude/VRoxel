@@ -17,6 +17,8 @@ public class AssemblyIO : MonoBehaviour
 
     static object lockKey = new object();
 
+    static string message = null;
+
     private void Update()
     {
 
@@ -43,6 +45,12 @@ public class AssemblyIO : MonoBehaviour
             loadContainer = null;
             loadBond = null;
         }
+
+        if (message != null)
+        {
+            MessageSystem.DisplayMessage(message);
+            message = null;
+        }
     }
 
     public static void SaveAssemblyLayout(string path)
@@ -54,6 +62,10 @@ public class AssemblyIO : MonoBehaviour
         }
 
         JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.name);
+
+        if (ModuleContainer.Container.PcTransforms != null)
+            foreach (Matrix4x4 matrix4X4 in ModuleContainer.Container.PcTransforms)
+                container.matrices.Add(new JsonMatrix(conversionMatrix * matrix4X4));
 
         foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.TransformArray)
         {
@@ -68,33 +80,47 @@ public class AssemblyIO : MonoBehaviour
 
     static void SaveAsync(string path, JsonMatrixContainer container)
     {
+        Debug.Log("Start saving at " + DateTime.Now.ToString("T"));
         using (StreamWriter file = File.CreateText(path))
         {
             JsonSerializer serializer = new JsonSerializer();
             serializer.Serialize(file, container);
         }
 
+        Debug.Log("Finished saving at " + DateTime.Now.ToString("T"));
+
         lock (lockKey)
+        {
             currentSaveTargets.Remove(path);
+            message = "Saved!";
+        }
     }
 
     public static void LoadAssemblyLayout(string path)
     {
         LoadAssemblyDelegate loadDelegate = new LoadAssemblyDelegate(LoadAsync);
         loadDelegate.BeginInvoke(path, null, null);
+        //LoadAsync(path);
     }
 
     static void LoadAsync(string path)
     {
         JsonMatrixContainer container = new JsonMatrixContainer();
+        Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
+        string jsonContent;
 
+        using (StreamReader file = File.OpenText(path))
+        {
+            jsonContent = file.ReadToEnd();
+        }
+
+        Debug.Log("File read at " + DateTime.Now.ToString("T"));
+
+        /*
         try
         {
-            using (StreamReader file = File.OpenText(path))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                container = (JsonMatrixContainer)serializer.Deserialize(file, typeof(JsonMatrixContainer));
-            }
+            JsonSerializer serializer = new JsonSerializer();
+            container = JsonConvert.DeserializeObject<JsonMatrixContainer>(jsonContent);
         }
         catch
         {
@@ -111,9 +137,146 @@ public class AssemblyIO : MonoBehaviour
 
         lock (lockKey)
         {
-            loadContainer = matrices;
             loadBond = container.bondName;
+            loadContainer = matrices;
         }
+        */
+
+        string bond;
+        Matrix4x4[] matrices = DeserializeFromText(jsonContent, out bond).ToArray();
+
+        Debug.Log("Bond Name: " + bond + ", Matrices: " + matrices.Length);
+
+
+        lock (lockKey)
+        {
+            loadBond = bond;
+            loadContainer = matrices;
+        }
+
+        Debug.Log("Loading finished at " + DateTime.Now.ToString("T"));
+    }
+
+    static List<Matrix4x4> DeserializeFromText(string jsonContent, out string bond)
+    {
+        Matrix4x4 currentMatrix = Matrix4x4.zero;
+        List<Matrix4x4> matrices = new List<Matrix4x4>();
+        bond = "";
+
+        JsonTextReader reader = new JsonTextReader(new StringReader(jsonContent));
+        while (reader.Read())
+        {
+            if (reader.Value != null)
+            {
+                if (reader.TokenType == JsonToken.PropertyName)
+                {
+                    switch ((string)reader.Value)
+                    {
+                        case "m00":
+                            {
+                                currentMatrix.m00 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m01":
+                            {
+                                currentMatrix.m01 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m02":
+                            {
+                                currentMatrix.m02 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m03":
+                            {
+                                currentMatrix.m03 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+
+                        case "m10":
+                            {
+                                currentMatrix.m10 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m11":
+                            {
+                                currentMatrix.m11 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m12":
+                            {
+                                currentMatrix.m12 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m13":
+                            {
+                                currentMatrix.m13 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+
+                        case "m20":
+                            {
+                                currentMatrix.m20 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m21":
+                            {
+                                currentMatrix.m21 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m22":
+                            {
+                                currentMatrix.m22 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m23":
+                            {
+                                currentMatrix.m23 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+
+                        case "m30":
+                            {
+                                currentMatrix.m30 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m31":
+                            {
+                                currentMatrix.m31 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m32":
+                            {
+                                currentMatrix.m32 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "m33":
+                            {
+                                currentMatrix.m33 = (float)reader.ReadAsDouble();
+                                break;
+                            }
+                        case "bondName":
+                            {
+                                bond = reader.ReadAsString();
+                                break;
+                            }
+                    }
+                }
+            }
+            else
+            {
+                if (reader.TokenType == JsonToken.EndObject)
+                {
+                    if (currentMatrix != Matrix4x4.zero)
+                    {
+                        matrices.Add(conversionMatrix * currentMatrix);
+                        currentMatrix = Matrix4x4.zero;
+                    }
+                }
+            }
+        }
+
+        return matrices;
     }
     
     public static void NewGame()

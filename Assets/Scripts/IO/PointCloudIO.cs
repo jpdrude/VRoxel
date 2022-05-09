@@ -15,6 +15,10 @@ public class PointCloudIO : MonoBehaviour
     PointCloudViewerDX11 _pcViewer;
     static PointCloudViewerDX11 pcViewer;
     public static PointCloudViewerDX11 PcViewer { get { return pcViewer; } }
+
+    static bool viewerInitialized = false;
+    static bool useRuntime = false;
+
     private void Start()
     {
         runtimeViewer = _runtimeViewer;
@@ -24,10 +28,40 @@ public class PointCloudIO : MonoBehaviour
     public static void ImportPointCloud(string path)
     {
         runtimeViewer.CallImporterThreaded(path);
+        useRuntime = true;
     }
 
     public static void DisplayPointCloud(string path)
     {
         pcViewer.CallReadPointCloudThreaded(path);
+        viewerInitialized = true;
+    }
+
+    public static void ModulesToCloud(Matrix4x4[] transforms)
+    {
+        Vector3[] points = new Vector3[transforms.Length];
+        Vector3[] colors = new Vector3[transforms.Length];
+
+        for (int i = 0; i < transforms.Length; ++i)
+        {
+            points[i] = transforms[i].GetPosition();
+            colors[i] = new Vector3(220, 220, 220);
+        }
+
+        if (viewerInitialized)
+        {
+            pcViewer.AddPoints(points, colors);
+        }
+        else if (useRuntime)
+        {
+            pcViewer.CreateWithPoints(runtimeViewer.Points, runtimeViewer.PointColors);
+            pcViewer.AddPoints(points, colors);
+            useRuntime = false;
+            viewerInitialized = true;
+        }
+        else
+        {
+            pcViewer.CreateWithPoints(points, colors);
+        }
     }
 }
