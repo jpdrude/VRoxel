@@ -45,7 +45,7 @@ public class PointCloudIO : MonoBehaviour
         for (int i = 0; i < transforms.Length; ++i)
         {
             points[i] = transforms[i].GetPosition();
-            colors[i] = new Vector3(220, 220, 220);
+            colors[i] = new Vector3(0.98f, 0.98f, 0.98f);
         }
 
         if (viewerInitialized)

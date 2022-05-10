@@ -11,10 +11,12 @@ public class SpawnCubeBehaviour : MonoBehaviour
     {
         get
         {
-            if (!flip)
-                return transform.position - transform.localScale / 2;
-            else
+            if (flipXZ)
                 return transform.position - new Vector3(transform.localScale.z, transform.localScale.y, transform.localScale.x) / 2;
+            else if (flipXY)
+                return transform.position - new Vector3(transform.localScale.x, transform.localScale.z, transform.localScale.y) / 2;
+            else
+                return transform.position - transform.localScale / 2;
         }
     }
 
@@ -22,29 +24,42 @@ public class SpawnCubeBehaviour : MonoBehaviour
     {
         get
         {
-            if (!flip)
-                return transform.position + transform.localScale / 2;
-            else
+            if (flipXZ)
                 return transform.position + new Vector3(transform.localScale.z, transform.localScale.y, transform.localScale.x) / 2;
+            else if (flipXY)
+                return transform.position + new Vector3(transform.localScale.x, transform.localScale.z, transform.localScale.y) / 2;
+            else
+                return transform.position + transform.localScale / 2;
+
         }
     }
 
-    bool flip = false;
+    bool flipXY = false;
+    bool flipXZ = false;
 
     // Update is called once per frame
     void Update()
     {
         Vector3 direction = transform.position - parent.transform.position;
+        
 
-        if (Mathf.Abs(direction.x) < Mathf.Abs(direction.z))
+        if (Mathf.Abs(direction.z) > Mathf.Abs(direction.x) && Mathf.Abs(direction.z) > Mathf.Abs(direction.y))
         {
             transform.rotation = Quaternion.Euler(Vector3.zero);
-            flip = false;
+            flipXY = false;
+            flipXZ = false;
+        }
+        else if (Mathf.Abs(direction.y) > Mathf.Abs(direction.x))
+        {
+            transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
+            flipXZ = false;
+            flipXY = true;
         }
         else
         {
             transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
-            flip = true;
+            flipXY = false;
+            flipXZ = true;
         }
     }
 }
