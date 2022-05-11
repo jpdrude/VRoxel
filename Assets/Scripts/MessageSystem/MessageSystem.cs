@@ -65,6 +65,9 @@ public class MessageSystem : MonoBehaviour
         }
 
         currentMessages.Add(messageGo);
+
+        if (permanentVR != null)
+            permanentVR.DisplayMessage(message, 1);
     }
 
     public static void DisplayPermanentMessage(string message)
@@ -88,5 +91,8 @@ public class MessageSystem : MonoBehaviour
         }
 
         currentMessages.Add(messageGo);
+
+        if (permanentVR != null)
+            permanentVR.DisplayMessage(message, 1);
     }
 }

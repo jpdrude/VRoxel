@@ -511,7 +511,7 @@ namespace Valve.VR.InteractionSystem
 						RaycastHit raycastHit;
 						Vector3 traceDir = Vector3.down;
 						traceDir.x = 0.01f;
-						if ( Physics.Raycast( pointedAtPosition + 0.05f * traceDir, traceDir, out raycastHit, floorFixupMaximumTraceDistance, floorFixupTraceLayerMask ) )
+						if ( Physics.Raycast( pointedAtPosition + 0.05f * Vector3.up, Vector3.down, out raycastHit, floorFixupMaximumTraceDistance, floorFixupTraceLayerMask ) )
 						{
 							floorDebugSphere.transform.position = raycastHit.point;
 							floorDebugSphere.material.color = Color.green;
@@ -884,7 +884,7 @@ namespace Valve.VR.InteractionSystem
 				if ( floorFixupMaximumTraceDistance > 0.0f )
 				{
 					RaycastHit raycastHit;
-					if ( Physics.Raycast( teleportPosition + 0.05f * Vector3.down, Vector3.down, out raycastHit, floorFixupMaximumTraceDistance, floorFixupTraceLayerMask ) )
+					if ( Physics.Raycast( teleportPosition + 0.05f * Vector3.up, Vector3.down, out raycastHit, floorFixupMaximumTraceDistance, floorFixupTraceLayerMask ) )
 					{
 						teleportPosition = raycastHit.point;
 					}
@@ -895,15 +895,20 @@ namespace Valve.VR.InteractionSystem
 			{
 				Vector3 playerFeetOffset = player.trackingOriginTransform.position - player.feetPositionGuess;
 				player.trackingOriginTransform.position = teleportPosition + playerFeetOffset;
+				//player.transform.position = teleportPosition + playerFeetOffset;
+				//Debug.Log("to Marker should move: " + player.trackingOriginTransform.position);
 
+				
                 if (player.leftHand.currentAttachedObjectInfo.HasValue)
                     player.leftHand.ResetAttachedTransform(player.leftHand.currentAttachedObjectInfo.Value);
                 if (player.rightHand.currentAttachedObjectInfo.HasValue)
                     player.rightHand.ResetAttachedTransform(player.rightHand.currentAttachedObjectInfo.Value);
+				
             }
 			else
 			{
 				teleportingToMarker.TeleportPlayer( pointedAtPosition );
+				Debug.Log("no marker should move: " + pointedAtPosition);
 			}
 
 			Teleport.Player.Send( pointedAtTeleportMarker );

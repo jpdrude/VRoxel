@@ -14,6 +14,7 @@ public class PermanentMessage : MonoBehaviour
     float fadeOutTime;
     Color startColor;
     Color endColor;
+    int priority = 0;
 
     public void Initialize(float _displayTime, float _fadeOutTime)
     {
@@ -36,10 +37,8 @@ public class PermanentMessage : MonoBehaviour
         endColor.a = 0;
     }
 
-    public void DisplayMessage(string message)
+    public void DisplayMessage(string message, int _priority = 0)
     {
-        timer = 0;
-
         if (!tmPro)
         {
             text.text = message;
@@ -47,9 +46,14 @@ public class PermanentMessage : MonoBehaviour
         }
         else
         {
+            if (priority > _priority) return;
+
+            priority = _priority;
             tmProText.text = message;
             tmProText.color = startColor;
         }
+
+        timer = 0;
     }
 
     void Update()
@@ -60,6 +64,7 @@ public class PermanentMessage : MonoBehaviour
 
         if (timer > displayTime + fadeOutTime)
         {
+            priority = 0;
             return;
         }
 

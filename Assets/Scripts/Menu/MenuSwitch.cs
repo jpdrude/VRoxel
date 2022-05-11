@@ -39,6 +39,7 @@ public class MenuSwitch : MonoBehaviour
 
     float playerHeight = 0;
     GameObject platform = null;
+    Vector3 basePos;
 
     private void Start()
     {
@@ -110,11 +111,11 @@ public class MenuSwitch : MonoBehaviour
     void SetPlayerHeight()
     {
         Vector3 currentPos = vrPlayer.transform.position;
-        currentPos.y = playerHeight;
+        currentPos.y = playerHeight + basePos.y;
         vrPlayer.transform.position = currentPos;
 
         platform.transform.localScale = new Vector3(1, playerHeight, 1);
-        platform.transform.position = new Vector3(vrPlayer.transform.position.x, 0, vrPlayer.transform.position.z);
+        platform.transform.position = basePos;
 
         if (playerHeight == 0)
             platform.SetActive(false);
@@ -124,6 +125,7 @@ public class MenuSwitch : MonoBehaviour
 
     void PlayerTeleported(TeleportMarkerBase marker)
     {
+        basePos = vrPlayer.transform.position;
         SetPlayerHeight();
     } 
 

@@ -92,7 +92,7 @@ public class AssemblyIO : MonoBehaviour
         lock (lockKey)
         {
             currentSaveTargets.Remove(path);
-            message = "Saved!";
+            message = "File Saved!";
         }
     }
 

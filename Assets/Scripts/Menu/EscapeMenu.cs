@@ -14,6 +14,12 @@ public class EscapeMenu : MonoBehaviour
     GameObject player;
     [SerializeField]
     Valve.VR.SteamVR_ActionSet actionSet;
+    [SerializeField]
+    GameObject teleportAreas;
+    [SerializeField]
+    Material teleportAreaMaterial;
+    [SerializeField]
+    GameObject teleportAreaPrefab;
 
     [Space]
     [Header("Platform")]
@@ -158,6 +164,20 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.ShowLoadDialog(OnGeometryImportSuccess, OnCancel, FileBrowser.PickMode.Files);
     }
 
+    public void ImportTeleportAreas()
+    {
+        if (player.activeSelf == false)
+        {
+            MessageSystem.DisplayWarning("No VR activated!");
+            Resume();
+            return;
+        }
+
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("Geometry", ".fbx", ".obj", ".stl"));
+        FileBrowser.SetDefaultFilter(".fbx");
+        FileBrowser.ShowLoadDialog(OnTeleportAreaImportSuccess, OnCancel, FileBrowser.PickMode.Files);
+    }
+
     public void ImportMotionCapture()
     {
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Motion Capture", ".fbx"));
@@ -282,6 +302,12 @@ public class EscapeMenu : MonoBehaviour
     void OnGeometryImportSuccess(string[] paths)
     {
         GeometryIO.ImportGeometry(paths[0]);
+        Resume();
+    }
+
+    void OnTeleportAreaImportSuccess(string[] paths)
+    {
+        GeometryIO.ImportTeleportArea(paths[0], teleportAreas, teleportAreaMaterial, teleportAreaPrefab);
         Resume();
     }
 
