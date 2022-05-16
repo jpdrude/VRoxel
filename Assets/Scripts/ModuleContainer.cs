@@ -71,19 +71,34 @@ public class ModuleContainer
         GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
     }
 
-    public void AddBrick(Matrix4x4 _transform)
+    public void AddBrick(Matrix4x4 _transform, Vector3Int? dictPosition = null)
     {
-        BrickToArray(_transform);
+        if (dictPosition == null)
+            BrickToArray(_transform);
+        else
+            BrickToArray(_transform, (Vector3Int)dictPosition);
+
         GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
     }
 
-    public void AddBricks(Matrix4x4[] matrices)
+    public void AddBricks(Matrix4x4[] matrices, Vector3Int[] dictPositions = null)
     {
         DateTime start = DateTime.Now;
         int counter = 0;
 
-        foreach (Matrix4x4 matrix4x4 in matrices)
-            if (BrickToArray(matrix4x4)) ++counter;
+        for (int i = 0; i < matrices.Length; ++i)
+        {
+            var matrix4x4 = matrices[i];
+
+            if (dictPositions == null)
+            {
+                if (BrickToArray(matrix4x4)) ++counter;
+            }
+            else
+            {
+                if (BrickToArray(matrix4x4, dictPositions[i])) ++counter;
+            }
+        }
 
         TimeSpan duration = DateTime.Now - start;
         if (logAddRemove) Debug.Log("Added " + counter + " bricks of " + matrices.Length + " possible. Took " + duration.TotalMilliseconds.ToString("F1") + " milliseconds");
@@ -91,26 +106,42 @@ public class ModuleContainer
         GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
     }
 
-    public void RemoveBricks(Matrix4x4[] _transforms)
+    public void RemoveBricks(Matrix4x4[] matrices, Vector3Int[] dictPositions = null)
     {
         DateTime start = DateTime.Now;
         int counter = 0;
 
-        foreach (Matrix4x4 _transform in _transforms)
-            if (BrickFromArray(_transform)) ++counter;
+        for (int i = 0; i < matrices.Length; ++i)
+        {
+            var matrix4x4 = matrices[i];
+
+            if (dictPositions == null)
+            {
+                if (BrickFromArray(matrix4x4)) ++counter;
+            }
+            else
+            {
+                if (BrickFromArray(matrix4x4, dictPositions[i])) ++counter;
+            }
+        }
 
         TimeSpan duration = DateTime.Now - start;
-        if (logAddRemove) Debug.Log("Removed " + counter + " bricks of " + _transforms.Length + " possible. Took " + duration.TotalMilliseconds.ToString("F1") + " milliseconds");
+        if (logAddRemove) Debug.Log("Removed " + counter + " bricks of " + matrices.Length + " possible. Took " + duration.TotalMilliseconds.ToString("F1") + " milliseconds");
 
         GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
     }
 
-    bool BrickToArray(Matrix4x4 _transform)
+    bool BrickToArray(Matrix4x4 _transform, Vector3Int? dictPos = null)
     {
         if (indexStack.Count == 0)
             NewBatch();
 
-        DictPosition key = new DictPosition(_transform.GetPosition());
+        DictPosition key;
+        if (dictPos == null)
+            key = new DictPosition(_transform.GetPosition());
+        else
+            key = new DictPosition((Vector3Int)dictPos);
+
         if (!moduleDictionary.ContainsKey(key))
         {
             int idx = indexStack.Pop();
@@ -138,9 +169,14 @@ public class ModuleContainer
         GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, brick.prefabPrototype, transformArray);
     }
 
-    bool BrickFromArray(Matrix4x4 _transform)
+    bool BrickFromArray(Matrix4x4 _transform, Vector3Int? dictPos = null)
     {
-        DictPosition key = new DictPosition(_transform.GetPosition());
+        DictPosition key;
+        if (dictPos == null)
+            key = new DictPosition(_transform.GetPosition());
+        else
+            key = new DictPosition((Vector3Int)dictPos);
+
         if (moduleDictionary.ContainsKey(key))
         {
             transformArray[moduleDictionary[key]] = Matrix4x4.zero;
@@ -169,6 +205,13 @@ public struct DictPosition
         x = Mathf.RoundToInt(vec.x * 100000);
         y = Mathf.RoundToInt(vec.y * 100000);
         z = Mathf.RoundToInt(vec.z * 100000);
+    }
+
+    public DictPosition(Vector3Int vec)
+    {
+        x = vec.x;
+        y = vec.y;
+        z = vec.z;
     }
 
     public override bool Equals(object obj)

@@ -43,12 +43,16 @@ public class TargetSpawner : MonoBehaviour
 
     void SpawnBricksAtPosition(Vector3 pos, float radius)
     {
-        ModuleContainer.Container.AddBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInSphere(pos, radius, out dictPositions);
+        ModuleContainer.Container.AddBricks(bricks, dictPositions);
     }
 
     void RemoveBricksAtPosition(Vector3 pos, float radius)
     {
-        ModuleContainer.Container.RemoveBricks(GameManager.Bond.GetBricksInSphere(pos, radius));
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInSphere(pos, radius, out dictPositions);
+        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
     }
 
     void CheckScale()
