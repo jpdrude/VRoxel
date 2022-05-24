@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour
 
     public void Save()
     {
-        AssemblyIO.SaveAssemblyLayout(Application.persistentDataPath + "/quickSave.json");
+        AssemblyIO.SaveAssemblyLayout(Application.persistentDataPath + "/quickSave.json", true);
     }
 
     public void Load()

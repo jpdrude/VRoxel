@@ -113,11 +113,15 @@ public class EscapeMenu : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
     }
 
-    public void Save()
+    public void Save(bool saveInactive)
     {
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Json", ".json"));
         FileBrowser.SetDefaultFilter(".json");
-        FileBrowser.ShowSaveDialog(OnSaveSuccess, OnCancel, FileBrowser.PickMode.Files, false);
+
+        if (saveInactive)
+            FileBrowser.ShowSaveDialog(OnSaveAllSuccess, OnCancel, FileBrowser.PickMode.Files, false);
+        else
+            FileBrowser.ShowSaveDialog(OnSaveSuccess, OnCancel, FileBrowser.PickMode.Files, false);
     }
 
     public void Load()
@@ -317,13 +321,22 @@ public class EscapeMenu : MonoBehaviour
         ImportPointCloud();
     }
 
+    void OnSaveAllSuccess(string[] paths)
+    {
+        string path = paths[0];
+        string[] split = path.Split('.');
+        if (split[split.Length - 1].ToLower() != "json")
+            path = path + "/json";
+        AssemblyIO.SaveAssemblyLayout(path, true);
+    }
+
     void OnSaveSuccess(string[] paths)
     {
         string path = paths[0];
         string[] split = path.Split('.');
         if (split[split.Length - 1].ToLower() != "json")
             path = path + "/json";
-        AssemblyIO.SaveAssemblyLayout(path);
+        AssemblyIO.SaveAssemblyLayout(path, false);
     }
 
     void OnLoadSuccess(string[] paths)

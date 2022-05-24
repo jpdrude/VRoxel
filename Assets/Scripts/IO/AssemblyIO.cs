@@ -53,7 +53,7 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
-    public static void SaveAssemblyLayout(string path)
+    public static void SaveAssemblyLayout(string path, bool saveInactive)
     {
         if (currentSaveTargets.Contains(path))
         {
@@ -63,9 +63,14 @@ public class AssemblyIO : MonoBehaviour
 
         JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.name);
 
-        if (ModuleContainer.Container.PcTransforms != null)
-            foreach (Matrix4x4 matrix4X4 in ModuleContainer.Container.PcTransforms)
-                container.matrices.Add(new JsonMatrix(conversionMatrix * matrix4X4));
+        if (ModuleContainer.Container.PcTransforms != null && saveInactive)
+        {
+            foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.PcTransforms)
+            {
+                if (matrix4x4 != Matrix4x4.zero)
+                    container.matrices.Add(new JsonMatrix(conversionMatrix * matrix4x4));
+            }
+        }
 
         foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.TransformArray)
         {

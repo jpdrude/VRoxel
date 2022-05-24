@@ -36,17 +36,24 @@ public class ModuleContainer
 
     public Matrix4x4[] ModulesToPC()
     {
-        if (pcTransforms == null)
-            pcTransforms = transformArray;
-        else
+        List<Matrix4x4> transformList = new List<Matrix4x4>();
+        foreach(Matrix4x4 matrix4x4 in transformArray)
         {
-            Matrix4x4[] combinedTransforms = new Matrix4x4[transformArray.Length + pcTransforms.Length];
-            Array.Copy(pcTransforms, combinedTransforms, pcTransforms.Length);
-            Array.Copy(transformArray, 0, combinedTransforms, pcTransforms.Length, transformArray.Length);
-            pcTransforms = combinedTransforms;
+            if (matrix4x4 != Matrix4x4.zero)
+                transformList.Add(matrix4x4);
         }
 
-        var returnArray = transformArray;
+        Matrix4x4[] returnArray = transformList.ToArray();
+
+        if (pcTransforms == null)
+            pcTransforms = returnArray;
+        else
+        {
+            Matrix4x4[] combinedTransforms = new Matrix4x4[returnArray.Length + pcTransforms.Length];
+            Array.Copy(pcTransforms, combinedTransforms, pcTransforms.Length);
+            Array.Copy(returnArray, 0, combinedTransforms, pcTransforms.Length, returnArray.Length);
+            pcTransforms = combinedTransforms;
+        }
 
         ResetContainer(true);
 
@@ -202,9 +209,9 @@ public struct DictPosition
 
     public DictPosition(Vector3 vec)
     {
-        x = Mathf.RoundToInt(vec.x * 100000);
-        y = Mathf.RoundToInt(vec.y * 100000);
-        z = Mathf.RoundToInt(vec.z * 100000);
+        x = Mathf.RoundToInt(vec.x * 10000);
+        y = Mathf.RoundToInt(vec.y * 10000);
+        z = Mathf.RoundToInt(vec.z * 10000);
     }
 
     public DictPosition(Vector3Int vec)
