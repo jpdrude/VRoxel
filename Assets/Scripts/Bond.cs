@@ -177,4 +177,43 @@ public class Bond : MonoBehaviour
         dictPositions = intPositions.ToArray();
         return bricks.ToArray();
     }
+
+    public Matrix4x4[] GetBricksInCylinder(Vector3 position, float radius, float height, out Vector3Int[] dictPositions)
+    {
+        Vector3 min = position - new Vector3(radius, height / 2, radius);
+        Vector3 max = position + new Vector3(radius, height / 2, radius);
+
+        Vector3Int minInt = GetBondBaseInt(min);
+        Vector3 maxScaled = max * 10000;
+
+        List<Matrix4x4> bricks = new List<Matrix4x4>();
+        List<Vector3Int> intPositions = new List<Vector3Int>();
+
+        for (int x = minInt.x; x < maxScaled.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+        {
+            for (int y = minInt.y; y < maxScaled.y; y += GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            {
+                for (int z = minInt.z; z < maxScaled.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+                {
+                    foreach (Transform brick in GameManager.Bond.bricks)
+                    {
+                        Vector3 brickPosition = brick.localPosition + new Vector3Int(x, y, z).Divide(10000);
+
+                        bool inRadius = Vector3.Distance(new Vector3(position.x, 0, position.z), new Vector3(brickPosition.x, 0, brickPosition.z)) < radius;
+
+                        if (inRadius && brickPosition.y <= position.y + height / 2 && brickPosition.y >= position.y - height / 2)
+                        {
+                            bricks.Add(Matrix4x4.TRS(brickPosition, brick.localRotation, Vector3.one));
+                            Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(brick.localPosition.x * 10000), Mathf.RoundToInt(brick.localPosition.y * 10000), Mathf.RoundToInt(brick.localPosition.z * 10000));
+                            intPositions.Add(localIntPosition + new Vector3Int(x, y, z));
+                            //Debug.Log("Brick added. Position: " + (brick.localPosition + new Vector3Int(x, y, z).Divide(10000)).ToString("F4") + ", intPosition: " + (localIntPosition + new Vector3Int(x, y, z)).ToString());
+                        }
+                    }
+                }
+            }
+        }
+
+        dictPositions = intPositions.ToArray();
+        return bricks.ToArray();
+    }
 }

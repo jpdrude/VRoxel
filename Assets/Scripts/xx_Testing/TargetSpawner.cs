@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class TargetSpawner : MonoBehaviour
 {
@@ -8,17 +9,76 @@ public class TargetSpawner : MonoBehaviour
     float speed;
 
     [SerializeField]
+    float scaleSpeed = 0.05f;
+
+    [SerializeField]
     GameObject sphere;
+
+    [SerializeField]
+    GameObject box;
+
+    [SerializeField]
+    GameObject cylinder;
+
+    [SerializeField]
+    Camera camera;
+
+    [SerializeField]
+    RectTransform fovImg;
 
     [SerializeField]
     GameObject cameraTarget;
 
+    [SerializeField]
+    GameObject interfacePanel;
+
+    [SerializeField]
+    List<TMP_InputField> inputs;
+
     float radius = 0.05f;
+    Vector3 boxSize = new Vector3(0.1f, 0.1f, 0.1f);
+    float cylinderRadius = 0.05f;
+    float cylinderHeight = 0.1f;
+    Vector3 scaleVector = Vector3.zero;
+
+    float epsilon = 0.000001f;
+
+    PlacementVolume placement;
+    PlacementVolume Placement
+    {
+        get { return placement; }
+        set
+        {
+            placement = value;
+
+            if (placement == PlacementVolume.Sphere)
+            {
+                sphere.SetActive(true);
+                box.SetActive(false);
+                cylinder.SetActive(false);
+                CheckScale(Vector3.zero);
+            }
+            else if (placement == PlacementVolume.Box)
+            {
+                sphere.SetActive(false);
+                box.SetActive(true);
+                cylinder.SetActive(false);
+                CheckScale(Vector3.zero);
+            }
+            else if (placement == PlacementVolume.Cylinder)
+            {
+                sphere.SetActive(false);
+                box.SetActive(false);
+                cylinder.SetActive(true);
+                CheckScale(Vector3.zero);
+            }
+        }
+    }
 
     private void Start()
     {
-        sphere.transform.localScale = Vector3.one * 2 * radius;
         cameraTarget.transform.position = transform.position;
+        SetPlacementVolume(0);
     }
 
     void Update()
@@ -26,14 +86,42 @@ public class TargetSpawner : MonoBehaviour
         if (ModuleContainer.Container == null) return;
 
         CheckMovement();
-        CheckScale();
+        CheckScale(scaleVector);
+        CheckSpawn();
 
-        if (Input.GetKey(KeyCode.Return))
-            SpawnBricksAtPosition(transform.position, radius);
-        if (Input.GetKey(KeyCode.Backspace))
-            RemoveBricksAtPosition(transform.position, radius);
+        if (Input.GetKeyDown(KeyCode.H))
+            interfacePanel.SetActive(!interfacePanel.activeSelf);
 
         MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Bricks placed");
+    }
+
+    void CheckSpawn()
+    {
+        if (Input.GetKey(KeyCode.Return))
+        {
+            if (Placement == PlacementVolume.Sphere)
+                SpawnBricksAtPosition(transform.position, radius);
+            else if (Placement == PlacementVolume.Box)
+                SpawnBricksInBox();
+            else if (Placement == PlacementVolume.Cylinder)
+                SpawnBricksInCylinder();
+        }
+        if (Input.GetKey(KeyCode.Backspace))
+        {
+            if (Placement == PlacementVolume.Sphere)
+                RemoveBricksAtPosition(transform.position, radius);
+            else if (Placement == PlacementVolume.Box)
+                RemoveBricksInBox();
+            else if (Placement == PlacementVolume.Cylinder)
+                RemoveBricksInCylinder();
+        }
+            
+    }
+
+    public void SetPlacementVolume(int volume)
+    {
+        Debug.Log("Placement Volume changed to: " + (PlacementVolume)volume);
+        Placement = (PlacementVolume)volume;
     }
 
     void SpawnBrickAtPosition(Vector3 pos)
@@ -55,19 +143,173 @@ public class TargetSpawner : MonoBehaviour
         ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
     }
 
-    void CheckScale()
+    void SpawnBricksInBox()
     {
-        if (Input.GetKey(KeyCode.UpArrow))
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInBox(transform.position - boxSize / 2, transform.position + boxSize / 2, out dictPositions);
+        ModuleContainer.Container.AddBricks(bricks, dictPositions);
+    }
+
+    void RemoveBricksInBox()
+    {
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInBox(transform.position - boxSize / 2, transform.position + boxSize / 2, out dictPositions);
+        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
+    }
+
+    void SpawnBricksInCylinder()
+    {
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInCylinder(transform.position, cylinderRadius, cylinderHeight, out dictPositions);
+        ModuleContainer.Container.AddBricks(bricks, dictPositions);
+    }
+
+    void RemoveBricksInCylinder()
+    {
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInCylinder(transform.position, cylinderRadius, cylinderHeight, out dictPositions);
+        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
+    }
+
+    public void ClickScaleX(int xScale)
+    {
+        scaleVector.x = xScale;
+    }
+
+    public void ClickScaleY(int yScale)
+    {
+        scaleVector.y = yScale;
+    }
+
+    public void ClickScaleZ(int zScale)
+    {
+        scaleVector.z = zScale;
+    }
+
+    public void UnclickScale()
+    {
+        scaleVector = Vector3.zero;
+    }
+
+    public void SetX(string textInput)
+    {
+        try
         {
-            radius += Time.deltaTime * 0.05f;
-            if (radius > 0.3f) radius = 0.3f;
+            float x = float.Parse(textInput);
+            Vector3 pos = transform.position;
+            pos.x = x;
+            cameraTarget.transform.position = pos;
+            transform.position = pos;
+        }
+        catch
+        {
+            MessageSystem.DisplayWarning("couldn't parse number");
+        }
+
+        ClearInputs();
+    }
+
+    public void SetY(string textInput)
+    {
+        try
+        {
+            float y = float.Parse(textInput);
+            Vector3 pos = transform.position;
+            pos.y = y;
+            cameraTarget.transform.position = pos;
+            transform.position = pos;
+        }
+        catch
+        {
+            MessageSystem.DisplayWarning("couldn't parse number");
+        }
+
+        ClearInputs();
+    }
+
+    public void SetZ(string textInput)
+    {
+        try
+        {
+            float z = float.Parse(textInput);
+            Vector3 pos = transform.position;
+            pos.z = z;
+            cameraTarget.transform.position = pos;
+            transform.position = pos;
+        }
+        catch
+        {
+            MessageSystem.DisplayWarning("couldn't parse number");
+        }
+
+        ClearInputs();
+    }
+
+    public void SetFOV(float fov)
+    {
+        camera.fieldOfView = fov;
+        Vector2 minFOV = new Vector2(170, 40);
+        Vector2 maxFOV = new Vector2(50, 120);
+
+        fovImg.sizeDelta = Vector2.Lerp(minFOV, maxFOV, (fov - 10) / 100f);
+    }
+
+    void ClearInputs()
+    {
+        foreach (TMP_InputField input in inputs)
+        {
+            input.Select();
+            input.text = "";
+        }
+    }
+
+    void CheckScale(Vector3 direction)
+    {
+        if (Placement == PlacementVolume.Sphere)
+        {
+            if (direction.x > epsilon || direction.y > epsilon || direction.z > epsilon)
+            {
+                radius += Time.deltaTime * scaleSpeed;
+            }
+            else if (direction.x < -epsilon || direction.y < -epsilon || direction.z < -epsilon)
+            {
+                radius -= Time.deltaTime * scaleSpeed;
+                if (radius < 0.01f) radius = 0.01f;
+            }
+
             sphere.transform.localScale = Vector3.one * 2 * radius;
         }
-        if (Input.GetKey(KeyCode.DownArrow))
+        else if (Placement == PlacementVolume.Box)
         {
-            radius -= Time.deltaTime * 0.05f;
-            if (radius < 0.005f) radius = 0.005f;
-            sphere.transform.localScale = Vector3.one * 2 * radius;
+            boxSize += direction * scaleSpeed * Time.deltaTime;
+            if (boxSize.x < 0.025f) boxSize.x = 0.025f;
+            if (boxSize.y < 0.025f) boxSize.y = 0.025f;
+            if (boxSize.z < 0.025f) boxSize.z = 0.025f;
+
+            box.transform.localScale = boxSize;
+        }
+        else if (Placement == PlacementVolume.Cylinder)
+        {
+            if (direction.x > epsilon || direction.z > epsilon)
+            {
+                cylinderRadius += Time.deltaTime * scaleSpeed;
+            }
+            else if (direction.x < -epsilon || direction.z < -epsilon)
+            {
+                cylinderRadius -= Time.deltaTime * scaleSpeed;
+                if (cylinderRadius < 0.01f) cylinderRadius = 0.01f;
+            }
+            if (direction.y > epsilon)
+            {
+                cylinderHeight += Time.deltaTime * scaleSpeed;
+            }
+            else if (direction.y < -epsilon)
+            {
+                cylinderHeight -= Time.deltaTime * scaleSpeed;
+                if (cylinderHeight < 0.025f) cylinderHeight = 0.025f;
+            }
+
+            cylinder.transform.localScale = new Vector3(cylinderRadius * 2, cylinderHeight, cylinderRadius * 2);
         }
     }
 
@@ -76,13 +318,13 @@ public class TargetSpawner : MonoBehaviour
         Vector3 movement = Vector3.zero;
 
         if (Input.GetKey(KeyCode.W))
-            movement.x += Time.deltaTime * speed;
-        if (Input.GetKey(KeyCode.S))
-            movement.x -= Time.deltaTime * speed;
-        if (Input.GetKey(KeyCode.A))
-            movement.z -= Time.deltaTime * speed;
-        if (Input.GetKey(KeyCode.D))
             movement.z += Time.deltaTime * speed;
+        if (Input.GetKey(KeyCode.S))
+            movement.z -= Time.deltaTime * speed;
+        if (Input.GetKey(KeyCode.A))
+            movement.x -= Time.deltaTime * speed;
+        if (Input.GetKey(KeyCode.D))
+            movement.x += Time.deltaTime * speed;
         if (Input.GetKey(KeyCode.Space))
             movement.y += Time.deltaTime * speed;
         if (Input.GetKey(KeyCode.LeftControl))
@@ -90,5 +332,12 @@ public class TargetSpawner : MonoBehaviour
 
         transform.position += movement;
 
+    }
+
+    enum PlacementVolume
+    {
+        Sphere,
+        Box,
+        Cylinder
     }
 }

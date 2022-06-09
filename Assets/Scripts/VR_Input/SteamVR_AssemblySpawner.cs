@@ -26,6 +26,10 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
     [SerializeField]
     GameObject box;
 
+    [Header("Spawn Cylinder")]
+    [SerializeField]
+    GameObject cylinder;
+
     [Header("Materials")]
     [SerializeField]
     Material spawnMat;
@@ -33,17 +37,18 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
     Material deleteMat;
 
     VRPlacementMode mode = VRPlacementMode.SpawnInSphere;
-    public VRPlacementMode Mode 
-    { 
-        get { return mode; } 
+    public VRPlacementMode Mode
+    {
+        get { return mode; }
         set
-        { 
+        {
             mode = value;
             if (mode == VRPlacementMode.SpawnInSphere)
             {
                 sphere.SetActive(true);
                 sphere.GetComponent<MeshRenderer>().material = spawnMat;
                 box.SetActive(false);
+                cylinder.SetActive(false);
                 UpdateSphereScale();
             }
             else if (mode == VRPlacementMode.DeleteFromSphere)
@@ -51,6 +56,7 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
                 sphere.SetActive(true);
                 sphere.GetComponent<MeshRenderer>().material = deleteMat;
                 box.SetActive(false);
+                cylinder.SetActive(false);
                 UpdateSphereScale();
             }
             else if (mode == VRPlacementMode.SpawnInBox)
@@ -58,6 +64,7 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
                 box.SetActive(true);
                 box.GetComponent<MeshRenderer>().material = spawnMat;
                 sphere.SetActive(false);
+                cylinder.SetActive(false);
                 UpdateBoxScale();
             }
             else if (mode == VRPlacementMode.DeleteFromBox)
@@ -65,13 +72,32 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
                 box.SetActive(true);
                 box.GetComponent<MeshRenderer>().material = deleteMat;
                 sphere.SetActive(false);
+                cylinder.SetActive(false);
                 UpdateBoxScale();
             }
-        }  
+            else if (mode == VRPlacementMode.SpawnInCylinder)
+            {
+                cylinder.SetActive(true);
+                cylinder.GetComponent<MeshRenderer>().material = spawnMat;
+                sphere.SetActive(false);
+                box.SetActive(false);
+                UpdateCylinderScale();
+            }
+            else if (mode == VRPlacementMode.DeleteFromCylinder)
+            {
+                cylinder.SetActive(true);
+                cylinder.GetComponent<MeshRenderer>().material = deleteMat;
+                sphere.SetActive(false);
+                box.SetActive(false);
+                UpdateCylinderScale();
+            }
+        }
     }
 
     float radius = 0.05f;
     Vector3 boxSize = new Vector3(0.1f, 0.1f, 0.1f);
+    float cylinderRadius = 0.05f;
+    float cylinderHeight = 0.1f;
     SpawnCubeBehaviour cubeBehaviour;
     Vector3 initialOffset = new Vector3(0, 0, 0.05f);
     float scaleSpeed = 0.1f;
@@ -85,10 +111,11 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (ModuleContainer.Container == null) return; 
+        if (ModuleContainer.Container == null) return;
         CheckTrigger();
         CheckSphereScale();
         CheckBoxScale();
+        CheckCylinderScale();
         MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Bricks");
     }
 
@@ -104,65 +131,101 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
                 SpawnBricksInBox();
             else if (Mode == VRPlacementMode.DeleteFromBox)
                 RemoveBricksInBox();
+            else if (Mode == VRPlacementMode.SpawnInCylinder)
+                SpawnBricksInCylinder();
+            else if (Mode == VRPlacementMode.DeleteFromCylinder)
+                RemoveBricksInCylinder();
         }
     }
 
     void CheckSphereScale()
     {
-        if (Mode == VRPlacementMode.SpawnInBox || Mode == VRPlacementMode.DeleteFromBox)
-            return;
+        if (Mode == VRPlacementMode.SpawnInSphere || Mode == VRPlacementMode.DeleteFromSphere)
+        {
 
-        if (up.GetState(SteamVR_Input_Sources.RightHand))
-        {
-            radius += Time.deltaTime * scaleSpeed;
-            UpdateSphereScale();
+            if (up.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                radius += Time.deltaTime * scaleSpeed;
+                UpdateSphereScale();
+            }
+            else if (down.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                radius -= Time.deltaTime * scaleSpeed;
+                if (radius < 0.001f)
+                    radius = 0.001f;
+                UpdateSphereScale();
+            }
         }
-        else if (down.GetState(SteamVR_Input_Sources.RightHand))
+    }
+
+    void CheckCylinderScale()
+    {
+        if (Mode == VRPlacementMode.SpawnInCylinder || Mode == VRPlacementMode.DeleteFromCylinder)
         {
-            radius -= Time.deltaTime * scaleSpeed;
-            if (radius < 0.001f)
-                radius = 0.001f;
-            UpdateSphereScale();
+            if (up.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                cylinderHeight += Time.deltaTime * scaleSpeed;
+                UpdateCylinderScale();
+            }
+            else if (down.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                cylinderHeight -= Time.deltaTime * scaleSpeed;
+                if (cylinderHeight < 0.025f)
+                    cylinderHeight = 0.025f;
+                UpdateCylinderScale();
+            }
+            else if (right.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                cylinderRadius += Time.deltaTime * scaleSpeed;
+                UpdateCylinderScale();
+            }
+            else if (left.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                cylinderRadius -= Time.deltaTime * scaleSpeed;
+                if (cylinderRadius < 0.01f)
+                    cylinderRadius = 0.01f;
+                UpdateCylinderScale();
+            }
         }
     }
 
     void CheckBoxScale()
     {
-        if (Mode == VRPlacementMode.SpawnInSphere || Mode == VRPlacementMode.DeleteFromSphere)
-            return;
-
-        if (up.GetState(SteamVR_Input_Sources.RightHand))
+        if (Mode == VRPlacementMode.SpawnInBox || Mode == VRPlacementMode.DeleteFromBox)
         {
-            boxSize += Time.deltaTime * scaleSpeed * Vector3.one;
-            UpdateBoxScale();
-        }
-        else if (down.GetState(SteamVR_Input_Sources.RightHand))
-        {
-            boxSize -= Time.deltaTime * scaleSpeed * Vector3.one;
-            if (boxSize.x < 0.025f)
-                boxSize.x = 0.025f;
-            if (boxSize.y < 0.025f)
-                boxSize.y = 0.025f;
-            if (boxSize.z < 0.025f)
-                boxSize.z = 0.025f;
-
-            UpdateBoxScale();
-        }
-        else if (right.GetState(SteamVR_Input_Sources.RightHand))
-        {
-            boxSize += Time.deltaTime * scaleSpeed * new Vector3(1, 1, 0);
-
-            UpdateBoxScale();
-        }
-        else if (left.GetState(SteamVR_Input_Sources.RightHand))
-        {
-            boxSize -= Time.deltaTime * scaleSpeed * new Vector3(1, 1, 0);
-            if (boxSize.x < 0.025f)
-                boxSize.x = 0.025f;
-            if (boxSize.y < 0.025f)
-                boxSize.y = 0.025f;
+            if (up.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                boxSize += Time.deltaTime * scaleSpeed * Vector3.one;
+                UpdateBoxScale();
+            }
+            else if (down.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                boxSize -= Time.deltaTime * scaleSpeed * Vector3.one;
+                if (boxSize.x < 0.025f)
+                    boxSize.x = 0.025f;
+                if (boxSize.y < 0.025f)
+                    boxSize.y = 0.025f;
+                if (boxSize.z < 0.025f)
+                    boxSize.z = 0.025f;
 
                 UpdateBoxScale();
+            }
+            else if (right.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                boxSize += Time.deltaTime * scaleSpeed * new Vector3(1, 1, 0);
+
+                UpdateBoxScale();
+            }
+            else if (left.GetState(SteamVR_Input_Sources.RightHand))
+            {
+                boxSize -= Time.deltaTime * scaleSpeed * new Vector3(1, 1, 0);
+                if (boxSize.x < 0.025f)
+                    boxSize.x = 0.025f;
+                if (boxSize.y < 0.025f)
+                    boxSize.y = 0.025f;
+
+                UpdateBoxScale();
+            }
         }
     }
 
@@ -199,6 +262,20 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
         ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
     }
 
+    void SpawnBricksInCylinder()
+    {
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInCylinder(transform.position, cylinderRadius, cylinderHeight, out dictPositions);
+        ModuleContainer.Container.AddBricks(bricks, dictPositions);
+    }
+
+    void RemoveBricksInCylinder()
+    {
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInCylinder(transform.position, cylinderRadius, cylinderHeight, out dictPositions);
+        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
+    }
+
     void UpdateSphereScale()
     {
         sphere.transform.localScale = Vector3.one * 2 * radius;
@@ -210,6 +287,12 @@ public class SteamVR_AssemblySpawner : MonoBehaviour
         box.transform.localScale = boxSize;
         transform.localPosition = initialOffset + Vector3.forward * (boxSize.z / 2);
     }
+
+    void UpdateCylinderScale()
+    {
+        cylinder.transform.localScale = new Vector3(cylinderRadius * 2, cylinderHeight, cylinderRadius * 2);
+        transform.localPosition = initialOffset + Vector3.forward * cylinderRadius;
+    }
 }
 
 public enum VRPlacementMode
@@ -217,5 +300,7 @@ public enum VRPlacementMode
     SpawnInSphere,
     DeleteFromSphere,
     SpawnInBox,
-    DeleteFromBox
+    DeleteFromBox,
+    SpawnInCylinder,
+    DeleteFromCylinder
 }
