@@ -189,7 +189,7 @@ namespace Fraktalia.VoxelGen.Visualisation
 		public float NormalAngle;
 		public float Shrink;
 
-		public NativeMultiHashMap<Vector3, VertexEntry> dictionary;
+		public NativeParallelMultiHashMap<Vector3, VertexEntry> dictionary;
 		public NativeList<Vector3> dictionaryKeys;
 		public NativeList<Vector3> triNormals;
 		public NativeList<Color> colorArray;
@@ -209,7 +209,7 @@ namespace Fraktalia.VoxelGen.Visualisation
 			tan1 = new NativeList<Vector3>(0, Allocator.Persistent);
 			tan2 = new NativeList<Vector3>(0, Allocator.Persistent);
 
-			dictionary = new NativeMultiHashMap<Vector3, VertexEntry>(0, Allocator.Persistent);
+			dictionary = new NativeParallelMultiHashMap<Vector3, VertexEntry>(0, Allocator.Persistent);
 			dictionaryKeys = new NativeList<Vector3>(0, Allocator.Persistent);
 			triNormals = new NativeList<Vector3>(0, Allocator.Persistent);
 			colorArray = new NativeList<Color>(0, Allocator.Persistent);
@@ -477,7 +477,7 @@ namespace Fraktalia.VoxelGen.Visualisation
 
 
 				VertexEntry entry;
-				NativeMultiHashMapIterator<Vector3> iter;
+				NativeParallelMultiHashMapIterator<Vector3> iter;
 				Vector3 hash = verticeArray[i1];
 				if (!dictionary.TryGetFirstValue(hash, out entry, out iter))
 				{
@@ -505,8 +505,8 @@ namespace Fraktalia.VoxelGen.Visualisation
 			// Each entry in the dictionary represents a unique vertex position.
 			for (int i = 0; i < dictionaryKeys.Length; i++)
 			{
-				NativeMultiHashMapIterator<Vector3> it_i;
-				NativeMultiHashMapIterator<Vector3> it_j;
+				NativeParallelMultiHashMapIterator<Vector3> it_i;
+				NativeParallelMultiHashMapIterator<Vector3> it_j;
 				VertexEntry lhsEntry;
 				VertexEntry rhsEntry;
 				bool hasvalue_I = dictionary.TryGetFirstValue(dictionaryKeys[i], out lhsEntry, out it_i);
@@ -604,7 +604,7 @@ namespace Fraktalia.VoxelGen.Visualisation
 		public float NormalAngle;
 		public float Shrink;
 
-		public NativeMultiHashMap<Vector3, VertexEntry> dictionary;
+		public NativeParallelMultiHashMap<Vector3, VertexEntry> dictionary;
 		public NativeList<Vector3> dictionaryKeys;
 		public NativeList<Vector3> triNormals;
 		public NativeList<Color> colorArray;
@@ -625,7 +625,7 @@ namespace Fraktalia.VoxelGen.Visualisation
 			normalArray = new NativeList<Vector3>(0, Allocator.Persistent);
 			
 
-			dictionary = new NativeMultiHashMap<Vector3, VertexEntry>(0, Allocator.Persistent);
+			dictionary = new NativeParallelMultiHashMap<Vector3, VertexEntry>(0, Allocator.Persistent);
 			dictionaryKeys = new NativeList<Vector3>(0, Allocator.Persistent);
 			triNormals = new NativeList<Vector3>(0, Allocator.Persistent);
 			colorArray = new NativeList<Color>(0, Allocator.Persistent);
@@ -746,7 +746,7 @@ namespace Fraktalia.VoxelGen.Visualisation
 		public float NormalAngle;
 		public float Shrink;
 
-		public NativeMultiHashMap<Vector3, VertexEntry> dictionary;
+		public NativeParallelMultiHashMap<Vector3, VertexEntry> dictionary;
 		public NativeList<Vector3> dictionaryKeys;
 		public NativeList<Vector3> triNormals;
 		public NativeList<Color> colorArray;
@@ -766,7 +766,7 @@ namespace Fraktalia.VoxelGen.Visualisation
 			tan1 = new NativeList<Vector3>(0, Allocator.Persistent);
 			tan2 = new NativeList<Vector3>(0, Allocator.Persistent);
 
-			dictionary = new NativeMultiHashMap<Vector3, VertexEntry>(0, Allocator.Persistent);
+			dictionary = new NativeParallelMultiHashMap<Vector3, VertexEntry>(0, Allocator.Persistent);
 			dictionaryKeys = new NativeList<Vector3>(0, Allocator.Persistent);
 			triNormals = new NativeList<Vector3>(0, Allocator.Persistent);
 			colorArray = new NativeList<Color>(0, Allocator.Persistent);
@@ -1069,7 +1069,7 @@ namespace Fraktalia.VoxelGen.Visualisation
 
 
 				VertexEntry entry;
-				NativeMultiHashMapIterator<Vector3> iter;
+				NativeParallelMultiHashMapIterator<Vector3> iter;
 				Vector3 hash = verticeArray[i1];
 				if (!dictionary.TryGetFirstValue(hash, out entry, out iter))
 				{
@@ -1097,8 +1097,8 @@ namespace Fraktalia.VoxelGen.Visualisation
 			// Each entry in the dictionary represents a unique vertex position.
 			for (int i = 0; i < dictionaryKeys.Length; i++)
 			{
-				NativeMultiHashMapIterator<Vector3> it_i;
-				NativeMultiHashMapIterator<Vector3> it_j;
+				NativeParallelMultiHashMapIterator<Vector3> it_i;
+				NativeParallelMultiHashMapIterator<Vector3> it_j;
 				VertexEntry lhsEntry;
 				VertexEntry rhsEntry;
 				bool hasvalue_I = dictionary.TryGetFirstValue(dictionaryKeys[i], out lhsEntry, out it_i);

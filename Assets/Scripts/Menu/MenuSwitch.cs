@@ -37,9 +37,29 @@ public class MenuSwitch : MonoBehaviour
     [SerializeField]
     SteamVR_PlayArea playArea;
 
+    [Space]
+    [Header("Add/Remove Buttons")]
+    [SerializeField]
+    SteamVR_AssemblySpawner spawner;
+    [SerializeField]
+    List<GameObject> addButtons;
+    public List<GameObject> AddButtons { get { return addButtons; } }
+    [SerializeField]
+    List<GameObject> removeButtons;
+    public List<GameObject> RemoveButtons { get { return removeButtons; } }
+
+    [Space]
+    [Header("Lock Ortho")]
+    [SerializeField]
+    GameObject lockOrthoSymbol;
+    [SerializeField]
+    GameObject unlockOrthoSymbol;
+
     float playerHeight = 0;
     GameObject platform = null;
     Vector3 basePos;
+    int addIndex = 0;
+    int removeIndex = 0;
 
     private void Start()
     {
@@ -51,7 +71,27 @@ public class MenuSwitch : MonoBehaviour
 
         Teleport.Player.Listen(PlayerTeleported);
         platform = PlatformMesh.GeneratePlatformMesh(platformMaterial);
+
+        SetAddButton(0);
+        SetRemoveButton(0);
     }
+
+    void SetAddButton(int index)
+    {
+        foreach (GameObject add in addButtons)
+            add.SetActive(false);
+
+        addButtons[index].SetActive(true);
+    }
+
+    void SetRemoveButton(int index)
+    {
+        foreach (GameObject remove in removeButtons)
+            remove.SetActive(false);
+
+        removeButtons[index].SetActive(true);
+    }
+
 
     private void OnTriggerEnter(Collider other)
     {
@@ -105,7 +145,60 @@ public class MenuSwitch : MonoBehaviour
 
     public void ModulesToPointCloud()
     {
-        PointCloudIO.ModulesToCloud(ModuleContainer.Container.ModulesToPC());
+        ModuleContainer.Container.ModulesToPointCloud();
+    }
+
+    public void NextAdd()
+    {
+        ++addIndex;
+        if (addIndex >= addButtons.Count)
+            addIndex = 0;
+
+        SetAddButton(addIndex);
+    }
+
+    public void NextRemove()
+    {
+        ++removeIndex;
+        if (removeIndex >= removeButtons.Count)
+            removeIndex = 0;
+
+        SetRemoveButton(removeIndex);
+    }
+
+    public void PreviousAdd()
+    {
+        --addIndex;
+        if (addIndex < 0)
+            addIndex = addButtons.Count - 1;
+
+        SetAddButton(addIndex);
+    }
+
+    public void PreviousRemove()
+    {
+        --removeIndex;
+        if (removeIndex < 0)
+            removeIndex = removeButtons.Count - 1;
+
+        SetRemoveButton(removeIndex);
+    }
+
+    public void ToggleMeshSpawnerOrtho()
+    {
+        if (!SpawnMeshBehaviour.AlignToWorld)
+        {
+            lockOrthoSymbol.SetActive(true);
+            unlockOrthoSymbol.SetActive(false);
+        }
+        else
+        {
+            lockOrthoSymbol.SetActive(false);
+            unlockOrthoSymbol.SetActive(true);
+        }
+
+        SpawnMeshBehaviour.AlignToWorld = !SpawnMeshBehaviour.AlignToWorld;
+        spawner.UpdateMeshScale();
     }
 
     void SetPlayerHeight()

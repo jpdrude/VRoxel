@@ -11,6 +11,7 @@ public class VRMenuItem : MonoBehaviour
     SteamVR_Action_Boolean trigger;
     [SerializeField]
     UnityEvent action;
+    public UnityEvent Action { get { return action; } }
     [SerializeField]
     UnityEvent actionPressed;
 

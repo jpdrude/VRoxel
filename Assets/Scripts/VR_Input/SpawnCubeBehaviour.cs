@@ -6,6 +6,7 @@ public class SpawnCubeBehaviour : MonoBehaviour
 {
     [SerializeField]
     GameObject parent;
+    public GameObject Parent { get { return parent; } set { parent = value; } }
 
     public Vector3 Min
     {
@@ -38,26 +39,38 @@ public class SpawnCubeBehaviour : MonoBehaviour
     bool flipXZ = false;
 
     // Update is called once per frame
-    void Update()
+    protected virtual void Update()
     {
         Vector3 direction = transform.position - parent.transform.position;
-        
 
         if (Mathf.Abs(direction.z) > Mathf.Abs(direction.x) && Mathf.Abs(direction.z) > Mathf.Abs(direction.y))
         {
-            transform.rotation = Quaternion.Euler(Vector3.zero);
+            if (direction.z > 0)
+                transform.rotation = Quaternion.Euler(Vector3.zero);
+            else
+                transform.rotation = Quaternion.Euler(new Vector3(0, 180, 0));
+
             flipXY = false;
             flipXZ = false;
         }
         else if (Mathf.Abs(direction.y) > Mathf.Abs(direction.x))
         {
-            transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
+            if (direction.y > 0)
+                transform.rotation = Quaternion.Euler(new Vector3(-90, 0, 180));
+            else
+                transform.rotation = Quaternion.Euler(new Vector3(90, 0, 0));
+            
+
             flipXZ = false;
             flipXY = true;
         }
         else
         {
-            transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            if (direction.x > 0)
+                transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            else
+                transform.rotation = Quaternion.Euler(new Vector3(0, -90, 0));
+
             flipXY = false;
             flipXZ = true;
         }

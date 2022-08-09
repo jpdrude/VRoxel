@@ -12,6 +12,7 @@ public class AssemblyIO : MonoBehaviour
 
     static Matrix4x4[] loadContainer = null;
     static string loadBond = null;
+    static bool loadAsPointCloud = false;
 
     static List<string> currentSaveTargets = new List<string>();
 
@@ -40,8 +41,13 @@ public class AssemblyIO : MonoBehaviour
                     return;
                 }
             }
-
-            ModuleContainer.Container.AddBricks(loadContainer);
+            if (!loadAsPointCloud)
+                ModuleContainer.Container.AddBricks(loadContainer);
+            else
+            {
+                ModuleContainer.Container.AddBricks(loadContainer, null, true);
+                loadAsPointCloud = false;
+            }
             loadContainer = null;
             loadBond = null;
         }
@@ -105,10 +111,15 @@ public class AssemblyIO : MonoBehaviour
     {
         LoadAssemblyDelegate loadDelegate = new LoadAssemblyDelegate(LoadAsync);
         loadDelegate.BeginInvoke(path, null, null);
-        //LoadAsync(path);
     }
 
-    static void LoadAsync(string path)
+    public static void LoadAssemblyAsPointCloud(string path)
+    {
+        loadAsPointCloud = true;
+        LoadAssemblyLayout(path);
+    }
+
+    static Matrix4x4[] LoadMatrices(string path, out string bond)
     {
         JsonMatrixContainer container = new JsonMatrixContainer();
         Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
@@ -121,37 +132,25 @@ public class AssemblyIO : MonoBehaviour
 
         Debug.Log("File read at " + DateTime.Now.ToString("T"));
 
-        /*
-        try
-        {
-            JsonSerializer serializer = new JsonSerializer();
-            container = JsonConvert.DeserializeObject<JsonMatrixContainer>(jsonContent);
-        }
-        catch
-        {
-            lock (lockKey)
-                MessageSystem.DisplayWarning("Loading failed: File format not recognized");
-        }
-
-        Matrix4x4[] matrices = new Matrix4x4[container.matrices.Count];
-
-        for (int i = 0; i < container.matrices.Count; ++i)
-        {
-            matrices[i] = conversionMatrix * container.matrices[i].ToMatrix4x4();
-        }
-
-        lock (lockKey)
-        {
-            loadBond = container.bondName;
-            loadContainer = matrices;
-        }
-        */
-
-        string bond;
         Matrix4x4[] matrices = DeserializeFromText(jsonContent, out bond).ToArray();
 
         Debug.Log("Bond Name: " + bond + ", Matrices: " + matrices.Length);
 
+        return matrices;
+    }
+
+    static void LoadAsync(string path)
+    {
+        string bond;
+
+        Matrix4x4[] matrices = LoadMatrices(path, out bond);
+
+        if (matrices == null || matrices.Length == 0 || bond == null || bond == "")
+        {
+            MessageSystem.DisplayWarning("Loading Failed! Couldn't read file!");
+            loadAsPointCloud = false;
+            return;
+        }
 
         lock (lockKey)
         {

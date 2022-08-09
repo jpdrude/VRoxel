@@ -14,12 +14,6 @@ public class EscapeMenu : MonoBehaviour
     GameObject player;
     [SerializeField]
     Valve.VR.SteamVR_ActionSet actionSet;
-    [SerializeField]
-    GameObject teleportAreas;
-    [SerializeField]
-    Material teleportAreaMaterial;
-    [SerializeField]
-    GameObject teleportAreaPrefab;
 
     [Space]
     [Header("Platform")]
@@ -131,6 +125,13 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.ShowLoadDialog(OnLoadSuccess, OnCancel, FileBrowser.PickMode.Files, true);
     }
 
+    public void LoadAsPointCloud()
+    {
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("Json", ".json"));
+        FileBrowser.SetDefaultFilter(".json");
+        FileBrowser.ShowLoadDialog(OnLoadAsPointCloudSuccess, OnCancel, FileBrowser.PickMode.Files, true);
+    }
+
     public void Quit()
     {
         quit.SetActive(false);
@@ -166,6 +167,13 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Geometry", ".fbx", ".obj", ".stl"));
         FileBrowser.SetDefaultFilter(".fbx");
         FileBrowser.ShowLoadDialog(OnGeometryImportSuccess, OnCancel, FileBrowser.PickMode.Files);
+    }
+
+    public void ImportSpawnShapes()
+    {
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("Geometry", ".fbx", ".obj", ".stl"));
+        FileBrowser.SetDefaultFilter(".fbx");
+        FileBrowser.ShowLoadDialog(OnSpawnShapeImportSuccess, OnCancel, FileBrowser.PickMode.Files);
     }
 
     public void ImportTeleportAreas()
@@ -309,9 +317,15 @@ public class EscapeMenu : MonoBehaviour
         Resume();
     }
 
+    void OnSpawnShapeImportSuccess(string[] paths)
+    {
+        GeometryIO.ImportSpawnShape(paths[0]);
+        Resume();
+    }
+
     void OnTeleportAreaImportSuccess(string[] paths)
     {
-        GeometryIO.ImportTeleportArea(paths[0], teleportAreas, teleportAreaMaterial, teleportAreaPrefab);
+        GeometryIO.ImportTeleportArea(paths[0]);
         Resume();
     }
 
@@ -347,6 +361,14 @@ public class EscapeMenu : MonoBehaviour
         Resume();
     }
 
+    void OnLoadAsPointCloudSuccess(string[] paths)
+    {
+        foreach (string path in paths)
+            AssemblyIO.LoadAssemblyAsPointCloud(path);
+
+        Resume();
+    }
+
     public void SetVRPlayer()
     {
         //UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
@@ -371,7 +393,7 @@ public class EscapeMenu : MonoBehaviour
 
     public void ConvertToPC()
     {
-        PointCloudIO.ModulesToCloud(ModuleContainer.Container.ModulesToPC());
+        ModuleContainer.Container.ModulesToPointCloud();
         Resume();
     }
 }

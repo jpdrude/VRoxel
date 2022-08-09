@@ -6,6 +6,7 @@ TagManager:
   tags:
   - MenuTrigger
   - MenuSelector
+  - MeshSpawner
   layers:
   - Default
   - TransparentFX
@@ -15,6 +16,7 @@ TagManager:
   - UI
   - Teleport
   - Menu
+  - SpawnVolume
   - 
   - 
   - 
@@ -33,8 +35,7 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
+  - SpawnVolumeTest
   - 
   - 
   - 

@@ -33,6 +33,12 @@ public class TargetSpawner : MonoBehaviour
     GameObject interfacePanel;
 
     [SerializeField]
+    GameObject spawnMeshButton;
+
+    [SerializeField]
+    Material spawnerMaterial;
+
+    [SerializeField]
     List<TMP_InputField> inputs;
 
     float radius = 0.05f;
@@ -40,6 +46,11 @@ public class TargetSpawner : MonoBehaviour
     float cylinderRadius = 0.05f;
     float cylinderHeight = 0.1f;
     Vector3 scaleVector = Vector3.zero;
+
+    List<GameObject> spawnMeshes = new List<GameObject>();
+    List<Vector3> spawnMeshScales = new List<Vector3>();
+    int spawnMeshIndex;
+
 
     float epsilon = 0.000001f;
 
@@ -56,6 +67,7 @@ public class TargetSpawner : MonoBehaviour
                 sphere.SetActive(true);
                 box.SetActive(false);
                 cylinder.SetActive(false);
+                DeactivateAllMeshes();
                 CheckScale(Vector3.zero);
             }
             else if (placement == PlacementVolume.Box)
@@ -63,6 +75,7 @@ public class TargetSpawner : MonoBehaviour
                 sphere.SetActive(false);
                 box.SetActive(true);
                 cylinder.SetActive(false);
+                DeactivateAllMeshes();
                 CheckScale(Vector3.zero);
             }
             else if (placement == PlacementVolume.Cylinder)
@@ -70,7 +83,16 @@ public class TargetSpawner : MonoBehaviour
                 sphere.SetActive(false);
                 box.SetActive(false);
                 cylinder.SetActive(true);
+                DeactivateAllMeshes();
                 CheckScale(Vector3.zero);
+            }
+            else if (placement == PlacementVolume.Mesh)
+            {
+                sphere.SetActive(false);
+                box.SetActive(false);
+                cylinder.SetActive(false);
+                DeactivateAllMeshes();
+                spawnMeshes[spawnMeshIndex].SetActive(true); 
             }
         }
     }
@@ -95,6 +117,20 @@ public class TargetSpawner : MonoBehaviour
         MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Bricks placed");
     }
 
+    public void AddSpawnMesh(GameObject mesh)
+    {
+        spawnMeshes.Add(mesh);
+        spawnMeshScales.Add(Vector3.one);
+        spawnMeshButton.SetActive(true);
+        mesh.GetComponent<MeshRenderer>().material = spawnerMaterial;
+    }
+
+    void DeactivateAllMeshes()
+    {
+        foreach (GameObject mesh in spawnMeshes)
+            mesh.SetActive(false);
+    }
+
     void CheckSpawn()
     {
         if (Input.GetKey(KeyCode.Return))
@@ -105,6 +141,8 @@ public class TargetSpawner : MonoBehaviour
                 SpawnBricksInBox();
             else if (Placement == PlacementVolume.Cylinder)
                 SpawnBricksInCylinder();
+            else if (Placement == PlacementVolume.Mesh)
+                SpawnBricksInMesh();
         }
         if (Input.GetKey(KeyCode.Backspace))
         {
@@ -114,14 +152,26 @@ public class TargetSpawner : MonoBehaviour
                 RemoveBricksInBox();
             else if (Placement == PlacementVolume.Cylinder)
                 RemoveBricksInCylinder();
+            else if (Placement == PlacementVolume.Mesh)
+                RemoveBricksInMesh();
         }
             
     }
 
     public void SetPlacementVolume(int volume)
     {
-        Debug.Log("Placement Volume changed to: " + (PlacementVolume)volume);
         Placement = (PlacementVolume)volume;
+    }
+
+    public void SetNextSpawnMesh()
+    {
+        SpawnMeshBehaviour.AlignToWorld = false;
+
+        ++spawnMeshIndex;
+        if (spawnMeshIndex >= spawnMeshes.Count)
+            spawnMeshIndex = 0;
+
+        Placement = PlacementVolume.Mesh;
     }
 
     void SpawnBrickAtPosition(Vector3 pos)
@@ -162,6 +212,20 @@ public class TargetSpawner : MonoBehaviour
         Vector3Int[] dictPositions;
         Matrix4x4[] bricks = GameManager.Bond.GetBricksInCylinder(transform.position, cylinderRadius, cylinderHeight, out dictPositions);
         ModuleContainer.Container.AddBricks(bricks, dictPositions);
+    }
+
+    void SpawnBricksInMesh()
+    {
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out dictPositions);
+        ModuleContainer.Container.AddBricks(bricks, dictPositions);
+    }
+
+    void RemoveBricksInMesh()
+    {
+        Vector3Int[] dictPositions;
+        Matrix4x4[] bricks = GameManager.Bond.GetBricksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out dictPositions);
+        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
     }
 
     void RemoveBricksInCylinder()
@@ -311,6 +375,20 @@ public class TargetSpawner : MonoBehaviour
 
             cylinder.transform.localScale = new Vector3(cylinderRadius * 2, cylinderHeight, cylinderRadius * 2);
         }
+        else if (Placement == PlacementVolume.Mesh)
+        {
+            if (direction.x > epsilon || direction.y > epsilon || direction.z > epsilon)
+            {
+                spawnMeshScales[spawnMeshIndex] += Vector3.one * Time.deltaTime * scaleSpeed;
+            }
+            else if (direction.x < -epsilon || direction.y < -epsilon || direction.z < -epsilon)
+            {
+                spawnMeshScales[spawnMeshIndex] -= Vector3.one * Time.deltaTime * scaleSpeed;
+                if (spawnMeshScales[spawnMeshIndex].x < 0.01f) spawnMeshScales[spawnMeshIndex] = Vector3.one * 0.01f;
+            }
+
+            spawnMeshes[spawnMeshIndex].transform.localScale = spawnMeshScales[spawnMeshIndex];
+        }
     }
 
     void CheckMovement()
@@ -338,6 +416,7 @@ public class TargetSpawner : MonoBehaviour
     {
         Sphere,
         Box,
-        Cylinder
+        Cylinder,
+        Mesh
     }
 }
