@@ -43,7 +43,7 @@ public class SpawnerActions : MonoBehaviour
         if (_up || _down || _left || _right)
             DPadInput(_up, _down, _left, _right);
 
-        MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Bricks");
+        MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Units");
     }
 
     public virtual void OnTrigger() { }
