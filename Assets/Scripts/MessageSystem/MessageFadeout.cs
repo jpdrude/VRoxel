@@ -25,7 +25,8 @@ public class MessageFadeout : MonoBehaviour
             return;
         }
 
-        text.color = Color.Lerp(startColor, endColor, (timer - displayTime) / fadeOutTime);
+        if (text != null)
+            text.color = Color.Lerp(startColor, endColor, (timer - displayTime) / fadeOutTime);
     }
 
     public void Initialize(string message, float _displayTime, float _fadeOutTime, bool warning = false)

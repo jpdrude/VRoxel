@@ -58,8 +58,9 @@ public class MessageSystem : MonoBehaviour
         var fadeout = messageGo.AddComponent<MessageFadeout>();
         fadeout.Initialize(message, dTime, foTime);
 
-        foreach (GameObject m in currentMessages)
+        for (int i = currentMessages.Count - 1; i >= 0; --i)
         {
+            GameObject m = currentMessages[i];
             m.transform.localPosition = m.transform.localPosition + new Vector3(0, 20, 0);
             if (m.transform.localPosition.y > 150) m.GetComponent<MessageFadeout>().DestroyText();
         }
@@ -84,8 +85,15 @@ public class MessageSystem : MonoBehaviour
         var fadeout = messageGo.AddComponent<MessageFadeout>();
         fadeout.Initialize(message, dTime, foTime, true);
 
-        foreach (GameObject m in currentMessages)
+        for (int i = currentMessages.Count - 1; i >= 0; --i)
         {
+            GameObject m = currentMessages[i];
+            if (m == null)
+            {
+                currentMessages.RemoveAt(i);
+                continue;
+            }
+
             m.transform.localPosition = m.transform.localPosition + new Vector3(0, 20, 0);
             if (m.transform.localPosition.y > 150) m.GetComponent<MessageFadeout>().DestroyText();
         }

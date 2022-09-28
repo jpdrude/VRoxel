@@ -10,6 +10,10 @@ public class GeometryIO : MonoBehaviour
     static bool isImporting = false;
     static DateTime importStep;
 
+    [Header("Defaults")]
+    [SerializeField]
+    Material _defaultMaterial;
+
     [Header("Teleporting")]
     [SerializeField]
     GameObject _nativeTeleport;
@@ -45,6 +49,7 @@ public class GeometryIO : MonoBehaviour
     [SerializeField]
     AssetLoaderOptions _options;
 
+    static Material defaultMaterial;
 
     static GameObject nativeTeleport;
     static GameObject teleportAreaPrefab;
@@ -64,6 +69,8 @@ public class GeometryIO : MonoBehaviour
 
     private void Start()
     {
+        defaultMaterial = _defaultMaterial;
+
         nativeTeleport = _nativeTeleport;
         teleportAreaPrefab = _teleportAreaPrefab;
 
@@ -150,6 +157,7 @@ public class GeometryIO : MonoBehaviour
 
     static void OnSpawnShapeImport(AssetLoaderContext assetLoaderContext)
     {
+        isImporting = false;
         Debug.Log("SpawnMesh file imported");
         MeshFilter[] meshFilters = assetLoaderContext.RootGameObject.GetComponentsInChildren<MeshFilter>();
 
@@ -251,6 +259,13 @@ public class GeometryIO : MonoBehaviour
     static void OnMaterialsImport(AssetLoaderContext assetLoaderContext)
     {
         isImporting = false;
+
+        foreach (MeshRenderer mr in assetLoaderContext.RootGameObject.GetComponentsInChildren<MeshRenderer>())
+        {
+            if (mr.material == null)
+                mr.material = defaultMaterial;
+        }
+
         MessageSystem.DisplayMessage("Geometry Imported!");
     }
 
