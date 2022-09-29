@@ -1,0 +1,782 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GameDevWare.Serialization</name>
+    </assembly>
+    <members>
+        <member name="M:GameDevWare.Serialization.IJsonReader.Reset">
+            <summary>
+                Resets Line/Column numbers, CharactersReaded and Token information of reader
+            </summary>
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Count">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Item(`0)">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#Item(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#ICollection#SyncRoot">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#ICollection#IsSynchronized">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Keys">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Values">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#Values">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#Keys">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#IsReadOnly">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#IsFixedSize">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#Generic#ICollection{System#Collections#Generic#KeyValuePair{KeyT,ValueT}}#IsReadOnly">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#Generic#IDictionary{KeyT,ValueT}#Keys">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#Generic#IDictionary{KeyT,ValueT}#Values">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.Add(`0,`1)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.Add(GameDevWare.Serialization.IndexedDictionary{`0,`1})">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.Insert(System.Int32,`0,`1)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.ContainsKey(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.ContainsKey(`0,System.Collections.Generic.IEqualityComparer{`0})">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.ContainsValue(`1)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.ContainsValue(`1,System.Collections.IEqualityComparer)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.Remove(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.TryGetValue(`0,`1@)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.IndexOf(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.RemoveAt(System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.Clear">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#Contains(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#Add(System.Object,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#GetEnumerator">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IDictionary#Remove(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#ICollection#CopyTo(System.Array,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#Generic#ICollection{System#Collections#Generic#KeyValuePair{KeyT,ValueT}}#Add(System.Collections.Generic.KeyValuePair{`0,`1})">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#Generic#ICollection{System#Collections#Generic#KeyValuePair{KeyT,ValueT}}#Contains(System.Collections.Generic.KeyValuePair{`0,`1})">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#Generic#ICollection{System#Collections#Generic#KeyValuePair{KeyT,ValueT}}#CopyTo(System.Collections.Generic.KeyValuePair{`0,`1}[],System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#Generic#ICollection{System#Collections#Generic#KeyValuePair{KeyT,ValueT}}#Remove(System.Collections.Generic.KeyValuePair{`0,`1})">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#Generic#IEnumerable{System#Collections#Generic#KeyValuePair{KeyT,ValueT}}#GetEnumerator">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.System#Collections#IEnumerable#GetEnumerator">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.ToString">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Enumerator.Key">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Enumerator.Value">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Enumerator.Entry">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Enumerator.Current">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.IndexedDictionary`2.Enumerator.System#Collections#IEnumerator#Current">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.Enumerator.MoveNext">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.Enumerator.Reset">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.IndexedDictionary`2.Enumerator.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.JsonReader.NextLexeme(System.Int32@,System.Int32@,System.Boolean@,System.Boolean@)">
+            <summary>
+                Get next lexeme from current buffer
+            </summary>
+            <param name="start">return position of returned lexeme in buffer</param>
+            <param name="len">return size of returned lexeme</param>
+            <param name="quoted">return true when string literal was quoted</param>
+            <param name="isMember">is lexeme is object's member</param>
+            <returns>Null in case of "end of stream", or character buffer with result</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.JsonReader.FillBuffer(System.Char[],System.Int32)">
+            <summary>
+                Fills buffer with new characters, staring from <paramref name="index" />
+            </summary>
+            <param name="buffer">Character buffer to fill</param>
+            <param name="index">index from which to start</param>
+            <returns>new buffer size</returns>
+        </member>
+        <member name="T:GameDevWare.Serialization.MessagePack.BigEndianBitConverter">
+            <summary>
+                Implementation of EndianBitConverter which converts to/from big-endian
+                byte arrays.
+            </summary>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.BigEndianBitConverter.IsLittleEndian">
+            <summary>
+                Indicates the byte order ("endianess") in which data is converted using this class.
+            </summary>
+            <remarks>
+                Different computer architectures store data using different byte orders. "Big-endian"
+                means the most significant byte is on the left end of a word. "Little-endian" means the
+                most significant byte is on the right end of a word.
+            </remarks>
+            <returns>true if this converter is little-endian, false otherwise.</returns>
+        </member>
+        <member name="P:GameDevWare.Serialization.MessagePack.BigEndianBitConverter.Endianness">
+            <summary>
+                Indicates the byte order ("endianess") in which data is converted using this class.
+            </summary>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.BigEndianBitConverter.CopyBytesImpl(System.Int64,System.Int32,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified number of bytes from value to buffer, starting at index.
+            </summary>
+            <param name="value">The value to copy</param>
+            <param name="bytes">The number of bytes to copy</param>
+            <param name="buffer">The buffer to copy the bytes into</param>
+            <param name="index">The index to start at</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.BigEndianBitConverter.FromBytes(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Returns a value built from the specified number of bytes from the given buffer,
+                starting at index.
+            </summary>
+            <param name="buffer">The data in byte array format</param>
+            <param name="startIndex">The first index to use</param>
+            <param name="bytesToConvert">The number of bytes to use</param>
+            <returns>The value built from the given bytes</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.DefaultMessagePackExtensionTypeHandler.TryRead(System.SByte,System.ArraySegment{System.Byte},System.Object@)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.DefaultMessagePackExtensionTypeHandler.TryWrite(System.Object,System.SByte@,System.ArraySegment{System.Byte}@)">
+            <inheritdoc />
+        </member>
+        <member name="T:GameDevWare.Serialization.MessagePack.EndianBitConverter">
+            <summary>
+                Equivalent of System.BitConverter, but with either endianness.
+            </summary>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.IsLittleEndian">
+            <summary>
+                Indicates the byte order ("endianess") in which data is converted using this class.
+            </summary>
+            <remarks>
+                Different computer architectures store data using different byte orders. "Big-endian"
+                means the most significant byte is on the left end of a word. "Little-endian" means the
+                most significant byte is on the right end of a word.
+            </remarks>
+            <returns>true if this converter is little-endian, false otherwise.</returns>
+        </member>
+        <member name="P:GameDevWare.Serialization.MessagePack.EndianBitConverter.Endianness">
+            <summary>
+                Indicates the byte order ("endianess") in which data is converted using this class.
+            </summary>
+        </member>
+        <member name="P:GameDevWare.Serialization.MessagePack.EndianBitConverter.Little">
+            <summary>
+                Returns a little-endian bit converter instance. The same instance is
+                always returned.
+            </summary>
+        </member>
+        <member name="P:GameDevWare.Serialization.MessagePack.EndianBitConverter.Big">
+            <summary>
+                Returns a big-endian bit converter instance. The same instance is
+                always returned.
+            </summary>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.DoubleToInt64Bits(System.Double)">
+            <summary>
+                Converts the specified double-precision floating point number to a
+                64-bit signed integer. Note: the endianness of this converter does not
+                affect the returned value.
+            </summary>
+            <param name="value">The number to convert. </param>
+            <returns>A 64-bit signed integer whose value is equivalent to value.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int64BitsToDouble(System.Int64)">
+            <summary>
+                Converts the specified 64-bit signed integer to a double-precision
+                floating point number. Note: the endianness of this converter does not
+                affect the returned value.
+            </summary>
+            <param name="value">The number to convert. </param>
+            <returns>A double-precision floating point number whose value is equivalent to value.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.SingleToInt32Bits(System.Single)">
+            <summary>
+                Converts the specified single-precision floating point number to a
+                32-bit signed integer. Note: the endianness of this converter does not
+                affect the returned value.
+            </summary>
+            <param name="value">The number to convert. </param>
+            <returns>A 32-bit signed integer whose value is equivalent to value.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int32BitsToSingle(System.Int32)">
+            <summary>
+                Converts the specified 32-bit signed integer to a single-precision floating point
+                number. Note: the endianness of this converter does not
+                affect the returned value.
+            </summary>
+            <param name="value">The number to convert. </param>
+            <returns>A single-precision floating point number whose value is equivalent to value.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToBoolean(System.Byte[],System.Int32)">
+            <summary>
+                Returns a Boolean value converted from one byte at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>true if the byte at startIndex in value is nonzero; otherwise, false.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToChar(System.Byte[],System.Int32)">
+            <summary>
+                Returns a Unicode character converted from two bytes at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A character formed by two bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToDouble(System.Byte[],System.Int32)">
+            <summary>
+                Returns a double-precision floating point number converted from eight bytes
+                at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A double precision floating point number formed by eight bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToSingle(System.Byte[],System.Int32)">
+            <summary>
+                Returns a single-precision floating point number converted from four bytes
+                at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A single precision floating point number formed by four bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToInt16(System.Byte[],System.Int32)">
+            <summary>
+                Returns a 16-bit signed integer converted from two bytes at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A 16-bit signed integer formed by two bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToInt32(System.Byte[],System.Int32)">
+            <summary>
+                Returns a 32-bit signed integer converted from four bytes at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A 32-bit signed integer formed by four bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToInt64(System.Byte[],System.Int32)">
+            <summary>
+                Returns a 64-bit signed integer converted from eight bytes at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A 64-bit signed integer formed by eight bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToUInt16(System.Byte[],System.Int32)">
+            <summary>
+                Returns a 16-bit unsigned integer converted from two bytes at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A 16-bit unsigned integer formed by two bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToUInt32(System.Byte[],System.Int32)">
+            <summary>
+                Returns a 32-bit unsigned integer converted from four bytes at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A 32-bit unsigned integer formed by four bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToUInt64(System.Byte[],System.Int32)">
+            <summary>
+                Returns a 64-bit unsigned integer converted from eight bytes at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A 64-bit unsigned integer formed by eight bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CheckByteArgument(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Checks the given argument for validity.
+            </summary>
+            <param name="value">The byte array passed in</param>
+            <param name="startIndex">The start index passed in</param>
+            <param name="bytesRequired">The number of bytes required</param>
+            <exception cref="T:System.ArgumentNullException">value is a null reference</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+                startIndex is less than zero or greater than the length of value minus bytesRequired.
+            </exception>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CheckedFromBytes(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Checks the arguments for validity before calling FromBytes
+                (which can therefore assume the arguments are valid).
+            </summary>
+            <param name="value">The bytes to convert after checking</param>
+            <param name="startIndex">The index of the first byte to convert</param>
+            <param name="bytesToConvert">The number of bytes to convert</param>
+            <returns></returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.FromBytes(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Convert the given number of bytes from the given array, from the given start
+                position, into a long, using the bytes as the least significant part of the long.
+                By the time this is called, the arguments have been checked for validity.
+            </summary>
+            <param name="value">The bytes to convert</param>
+            <param name="startIndex">The index of the first byte to convert</param>
+            <param name="bytesToConvert">The number of bytes to use in the conversion</param>
+            <returns>The converted number</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToString(System.Byte[])">
+            <summary>
+                Returns a String converted from the elements of a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <remarks>All the elements of value are converted.</remarks>
+            <returns>
+                A String of hexadecimal pairs separated by hyphens, where each pair
+                represents the corresponding element in value; for example, "7F-2C-4A".
+            </returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToString(System.Byte[],System.Int32)">
+            <summary>
+                Returns a String converted from the elements of a byte array starting at a specified array position.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <remarks>The elements from array position startIndex to the end of the array are converted.</remarks>
+            <returns>
+                A String of hexadecimal pairs separated by hyphens, where each pair
+                represents the corresponding element in value; for example, "7F-2C-4A".
+            </returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToString(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Returns a String converted from a specified number of bytes at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <param name="length">The number of bytes to convert.</param>
+            <remarks>The length elements from array position startIndex are converted.</remarks>
+            <returns>
+                A String of hexadecimal pairs separated by hyphens, where each pair
+                represents the corresponding element in value; for example, "7F-2C-4A".
+            </returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.ToDecimal(System.Byte[],System.Int32)">
+            <summary>
+                Returns a decimal value converted from sixteen bytes
+                at a specified position in a byte array.
+            </summary>
+            <param name="value">An array of bytes.</param>
+            <param name="startIndex">The starting position within value.</param>
+            <returns>A decimal  formed by sixteen bytes beginning at startIndex.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Decimal)">
+            <summary>
+                Returns the specified decimal value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 16.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Decimal,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified decimal value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">A character to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Int64,System.Int32)">
+            <summary>
+                Returns an array with the given number of bytes formed
+                from the least significant bytes of the specified value.
+                This is used to implement the other GetBytes methods.
+            </summary>
+            <param name="value">The value to get bytes for</param>
+            <param name="bytes">The number of significant bytes to return</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Boolean)">
+            <summary>
+                Returns the specified Boolean value as an array of bytes.
+            </summary>
+            <param name="value">A Boolean value.</param>
+            <returns>An array of bytes with length 1.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Char)">
+            <summary>
+                Returns the specified Unicode character value as an array of bytes.
+            </summary>
+            <param name="value">A character to convert.</param>
+            <returns>An array of bytes with length 2.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Double)">
+            <summary>
+                Returns the specified double-precision floating point value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 8.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Int16)">
+            <summary>
+                Returns the specified 16-bit signed integer value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 2.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Int32)">
+            <summary>
+                Returns the specified 32-bit signed integer value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 4.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Int64)">
+            <summary>
+                Returns the specified 64-bit signed integer value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 8.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.Single)">
+            <summary>
+                Returns the specified single-precision floating point value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 4.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.UInt16)">
+            <summary>
+                Returns the specified 16-bit unsigned integer value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 2.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.UInt32)">
+            <summary>
+                Returns the specified 32-bit unsigned integer value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 4.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.GetBytes(System.UInt64)">
+            <summary>
+                Returns the specified 64-bit unsigned integer value as an array of bytes.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <returns>An array of bytes with length 8.</returns>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Int64,System.Int32,System.Byte[],System.Int32)">
+            <summary>
+                Copies the given number of bytes from the least-specific
+                end of the specified value into the specified byte array, beginning
+                at the specified index.
+                This is used to implement the other CopyBytes methods.
+            </summary>
+            <param name="value">The value to copy bytes for</param>
+            <param name="bytes">The number of significant bytes to copy</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytesImpl(System.Int64,System.Int32,System.Byte[],System.Int32)">
+            <summary>
+                Copies the given number of bytes from the least-specific
+                end of the specified value into the specified byte array, beginning
+                at the specified index.
+                This must be implemented in concrete derived classes, but the implementation
+                may assume that the value will fit into the buffer.
+            </summary>
+            <param name="value">The value to copy bytes for</param>
+            <param name="bytes">The number of significant bytes to copy</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Boolean,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified Boolean value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">A Boolean value.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Char,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified Unicode character value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">A character to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Double,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified double-precision floating point value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Int16,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified 16-bit signed integer value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Int32,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified 32-bit signed integer value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Int64,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified 64-bit signed integer value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.Single,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified single-precision floating point value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.UInt16,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified 16-bit unsigned integer value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.UInt32,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified 32-bit unsigned integer value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.CopyBytes(System.UInt64,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified 64-bit unsigned integer value into the specified byte array,
+                beginning at the specified index.
+            </summary>
+            <param name="value">The number to convert.</param>
+            <param name="buffer">The byte array to copy the bytes into</param>
+            <param name="index">The first index into the array to copy the bytes into</param>
+        </member>
+        <member name="T:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int32SingleUnion">
+            <summary>
+                Union used solely for the equivalent of DoubleToInt64Bits and vice versa.
+            </summary>
+        </member>
+        <member name="F:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int32SingleUnion.i">
+            <summary>
+                Int32 version of the value.
+            </summary>
+        </member>
+        <member name="F:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int32SingleUnion.f">
+            <summary>
+                Single version of the value.
+            </summary>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int32SingleUnion.#ctor(System.Int32)">
+            <summary>
+                Creates an instance representing the given integer.
+            </summary>
+            <param name="i">The integer value of the new instance.</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int32SingleUnion.#ctor(System.Single)">
+            <summary>
+                Creates an instance representing the given floating point number.
+            </summary>
+            <param name="f">The floating point value of the new instance.</param>
+        </member>
+        <member name="P:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int32SingleUnion.AsInt32">
+            <summary>
+                Returns the value of the instance as an integer.
+            </summary>
+        </member>
+        <member name="P:GameDevWare.Serialization.MessagePack.EndianBitConverter.Int32SingleUnion.AsSingle">
+            <summary>
+                Returns the value of the instance as a floating point number.
+            </summary>
+        </member>
+        <member name="T:GameDevWare.Serialization.MessagePack.Endianness">
+            <summary>
+                Endianness of a converter
+            </summary>
+        </member>
+        <member name="F:GameDevWare.Serialization.MessagePack.Endianness.LittleEndian">
+            <summary>
+                Little endian - least significant byte first
+            </summary>
+        </member>
+        <member name="F:GameDevWare.Serialization.MessagePack.Endianness.BigEndian">
+            <summary>
+                Big endian - most significant byte first
+            </summary>
+        </member>
+        <member name="T:GameDevWare.Serialization.MessagePack.LittleEndianBitConverter">
+            <summary>
+                Implementation of EndianBitConverter which converts to/from little-endian
+                byte arrays.
+            </summary>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.LittleEndianBitConverter.IsLittleEndian">
+            <summary>
+                Indicates the byte order ("endianess") in which data is converted using this class.
+            </summary>
+            <remarks>
+                Different computer architectures store data using different byte orders. "Big-endian"
+                means the most significant byte is on the left end of a word. "Little-endian" means the
+                most significant byte is on the right end of a word.
+            </remarks>
+            <returns>true if this converter is little-endian, false otherwise.</returns>
+        </member>
+        <member name="P:GameDevWare.Serialization.MessagePack.LittleEndianBitConverter.Endianness">
+            <summary>
+                Indicates the byte order ("endianess") in which data is converted using this class.
+            </summary>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.LittleEndianBitConverter.CopyBytesImpl(System.Int64,System.Int32,System.Byte[],System.Int32)">
+            <summary>
+                Copies the specified number of bytes from value to buffer, starting at index.
+            </summary>
+            <param name="value">The value to copy</param>
+            <param name="bytes">The number of bytes to copy</param>
+            <param name="buffer">The buffer to copy the bytes into</param>
+            <param name="index">The index to start at</param>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.LittleEndianBitConverter.FromBytes(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+                Returns a value built from the specified number of bytes from the given buffer,
+                starting at index.
+            </summary>
+            <param name="buffer">The data in byte array format</param>
+            <param name="startIndex">The first index to use</param>
+            <param name="bytesToConvert">The number of bytes to use</param>
+            <returns>The value built from the given bytes</returns>
+        </member>
+        <member name="T:GameDevWare.Serialization.MessagePack.MessagePackExtensionType">
+            <summary>
+                Representation of extension types in Message Pack. This type is immutable by design
+            </summary>
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.MessagePackExtensionTypeHandler.ToString">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.MessagePackTimestamp.GetHashCode">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.MessagePackTimestamp.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.MessagePackTimestamp.Equals(GameDevWare.Serialization.MessagePack.MessagePackTimestamp)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.MessagePackTimestamp.CompareTo(GameDevWare.Serialization.MessagePack.MessagePackTimestamp)">
+            <inheritdoc />
+        </member>
+        <member name="M:GameDevWare.Serialization.MessagePack.MessagePackTimestamp.ToString">
+            <inheritdoc />
+        </member>
+        <member name="F:GameDevWare.Serialization.Metadata.MetadataReflection.AotRuntime">
+            <summary>
+            Set to true to disable access optimizations (generated read/write access delegates) in AOT runtime.
+            </summary>
+        </member>
+        <member name="P:GameDevWare.Serialization.Serializers.MsgPackExtensionTypeSerializer.SerializedType">
+            <inheritdoc />
+        </member>
+        <member name="P:GameDevWare.Serialization.Serializers.MsgPackTimestampSerializer.SerializedType">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

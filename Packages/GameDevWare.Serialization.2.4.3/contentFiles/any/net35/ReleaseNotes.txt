@@ -1,0 +1,1 @@
+add check for DynamicMethod support in MetadataReflection (for some environments where Expression.Compile is supported but DynamicMethod is not)

@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using Newtonsoft.Json;
+//using System.Runtime.Serialization.Formatters.Binary;
 using LegoAssembly;
 using System;
+using GameDevWare.Serialization;
+using System.Runtime.Serialization;
 
 public class AssemblyIO : MonoBehaviour
 {
@@ -59,7 +62,7 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
-    public static void SaveAssemblyLayout(string path, bool saveInactive)
+    public static void SaveAssemblyLayout(string path, bool saveInactive, bool export = false)
     {
         if (currentSaveTargets.Contains(path))
         {
@@ -67,35 +70,63 @@ public class AssemblyIO : MonoBehaviour
             return;
         }
 
-        JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.name);
+        List<Matrix4x4> tempMatrices = new List<Matrix4x4>();
 
         if (ModuleContainer.Container.PcTransforms != null && saveInactive)
         {
             foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.PcTransforms)
             {
                 if (matrix4x4 != Matrix4x4.zero)
-                    container.matrices.Add(new JsonMatrix(conversionMatrix * matrix4x4));
+                    tempMatrices.Add(conversionMatrix * matrix4x4);
             }
         }
 
         foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.TransformArray)
         {
             if (matrix4x4 != Matrix4x4.zero)
-                container.matrices.Add(new JsonMatrix(conversionMatrix * matrix4x4));
+                tempMatrices.Add(conversionMatrix * matrix4x4);
         }
 
-        currentSaveTargets.Add(path);
-        SaveAssemblyDelegate saveDelegate = new SaveAssemblyDelegate(SaveAsync);
-        saveDelegate.BeginInvoke(path, container, null, null);
+        if (export)
+        {
+            currentSaveTargets.Add(path);
+            JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.name, tempMatrices);
+
+            ExportAssemblyDelegate exportDelegate = new ExportAssemblyDelegate(ExportAsync);
+            exportDelegate.BeginInvoke(path, container, null, null);
+        }
+        else
+        {
+            SaveAssemblyDelegate saveDelegate = new SaveAssemblyDelegate(SaveAsync);
+            saveDelegate.BeginInvoke(path, GameManager.Bond.name, tempMatrices, null, null);
+        }
     }
 
-    static void SaveAsync(string path, JsonMatrixContainer container)
+    static void ExportAsync(string path, JsonMatrixContainer container)
     {
-        Debug.Log("Start saving at " + DateTime.Now.ToString("T"));
+        Debug.Log("Start exporting at " + DateTime.Now.ToString("T"));
         using (StreamWriter file = File.CreateText(path))
         {
             JsonSerializer serializer = new JsonSerializer();
             serializer.Serialize(file, container);
+        }
+
+        Debug.Log("Finished exporting at " + DateTime.Now.ToString("T"));
+
+        lock (lockKey)
+        {
+            currentSaveTargets.Remove(path);
+            message = "File Exported!";
+        }
+    }
+
+    static void SaveAsync(string path, string bondName, List<Matrix4x4> matrices)
+    {
+        Debug.Log("Start saving at " + DateTime.Now.ToString("T"));
+        using (FileStream stream = new FileStream(path, FileMode.Create))
+        {
+            ByteStreamContainer container = new ByteStreamContainer(bondName, matrices);
+            stream.Write(container.ToByteArray());
         }
 
         Debug.Log("Finished saving at " + DateTime.Now.ToString("T"));
@@ -119,9 +150,8 @@ public class AssemblyIO : MonoBehaviour
         LoadAssemblyLayout(path);
     }
 
-    static Matrix4x4[] LoadMatrices(string path, out string bond)
+    static Matrix4x4[] LoadJsonMatrices(string path, out string bond)
     {
-        JsonMatrixContainer container = new JsonMatrixContainer();
         Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
         string jsonContent;
 
@@ -139,11 +169,30 @@ public class AssemblyIO : MonoBehaviour
         return matrices;
     }
 
+    static Matrix4x4[] LoadByteMatrices(string path, out string bond)
+    {
+        Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
+        byte[] loadBytes = File.ReadAllBytes(path);
+
+        Debug.Log("File read at " + DateTime.Now.ToString("T"));
+
+        ByteStreamContainer container = new ByteStreamContainer(loadBytes);
+
+        bond = container.bondName;
+
+        Debug.Log("Bond Name: " + bond + ", Matrices: " + container.matrices.Length);
+
+        return container.matrices;
+    }
+
     static void LoadAsync(string path)
     {
         string bond;
-
-        Matrix4x4[] matrices = LoadMatrices(path, out bond);
+        Matrix4x4[] matrices;
+        if (Path.GetExtension(path).ToLower() == ".json")
+            matrices = LoadJsonMatrices(path, out bond);
+        else
+            matrices = LoadByteMatrices(path, out bond);
 
         if (matrices == null || matrices.Length == 0 || bond == null || bond == "")
         {
@@ -167,12 +216,12 @@ public class AssemblyIO : MonoBehaviour
         List<Matrix4x4> matrices = new List<Matrix4x4>();
         bond = "";
 
-        JsonTextReader reader = new JsonTextReader(new StringReader(jsonContent));
+        Newtonsoft.Json.JsonTextReader reader = new Newtonsoft.Json.JsonTextReader(new StringReader(jsonContent));
         while (reader.Read())
         {
             if (reader.Value != null)
             {
-                if (reader.TokenType == JsonToken.PropertyName)
+                if (reader.TokenType == Newtonsoft.Json.JsonToken.PropertyName)
                 {
                     switch ((string)reader.Value)
                     {
@@ -269,7 +318,7 @@ public class AssemblyIO : MonoBehaviour
             }
             else
             {
-                if (reader.TokenType == JsonToken.EndObject)
+                if (reader.TokenType == Newtonsoft.Json.JsonToken.EndObject)
                 {
                     if (currentMatrix != Matrix4x4.zero)
                     {
@@ -500,8 +549,6 @@ public class AssemblyIO : MonoBehaviour
         min = Vector3.one * float.MaxValue;
         max = Vector3.one * float.MinValue;
 
-        
-
         foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.TransformArray)
         {
             if (matrix4x4 == Matrix4x4.zero) continue;
@@ -526,12 +573,13 @@ public class AssemblyIO : MonoBehaviour
     }
 }
 
-public delegate void SaveAssemblyDelegate(string path, JsonMatrixContainer container);
+public delegate void ExportAssemblyDelegate(string path, JsonMatrixContainer container);
+public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4> matrices);
 public delegate void LoadAssemblyDelegate(string path);
 
 public class JsonMatrixContainer
 {
-    public List<JsonMatrix> matrices = new List<JsonMatrix>();
+    public JsonMatrix[] matrices;
     public string bondName;
 
     public JsonMatrixContainer()
@@ -543,7 +591,17 @@ public class JsonMatrixContainer
     {
         bondName = _bondName;
     }
+
+    public JsonMatrixContainer(string _bondName, List<Matrix4x4> _matrices)
+    {
+        bondName = _bondName;
+        matrices = new JsonMatrix[_matrices.Count];
+
+        for (int i = 0; i < matrices.Length; ++i)
+            matrices[i] = new JsonMatrix(_matrices[i]);
+    }
 }
+
 public class JsonMatrix
 {
     public float m00;
@@ -573,6 +631,8 @@ public class JsonMatrix
 
     public JsonMatrix(Matrix4x4 matrix)
     {
+
+
         m00 = matrix.m00;
         m01 = matrix.m01;
         m02 = matrix.m02;

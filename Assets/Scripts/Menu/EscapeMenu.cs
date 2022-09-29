@@ -109,8 +109,8 @@ public class EscapeMenu : MonoBehaviour
 
     public void Save(bool saveInactive)
     {
-        FileBrowser.SetFilters(true, new FileBrowser.Filter("Json", ".json"));
-        FileBrowser.SetDefaultFilter(".json");
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("VRoxel", ".vrxl"));
+        FileBrowser.SetDefaultFilter(".vrxl");
 
         if (saveInactive)
             FileBrowser.ShowSaveDialog(OnSaveAllSuccess, OnCancel, FileBrowser.PickMode.Files, false);
@@ -118,10 +118,19 @@ public class EscapeMenu : MonoBehaviour
             FileBrowser.ShowSaveDialog(OnSaveSuccess, OnCancel, FileBrowser.PickMode.Files, false);
     }
 
-    public void Load()
+    public void Export()
     {
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Json", ".json"));
         FileBrowser.SetDefaultFilter(".json");
+
+        FileBrowser.ShowSaveDialog(OnExportSuccess, OnCancel, FileBrowser.PickMode.Files, false);
+    }
+
+    public void Load()
+    {
+        var filter = new FileBrowser.Filter("VRoxel", ".vrxl", ".json");
+        FileBrowser.SetFilters(false, filter);
+
         FileBrowser.ShowLoadDialog(OnLoadSuccess, OnCancel, FileBrowser.PickMode.Files, true);
     }
 
@@ -335,12 +344,21 @@ public class EscapeMenu : MonoBehaviour
         ImportPointCloud();
     }
 
-    void OnSaveAllSuccess(string[] paths)
+    void OnExportSuccess(string[] paths)
     {
         string path = paths[0];
         string[] split = path.Split('.');
         if (split[split.Length - 1].ToLower() != "json")
-            path = path + "/json";
+            path = path + ".json";
+        AssemblyIO.SaveAssemblyLayout(path, true, true);
+    }
+
+    void OnSaveAllSuccess(string[] paths)
+    {
+        string path = paths[0];
+        string[] split = path.Split('.');
+        if (split[split.Length - 1].ToLower() != "vrxl")
+            path = path + ".vrxl";
         AssemblyIO.SaveAssemblyLayout(path, true);
     }
 
@@ -348,8 +366,8 @@ public class EscapeMenu : MonoBehaviour
     {
         string path = paths[0];
         string[] split = path.Split('.');
-        if (split[split.Length - 1].ToLower() != "json")
-            path = path + "/json";
+        if (split[split.Length - 1].ToLower() != "vrxl")
+            path = path + ".vrxl";
         AssemblyIO.SaveAssemblyLayout(path, false);
     }
 
