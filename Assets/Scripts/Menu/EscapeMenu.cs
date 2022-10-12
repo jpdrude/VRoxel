@@ -411,7 +411,7 @@ public class EscapeMenu : MonoBehaviour
 
     public void ConvertToPC()
     {
-        ModuleContainer.Container.ModulesToPointCloud();
+        BlockContainer.Container.BlocksToPointCloud();
         Resume();
     }
 }

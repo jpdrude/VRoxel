@@ -10,7 +10,20 @@ public class GameManager : MonoBehaviour
     GPUInstancerPrefabManager GPUIPrefabManager;
 
     static Bond _bond;
-    public static Bond Bond { get { return _bond; } set { _bond = value; } }
+    public static Bond Bond { 
+        get 
+        { 
+            return _bond; 
+        } 
+        set 
+        { 
+            _bond = value;
+            _bond.Initialize(); 
+        } 
+    }
+
+    static GameManager manager;
+    public static GameManager Manager { get { return manager; } }
 
     [SerializeField]
     List<Bond> availableBonds;
@@ -26,13 +39,15 @@ public class GameManager : MonoBehaviour
         get { return new Vector3(_bond.XSpacing, _bond.YSpacing, _bond.ZSpacing); }
     }
 
-    ModuleContainer container;
+    BlockContainer container;
 
     void Awake()
     {
         foreach (Bond bond in availableBonds)
-            if (!_availableBonds.ContainsKey(bond.name))
-                _availableBonds.Add(bond.name, bond);
+            if (!_availableBonds.ContainsKey(bond.BondName))
+                _availableBonds.Add(bond.BondName, bond);
+
+        manager = this;
     }
 
     public void Save()
@@ -56,7 +71,7 @@ public class GameManager : MonoBehaviour
 
         Bond = b;
 
-        container = new ModuleContainer(GPUIPrefabManager, _bond.BrickPrefab);
+        container = new BlockContainer(GPUIPrefabManager, _bond.PartPrefabs);
 
         actionSet.Activate();
     }

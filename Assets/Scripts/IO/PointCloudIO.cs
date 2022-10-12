@@ -37,15 +37,24 @@ public class PointCloudIO : MonoBehaviour
         viewerInitialized = true;
     }
 
-    public static void ModulesToCloud(Matrix4x4[] transforms)
+    public static void ModulesToCloud(Matrix4x4[][] transforms)
     {
-        Vector3[] points = new Vector3[transforms.Length];
-        Vector3[] colors = new Vector3[transforms.Length];
+        int transformLength = 0;
+        for (int i = 0; i < transforms.Length; ++i)
+            transformLength += transforms[i].Length;
 
+        Vector3[] points = new Vector3[transformLength];
+        Vector3[] colors = new Vector3[transformLength];
+
+        int counter = 0;
         for (int i = 0; i < transforms.Length; ++i)
         {
-            points[i] = transforms[i].GetPosition();
-            colors[i] = new Vector3(0.98f, 0.98f, 0.98f);
+            for (int j = 0; j < transforms[i].Length; ++j)
+            {
+                points[counter] = transforms[i][j].GetPosition();
+                colors[counter] = new Vector3(0.98f, 0.98f, 0.98f);
+                ++counter;
+            }
         }
 
         if (viewerInitialized)

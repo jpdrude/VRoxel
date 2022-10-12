@@ -10,8 +10,8 @@ public static class PlatformMesh
     public static GameObject GeneratePlatformMesh(Material platformMaterial)
     {
         var platform = new GameObject();
+        platform.name = "ElevatorPlatform";
 
-        Vector3[] boundary;
         HmdQuad_t[] collisionBounds;
         OpenVR.ChaperoneSetup.GetWorkingCollisionBoundsInfo(out collisionBounds);
         List<Vector3> boundaryList = new List<Vector3>();
@@ -20,14 +20,59 @@ public static class PlatformMesh
         {
             boundaryList.Add(new Vector3(bound.vCorners0.v0, 0, -bound.vCorners0.v2));
         }
-        boundaryList.Reverse();
-        boundary = boundaryList.ToArray();
+        //boundaryList.Reverse();
 
-        var mr = platform.AddComponent<MeshRenderer>();
-        var mf = platform.AddComponent<MeshFilter>();
+        GameObject p1 = new GameObject();
+        p1.transform.parent = platform.transform;
+
+        var mr = p1.AddComponent<MeshRenderer>();
+        var mf = p1.AddComponent<MeshFilter>();
 
         mr.material = platformMaterial;
-        mf.sharedMesh = ExtrudeMeshFromPoints(boundary);
+        mf.sharedMesh = ExtrudeMeshFromPoints(boundaryList.ToArray());
+
+        boundaryList.Reverse();
+
+        GameObject p2 = new GameObject();
+        p2.transform.parent = platform.transform;
+
+        mr = p2.AddComponent<MeshRenderer>();
+        mf = p2.AddComponent<MeshFilter>();
+
+        mr.material = platformMaterial;
+        mf.sharedMesh = ExtrudeMeshFromPoints(boundaryList.ToArray());
+
+        platform.SetActive(false);
+
+        return platform;
+    }
+
+    public static GameObject GeneratePlatformMesh(Material platformMaterial, GameObject template)
+    {
+        GameObject platform = MonoBehaviour.Instantiate(template);
+        platform.transform.position = Vector3.zero;
+        platform.transform.rotation = Quaternion.identity;
+        platform.GetComponent<MeshRenderer>().material = platformMaterial;
+
+        float sizeX = 0;
+        float sizeY = 0;
+        OpenVR.ChaperoneSetup.GetWorkingPlayAreaSize(ref sizeX, ref sizeY);
+
+        Vector3 scale = Vector3.one;
+        if (sizeX > sizeY)
+        {
+            scale.x = sizeX;
+            scale.z = sizeX;
+        }
+        else
+        {
+            scale.x = sizeY;
+            scale.z = sizeY;
+        }
+
+        Debug.Log("Game Area is: " + sizeX + "m x " + sizeY + "m");
+
+        platform.transform.localScale = scale;
         platform.SetActive(false);
 
         return platform;

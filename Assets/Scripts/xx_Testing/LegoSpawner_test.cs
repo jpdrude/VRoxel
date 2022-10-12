@@ -7,7 +7,7 @@ public class LegoSpawner_test : MonoBehaviour
 {
     [Header("Prefab")]
     [SerializeField]
-    GPUInstancerPrefab brick;
+    GPUInstancerPrefab part;
     [SerializeField]
     GPUInstancerPrefabManager manager;
     [SerializeField]
@@ -26,7 +26,7 @@ public class LegoSpawner_test : MonoBehaviour
     static readonly float ySpacing = 0.0096f;
     static readonly float zSpacing = 0.032f;
 
-    List<GPUInstancerPrefab> bricks = new List<GPUInstancerPrefab>();
+    List<GPUInstancerPrefab> blocks = new List<GPUInstancerPrefab>();
 
 
     // Start is called before the first frame update
@@ -38,12 +38,12 @@ public class LegoSpawner_test : MonoBehaviour
             for (int y = 0; y < extendY; ++y)
                 for (int z = 0; z < extendZ; ++z)
                 {
-                    var b = Instantiate(brick);
-                    bricks.Add(b);
+                    var b = Instantiate(part);
+                    blocks.Add(b);
                     b.transform.position = new Vector3(xSpacing * x, ySpacing * y, zSpacing * z);
                 }
 
-        GPUInstancerAPI.RegisterPrefabInstanceList(manager, bricks);
+        GPUInstancerAPI.RegisterPrefabInstanceList(manager, blocks);
         GPUInstancerAPI.InitializeGPUInstancer(manager);
     }
 }

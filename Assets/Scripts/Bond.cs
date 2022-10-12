@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using GPUInstancer;
 
-using UnityEngine.Jobs;
-using Unity.Mathematics;
-using Unity.Collections;
-using Unity.Burst;
+using System;
 
 public class Bond : MonoBehaviour
 {
@@ -14,11 +11,14 @@ public class Bond : MonoBehaviour
     [SerializeField]
     string bondName;
 
-    [Header("Bricks")]
+    [Header("Parts")]
     [SerializeField]
-    GPUInstancerPrefab brickPrefab;
+    GPUInstancerPrefab[] partPrefabs;
+    
     [SerializeField]
-    List<Transform> bricks = new List<Transform>();
+    PartTypeArray[] bondBlocks;
+
+    Transform[][] blocks;
 
     [Space]
     [Header("Offset")]
@@ -52,17 +52,35 @@ public class Bond : MonoBehaviour
     public int YIntSpacing { get { return Mathf.RoundToInt(ySpacing * 10000); } }
     public int ZIntSpacing { get { return Mathf.RoundToInt(zSpacing * 10000); } }
 
-    public GPUInstancerPrefab BrickPrefab { get { return brickPrefab; } }
+    public GPUInstancerPrefab[] PartPrefabs { get { return partPrefabs; } }
 
-    public Matrix4x4 GetClosestBrick(Vector3 position)
+    public string BondName { get { return bondName; } }
+
+    public void Initialize()
+    {
+        blocks = new Transform[bondBlocks.Length][];
+
+        for (int i = 0; i < bondBlocks.Length; ++i)
+            blocks[i] = bondBlocks[i].blocks;
+    }
+
+    public Matrix4x4 GetClosestBlock(Vector3 position, out int blockType)
     {
         Vector3 bondBase = GetBondBase(position);
         Vector3 bondPosition = position - bondBase;
 
-        Transform best = bricks[0];
-        for (int i = 1; i < bricks.Count; ++i)
-            if (Vector3.Distance(bondPosition, best.position) > Vector3.Distance(bondPosition, bricks[i].position))
-                best = bricks[i];
+        Transform best = blocks[0][0];
+        int bestType = 0;
+
+        for (int i = 0; i < blocks.Length; ++i)
+            for (int j = 0; j < blocks[i].Length; ++j)
+                if (Vector3.Distance(bondPosition, best.position) > Vector3.Distance(bondPosition, blocks[i][j].position))
+                { 
+                    best = blocks[i][j];
+                    bestType = i;
+                }
+
+        blockType = bestType;
 
         return Matrix4x4.TRS(bondBase + best.localPosition, best.localRotation, Vector3.one);
     }
@@ -101,13 +119,99 @@ public class Bond : MonoBehaviour
         return bondBase;
     }
 
-    public Matrix4x4[] GetBricksInSphere(Vector3 position, float radius, out Vector3Int[] dictPositions)
+    public Matrix4x4[][] GetBlocksInBounds(Vector3 min, Vector3 max)
     {
-        List<Matrix4x4> bricks = new List<Matrix4x4>();
-        List<Vector3Int> intPositions = new List<Vector3Int>();
+        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+            blockTransforms[i] = new List<Matrix4x4>();
+
+        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.Bond.XSpacing)
+        {
+            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.Bond.YSpacing)
+                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.Bond.ZSpacing)
+                {
+                    for (int i = 0; i < blocks.Length; ++i)
+                    {
+                        for (int j = 0; j < blocks[i].Length; ++j)
+                        {
+                            blockTransforms[i].Add(Matrix4x4.TRS(blocks[i][j].localPosition + new Vector3(x, y, z), blocks[i][j].localRotation, Vector3.one));
+                        }
+                    }
+                }
+        }
+
+        Matrix4x4[][] _blockTransforms = new Matrix4x4[blockTransforms.Length][];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+            _blockTransforms[i] = blockTransforms[i].ToArray();
+
+        return _blockTransforms;
+    }
+
+    public Matrix4x4[][] GetBlocksInBox(Vector3 min, Vector3 max, out PositionKey[][] _blockDictsKeys)
+    {
+        Vector3Int minInt = GetBondBaseInt(min);
+        Vector3 maxScaled = max * 10000;
+
+        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
+        List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            blockTransforms[i] = new List<Matrix4x4>();
+            blockDictKeys[i] = new List<PositionKey>();
+        }
+
+        for (int x = minInt.x; x < maxScaled.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+        {
+            for (int y = minInt.y; y < maxScaled.y; y += GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            {
+                for (int z = minInt.z; z < maxScaled.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+                {
+                    for (int i = 0; i < blocks.Length; ++i)
+                    {
+                        for (int j = 0; j < blocks[i].Length; ++j)
+                        {
+                            Transform block = blocks[i][j].transform;
+                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
+                            if (blockPosition.x >= min.x && blockPosition.y >= min.y && blockPosition.z >= min.z)
+                            {
+                                blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one));
+                                Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
+                                blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Matrix4x4[][] _blockTransforms = new Matrix4x4[blocks.Length][];
+        _blockDictsKeys = new PositionKey[blocks.Length][];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            _blockTransforms[i] = blockTransforms[i].ToArray();
+            _blockDictsKeys[i] = blockDictKeys[i].ToArray();
+        }
+
+        return _blockTransforms;
+    }
+
+    public Matrix4x4[][] GetBlocksInSphere(Vector3 position, float radius, out PositionKey[][] _blockDictKeys)
+    {
+        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
+        List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
 
         Vector3Int min = GetBondBaseInt(position - Vector3.one * radius);
         Vector3 max = (position + Vector3.one * radius) * 10000;
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            blockTransforms[i] = new List<Matrix4x4>();
+            blockDictKeys[i] = new List<PositionKey>();
+        }
 
         for (int x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
         {
@@ -115,77 +219,36 @@ public class Bond : MonoBehaviour
             {
                 for (int z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
                 {
-                    foreach (Transform brick in GameManager.Bond.bricks)
+                    for (int i = 0; i < blocks.Length; ++i)
                     {
-                        if (Vector3.Distance(brick.localPosition + new Vector3Int(x, y, z).Divide(10000), position) < radius)
+                        for (int j = 0; j < blocks[i].Length; ++j)
                         {
-                            bricks.Add(Matrix4x4.TRS(brick.localPosition + new Vector3Int(x, y, z).Divide(10000), brick.localRotation, Vector3.one));
-                            Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(brick.localPosition.x * 10000), Mathf.RoundToInt(brick.localPosition.y * 10000), Mathf.RoundToInt(brick.localPosition.z * 10000));
-                            intPositions.Add(localIntPosition + new Vector3Int(x, y, z));
-                            //Debug.Log("Brick added. Position: " + (brick.localPosition + new Vector3Int(x, y, z).Divide(10000)).ToString("F4") + ", intPosition: " + (localIntPosition + new Vector3Int(x, y, z)).ToString());
+                            if (Vector3.Distance(blocks[i][j].localPosition + new Vector3Int(x, y, z).Divide(10000), position) < radius)
+                            {
+                                Transform block = blocks[i][j].transform;
+                                blockTransforms[i].Add(Matrix4x4.TRS(block.localPosition + new Vector3Int(x, y, z).Divide(10000), block.localRotation, Vector3.one));
+                                Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
+                                blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
+                            }
                         }
                     }
                 }
             }
         }
 
-        dictPositions = intPositions.ToArray();
-        return bricks.ToArray();
-    }
+        Matrix4x4[][] _blockTransforms = new Matrix4x4[blocks.Length][];
+        _blockDictKeys = new PositionKey[blocks.Length][];
 
-    public Matrix4x4[] GetBricksInBounds(Vector3 min, Vector3 max)
-    {
-        List<Matrix4x4> bricks = new List<Matrix4x4>();
-
-        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.Bond.XSpacing)
+        for (int i = 0; i < blockTransforms.Length; ++i)
         {
-            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.Bond.YSpacing)
-                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.Bond.ZSpacing)
-                {
-                    foreach (Transform brick in GameManager.Bond.bricks)
-                    {
-                        bricks.Add(Matrix4x4.TRS(brick.localPosition + new Vector3(x, y, z), brick.localRotation, Vector3.one));
-                    }
-                }
+            _blockTransforms[i] = blockTransforms[i].ToArray();
+            _blockDictKeys[i] = blockDictKeys[i].ToArray();
         }
 
-        return bricks.ToArray();
+        return _blockTransforms;
     }
 
-    public Matrix4x4[] GetBricksInBox(Vector3 min, Vector3 max, out Vector3Int[] dictPositions)
-    {
-        Vector3Int minInt = GetBondBaseInt(min);
-        Vector3 maxScaled = max * 10000;
-
-        List<Matrix4x4> bricks = new List<Matrix4x4>();
-        List<Vector3Int> intPositions = new List<Vector3Int>();
-
-        for (int x = minInt.x; x < maxScaled.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
-        {
-            for (int y = minInt.y; y < maxScaled.y; y += GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
-            {
-                for (int z = minInt.z; z < maxScaled.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
-                {
-                    foreach (Transform brick in GameManager.Bond.bricks)
-                    {
-                        Vector3 brickPosition = brick.localPosition + new Vector3Int(x, y, z).Divide(10000);
-                        if (brickPosition.x >= min.x && brickPosition.y >= min.y && brickPosition.z >= min.z)
-                        {
-                            bricks.Add(Matrix4x4.TRS(brickPosition, brick.localRotation, Vector3.one));
-                            Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(brick.localPosition.x * 10000), Mathf.RoundToInt(brick.localPosition.y * 10000), Mathf.RoundToInt(brick.localPosition.z * 10000));
-                            intPositions.Add(localIntPosition + new Vector3Int(x, y, z));
-                            //Debug.Log("Brick added. Position: " + (brick.localPosition + new Vector3Int(x, y, z).Divide(10000)).ToString("F4") + ", intPosition: " + (localIntPosition + new Vector3Int(x, y, z)).ToString());
-                        }
-                    }
-                }
-            }
-        }
-
-        dictPositions = intPositions.ToArray();
-        return bricks.ToArray();
-    }
-
-    public Matrix4x4[] GetBricksInCylinder(Vector3 position, float radius, float height, out Vector3Int[] dictPositions)
+    public Matrix4x4[][] GetBlocksInCylinder(Vector3 position, float radius, float height, out PositionKey[][] _blockDictKeys)
     {
         Vector3 min = position - new Vector3(radius, height / 2, radius);
         Vector3 max = position + new Vector3(radius, height / 2, radius);
@@ -193,8 +256,14 @@ public class Bond : MonoBehaviour
         Vector3Int minInt = GetBondBaseInt(min);
         Vector3 maxScaled = max * 10000;
 
-        List<Matrix4x4> bricks = new List<Matrix4x4>();
-        List<Vector3Int> intPositions = new List<Vector3Int>();
+        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
+        List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            blockTransforms[i] = new List<Matrix4x4>();
+            blockDictKeys[i] = new List<PositionKey>();
+        }
 
         for (int x = minInt.x; x < maxScaled.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
         {
@@ -202,42 +271,53 @@ public class Bond : MonoBehaviour
             {
                 for (int z = minInt.z; z < maxScaled.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
                 {
-                    foreach (Transform brick in GameManager.Bond.bricks)
+                    for (int i = 0; i < blocks.Length; ++i)
                     {
-                        Vector3 brickPosition = brick.localPosition + new Vector3Int(x, y, z).Divide(10000);
-
-                        bool inRadius = Vector3.Distance(new Vector3(position.x, 0, position.z), new Vector3(brickPosition.x, 0, brickPosition.z)) < radius;
-
-                        if (inRadius && brickPosition.y <= position.y + height / 2 && brickPosition.y >= position.y - height / 2)
+                        for (int j = 0; j < blocks[i].Length; ++j)
                         {
-                            bricks.Add(Matrix4x4.TRS(brickPosition, brick.localRotation, Vector3.one));
-                            Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(brick.localPosition.x * 10000), Mathf.RoundToInt(brick.localPosition.y * 10000), Mathf.RoundToInt(brick.localPosition.z * 10000));
-                            intPositions.Add(localIntPosition + new Vector3Int(x, y, z));
-                            //Debug.Log("Brick added. Position: " + (brick.localPosition + new Vector3Int(x, y, z).Divide(10000)).ToString("F4") + ", intPosition: " + (localIntPosition + new Vector3Int(x, y, z)).ToString());
+                            Transform block = blocks[i][j];
+                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
+
+                            bool inRadius = Vector3.Distance(new Vector3(position.x, 0, position.z), new Vector3(blockPosition.x, 0, blockPosition.z)) < radius;
+
+                            if (inRadius && blockPosition.y <= position.y + height / 2 && blockPosition.y >= position.y - height / 2)
+                            {
+                                blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one));
+                                Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
+                                blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
+                            }
                         }
                     }
                 }
             }
+        }        
+
+        Matrix4x4[][] _blockTransforms = new Matrix4x4[blocks.Length][];
+        _blockDictKeys = new PositionKey[blocks.Length][];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            _blockTransforms[i] = blockTransforms[i].ToArray();
+            _blockDictKeys[i] = blockDictKeys[i].ToArray();
         }
 
-        dictPositions = intPositions.ToArray();
-        return bricks.ToArray();
+        return _blockTransforms;
     }
 
-    public Matrix4x4[] GetBricksInMesh(Collider mesh, out Vector3Int[] dictPositions)
+    public Matrix4x4[][] GetBlocksInMesh(Collider mesh, out PositionKey[][] _blockDictKeys)
     {
-        /*
-        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.localScale = mesh.bounds.size;
-        cube.transform.position = mesh.bounds.center;
-        */
-
         Vector3Int minInt = GetBondBaseInt(mesh.bounds.min);
         Vector3 maxScaled = mesh.bounds.max * 10000;
         float rayLength = mesh.bounds.max.x - mesh.bounds.min.x + 0.1f;
 
-        List<Matrix4x4> bricks = new List<Matrix4x4>();
-        List<Vector3Int> intPositions = new List<Vector3Int>();
+        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
+        List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            blockTransforms[i] = new List<Matrix4x4>();
+            blockDictKeys[i] = new List<PositionKey>();
+        }
 
         for (int x = minInt.x; x < maxScaled.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
         {
@@ -245,45 +325,35 @@ public class Bond : MonoBehaviour
             {
                 for (int z = minInt.z; z < maxScaled.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
                 {
-                    
-                    foreach (Transform brick in GameManager.Bond.bricks)
+                    for (int i = 0; i < blocks.Length; ++i)
                     {
-                        Vector3 brickPosition = brick.localPosition + new Vector3Int(x, y, z).Divide(10000);
-
-                        if (PointInMesh(brickPosition, rayLength))
+                        for (int j = 0; j < blocks[i].Length; ++j)
                         {
-                            bricks.Add(Matrix4x4.TRS(brickPosition, brick.localRotation, Vector3.one));
-                            Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(brick.localPosition.x * 10000), Mathf.RoundToInt(brick.localPosition.y * 10000), Mathf.RoundToInt(brick.localPosition.z * 10000));
-                            intPositions.Add(localIntPosition + new Vector3Int(x, y, z));
+                            Transform block = blocks[i][j];
+                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
+
+                            if (PointInMesh(blockPosition, rayLength))
+                            {
+                                blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one));
+                                Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
+                                blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
+                            }
                         }
                     }
-                    
-
-                    /*
-                    Vector3[] pos = new Vector3[GameManager.Bond.bricks.Count];
-                    for(int i = 0; i < pos.Length; ++i)
-                    {
-                        pos[i] = GameManager.Bond.bricks[i].localPosition + new Vector3Int(x, y, z).Divide(10000);
-                    }
-
-                    bool[] results = PointInMesh(pos);
-                    for (int i = 0; i < pos.Length; ++i)
-                    {
-                        if (results[i])
-                        {
-                            Transform brick = GameManager.Bond.bricks[i];
-                            bricks.Add(Matrix4x4.TRS(pos[i], brick.localRotation, Vector3.one));
-                            Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(brick.localPosition.x * 10000), Mathf.RoundToInt(brick.localPosition.y * 10000), Mathf.RoundToInt(brick.localPosition.z * 10000));
-                            intPositions.Add(localIntPosition + new Vector3Int(x, y, z));
-                        }
-                    }   
-                    */
                 }
             }
         }
 
-        dictPositions = intPositions.ToArray();
-        return bricks.ToArray();
+        Matrix4x4[][] _blockTransforms = new Matrix4x4[blocks.Length][];
+        _blockDictKeys = new PositionKey[blocks.Length][];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            _blockTransforms[i] = blockTransforms[i].ToArray();
+            _blockDictKeys[i] = blockDictKeys[i].ToArray();
+        }
+
+        return _blockTransforms;
     }
 
     bool PointInMesh(Vector3 pos, float rayLength)
@@ -315,91 +385,11 @@ public class Bond : MonoBehaviour
         else
             return false;
     }
+}
 
-    /*
-    [BurstCompile]
-    bool[] PointInMesh(Vector3[] pos)
-    {
-        int numCollision = 4;
-        Physics.queriesHitBackfaces = true;
-        var hitResults = new NativeArray<RaycastHit>(pos.Length * numCollision, Allocator.TempJob);
-        var commands = new NativeArray<RaycastCommand>(pos.Length, Allocator.TempJob);
-        bool[] results = new bool[pos.Length];
-        int firstPositive = 0;
-
-        for (int i = 0; i < pos.Length; ++i)
-        {
-            commands[i] = new RaycastCommand(pos[i], Vector3.right, Mathf.Infinity, layerMask, numCollision);
-        }
-
-        var handle = RaycastCommand.ScheduleBatch(commands, hitResults, 1, default(Unity.Jobs.JobHandle));
-        handle.Complete();
-
-        for (int i = 0; i < pos.Length; ++i)
-        {
-            int hitCount = 0;
-            for (int j = 0; j < numCollision; ++j)
-            {
-                if (hitResults[i * numCollision + j].collider != null)
-                    ++hitCount;
-            }
-
-            if (hitCount % 2 == 1)
-            {
-                results[i] = true;
-                ++firstPositive;            
-            }
-        }
-
-        Vector3[] hitPos = new Vector3[firstPositive];
-        int count = 0;
-
-        for (int i = 0; i < results.Length; ++i)
-        {
-            if (results[i])
-            {
-                hitPos[count] = hitResults[i * numCollision].point - Vector3.right * 0.001f;
-                ++count;
-            }
-        }
-
-        hitResults = new NativeArray<RaycastHit>(hitPos.Length * numCollision, Allocator.TempJob);
-        commands = new NativeArray<RaycastCommand>(hitPos.Length, Allocator.TempJob);
-
-        for (int i = 0; i < hitPos.Length; ++i)
-        {
-            commands[i] = new RaycastCommand(hitPos[i], Vector3.left, Mathf.Infinity, layerMask, numCollision);
-        }
-
-        handle = RaycastCommand.ScheduleBatch(commands, hitResults, 1, default(Unity.Jobs.JobHandle));
-        handle.Complete();
-
-        count = 0;
-
-        for (int i = 0; i < pos.Length; ++i)
-        {
-            if (results[i])
-            {
-                int hitCount = 0;
-                for (int j = 0; j < numCollision; ++j)
-                {
-                    if (hitResults[count * numCollision + j].collider != null)
-                        ++hitCount;
-                }
-
-                if (hitCount % 2 != 1)
-                {
-                    results[i] = false;
-                }
-
-                ++count;
-            }
-        }
-
-        hitResults.Dispose();
-        commands.Dispose();
-
-        return results;
-    }
-    */
+[Serializable]
+public struct PartTypeArray
+{ 
+    [SerializeField]
+    public Transform[] blocks;
 }

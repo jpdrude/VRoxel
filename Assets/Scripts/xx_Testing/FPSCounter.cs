@@ -19,7 +19,7 @@ public class FPSCounter : MonoBehaviour
         if (trigger.GetStateDown(SteamVR_Input_Sources.RightHand))
         {
             timer = 0;
-            startCount = ModuleContainer.Container.GetCount();
+            startCount = BlockContainer.Container.GetCount();
             above20 = 1;
         }
 
@@ -28,8 +28,8 @@ public class FPSCounter : MonoBehaviour
 
         if (trigger.GetStateUp(SteamVR_Input_Sources.RightHand))
         {
-            float bricksPerSecond = (float)(ModuleContainer.Container.GetCount() - startCount) / timer * above20;
-            MessageSystem.DisplayMessage(bricksPerSecond + "BPS");
+            float blocksPerSecond = (float)(BlockContainer.Container.GetCount() - startCount) / timer * above20;
+            MessageSystem.DisplayMessage(blocksPerSecond + "BPS");
         }
     }
 }

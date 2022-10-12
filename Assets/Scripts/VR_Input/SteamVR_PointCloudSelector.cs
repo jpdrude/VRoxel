@@ -10,9 +10,9 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
     [Header("Materials")]
     [SerializeField]
-    Material mat_cloudToBricks;
+    Material mat_cloudToBlocks;
     [SerializeField]
-    Material mat_bricksToCloud;
+    Material mat_blocksToCloud;
 
     float radius = 0.05f;
     float scaleSpeed = 0.1f;
@@ -20,9 +20,9 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
     SteamVR_AssemblySpawner spawner;
 
-    HashSet<DictPosition> toConvert = new HashSet<DictPosition>();
+    HashSet<PositionKey> toConvert = new HashSet<PositionKey>();
 
-    VRPlacementMode mode = VRPlacementMode.BricksToPointCloud;
+    VRPlacementMode mode = VRPlacementMode.BlocksToPointCloud;
     public VRPlacementMode Mode
     {
         get { return mode; }
@@ -35,10 +35,10 @@ public class SteamVR_PointCloudSelector : SpawnerActions
             sphere.SetActive(true);
             UpdateSphereScale();
 
-            if (mode == VRPlacementMode.BricksToPointCloud)
-                sphere.GetComponent<MeshRenderer>().material = mat_bricksToCloud;
-            else if (mode == VRPlacementMode.PointCloudToBricks)
-                sphere.GetComponent<MeshRenderer>().material = mat_cloudToBricks;
+            if (mode == VRPlacementMode.BlocksToPointCloud)
+                sphere.GetComponent<MeshRenderer>().material = mat_blocksToCloud;
+            else if (mode == VRPlacementMode.PointCloudToBlocks)
+                sphere.GetComponent<MeshRenderer>().material = mat_cloudToBlocks;
         }
     }
 
@@ -61,42 +61,42 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
     public override void OnTrigger()
     {
-        Vector3Int[] dictPositions;
-        GameManager.Bond.GetBricksInSphere(transform.position, radius, out dictPositions);
+        PositionKey[][] blockDictKeys;
+        GameManager.Bond.GetBlocksInSphere(transform.position, radius, out blockDictKeys);
 
-        if (mode == VRPlacementMode.BricksToPointCloud)
+        if (mode == VRPlacementMode.BlocksToPointCloud)
         {
-            foreach (Vector3Int dictPos in dictPositions)
-            {
-                DictPosition entry = new DictPosition(dictPos);
-                if (!toConvert.Contains(entry) && ModuleContainer.Container.ModuleDictionary.ContainsKey(entry))
+            for (int i = 0; i < blockDictKeys.Length; ++i)
+                foreach (PositionKey entry in blockDictKeys[i])
                 {
-                    toConvert.Add(entry);
+                    if (!toConvert.Contains(entry) && BlockContainer.Container.BlockDictionary.ContainsKey(entry))
+                    {
+                        toConvert.Add(entry);
+                    }
                 }
-            }
         }
         else
         {
-            ModuleContainer.Container.ReinstateBricks(dictPositions);
+            BlockContainer.Container.ReinstateBlocks(blockDictKeys);
         }
     }
 
     public override void OnTriggerUp()
     {
-        if (Mode == VRPlacementMode.BricksToPointCloud)
+        if (Mode == VRPlacementMode.BlocksToPointCloud)
         {
-            ModuleContainer.Container.ModulesToPointCloud(GetConversionArray());
+            BlockContainer.Container.BlocksToPointCloud(GetConversionArray());
         }
     }
 
-    DictPosition[] GetConversionArray()
+    PositionKey[] GetConversionArray()
     {
-        DictPosition[] toConvertArray = new DictPosition[toConvert.Count];
+        PositionKey[] toConvertArray = new PositionKey[toConvert.Count];
 
         int counter = 0;
-        foreach (DictPosition entry in toConvert)
+        foreach (PositionKey key in toConvert)
         {
-            toConvertArray[counter] = entry;
+            toConvertArray[counter] = key;
             ++counter;
         }
 

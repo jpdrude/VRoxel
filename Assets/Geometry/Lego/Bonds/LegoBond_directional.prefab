@@ -50,15 +50,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d2c7597527bc29438d92463be6a9621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bondName: DirectionalBond
-  brickPrefab: {fileID: 7458500517809170239, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
-  bricks:
-  - {fileID: 2443689150422270077}
-  - {fileID: 6589452780068710730}
-  - {fileID: 2867945209253743323}
-  - {fileID: 6607030058414828415}
-  - {fileID: 9183901774365292938}
-  - {fileID: 1592960144240283062}
+  bondName: LegoBond_directional
+  partPrefabs:
+  - {fileID: 7458500517809170239, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
+  bondBlocks:
+  - blocks:
+    - {fileID: 2443689150422270077}
+    - {fileID: 2867945209253743323}
+    - {fileID: 6607030058414828415}
+    - {fileID: 6589452780068710730}
+    - {fileID: 9183901774365292938}
+    - {fileID: 1592960144240283062}
   xSize: 6
   ySize: 2
   zSize: 4
@@ -74,7 +76,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1345766358367747621, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
       propertyPath: m_Name
-      value: Lego_4x2_LOD (10)
+      value: Lego_4x2_LOD (5)
       objectReference: {fileID: 0}
     - target: {fileID: 1934851353199306711, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
       propertyPath: m_RootOrder
@@ -260,7 +262,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1345766358367747621, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
       propertyPath: m_Name
-      value: Lego_4x2_LOD (6)
+      value: Lego_4x2_LOD (2)
       objectReference: {fileID: 0}
     - target: {fileID: 1934851353199306711, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
       propertyPath: m_RootOrder
@@ -322,7 +324,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1345766358367747621, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
       propertyPath: m_Name
-      value: Lego_4x2_LOD (8)
+      value: Lego_4x2_LOD (3)
       objectReference: {fileID: 0}
     - target: {fileID: 1934851353199306711, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
       propertyPath: m_RootOrder
@@ -384,7 +386,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1345766358367747621, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
       propertyPath: m_Name
-      value: Lego_4x2_LOD (9)
+      value: Lego_4x2_LOD (4)
       objectReference: {fileID: 0}
     - target: {fileID: 1934851353199306711, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
       propertyPath: m_RootOrder

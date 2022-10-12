@@ -51,14 +51,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bondName: GIK_10cm
-  brickPrefab: {fileID: 4817550827189574471, guid: 9c0e32634f8500d4f89da9a82ab21ee1, type: 3}
-  bricks:
-  - {fileID: 8752380683384217649}
-  - {fileID: 7984018004095498202}
-  - {fileID: 5216353223014010708}
-  - {fileID: 8481358280308620044}
-  - {fileID: 7838151406506646334}
-  - {fileID: 1390546403519912519}
+  partPrefabs:
+  - {fileID: 4817550827189574471, guid: 9c0e32634f8500d4f89da9a82ab21ee1, type: 3}
+  bondBlocks:
+  - blocks:
+    - {fileID: 8752380683384217649}
+    - {fileID: 7984018004095498202}
+    - {fileID: 5216353223014010708}
+    - {fileID: 8481358280308620044}
+    - {fileID: 7838151406506646334}
+    - {fileID: 1390546403519912519}
   xSize: 2
   ySize: 2
   zSize: 2

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: bricksToCloud
+  m_Name: blocksToCloud
   m_Shader: {fileID: 4800000, guid: faba538cbcbf664439bbefd05b8b64c5, type: 3}
   m_ShaderKeywords: _ALPHATEST_ON _EMISSION
   m_LightmapFlags: 2

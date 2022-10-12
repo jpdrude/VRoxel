@@ -48,13 +48,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d2c7597527bc29438d92463be6a9621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bondName: CrossBond
-  brickPrefab: {fileID: 7458500517809170239, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
-  bricks:
-  - {fileID: 6835247707364210379}
-  - {fileID: 4574713613763557596}
-  - {fileID: 6835247708462353535}
-  - {fileID: 1546107928250042575}
+  bondName: LegoBond_crossed
+  partPrefabs:
+  - {fileID: 7458500517809170239, guid: 37ecfb54aa419294080f00436baf4ddf, type: 3}
+  bondBlocks:
+  - blocks:
+    - {fileID: 6835247707364210379}
+    - {fileID: 4574713613763557596}
+    - {fileID: 6835247708462353535}
+    - {fileID: 1546107928250042575}
   xSize: 4
   ySize: 2
   zSize: 4

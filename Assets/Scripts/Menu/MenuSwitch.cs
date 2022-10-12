@@ -35,6 +35,8 @@ public class MenuSwitch : MonoBehaviour
     [SerializeField]
     Material platformMaterial;
     [SerializeField]
+    GameObject platformTemplate;
+    [SerializeField]
     SteamVR_PlayArea playArea;
 
     [Space]
@@ -70,7 +72,8 @@ public class MenuSwitch : MonoBehaviour
         reallyNew.SetActive(false);
 
         Teleport.Player.Listen(PlayerTeleported);
-        platform = PlatformMesh.GeneratePlatformMesh(platformMaterial);
+        //platform = PlatformMesh.GeneratePlatformMesh(platformMaterial);
+        platform = PlatformMesh.GeneratePlatformMesh(platformMaterial, platformTemplate);
 
         SetAddButton(0);
         SetRemoveButton(0);
@@ -145,7 +148,7 @@ public class MenuSwitch : MonoBehaviour
 
     public void ModulesToPointCloud()
     {
-        ModuleContainer.Container.ModulesToPointCloud();
+        BlockContainer.Container.BlocksToPointCloud();
     }
 
     public void NextAdd()
@@ -207,7 +210,8 @@ public class MenuSwitch : MonoBehaviour
         currentPos.y = playerHeight + basePos.y;
         vrPlayer.transform.position = currentPos;
 
-        platform.transform.localScale = new Vector3(1, playerHeight, 1);
+        Vector3 platformScale = platform.transform.localScale;
+        platform.transform.localScale = new Vector3(platformScale.x, playerHeight, platformScale.z);
         platform.transform.position = basePos;
 
         if (playerHeight == 0)

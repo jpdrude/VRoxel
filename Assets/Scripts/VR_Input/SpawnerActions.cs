@@ -27,7 +27,7 @@ public class SpawnerActions : MonoBehaviour
 
     private void Update()
     {
-        if (ModuleContainer.Container == null) return;
+        if (BlockContainer.Container == null) return;
 
         if (trigger.GetState(SteamVR_Input_Sources.RightHand))
             OnTrigger();
@@ -43,7 +43,7 @@ public class SpawnerActions : MonoBehaviour
         if (_up || _down || _left || _right)
             DPadInput(_up, _down, _left, _right);
 
-        MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Units");
+        MessageSystem.DisplayPermanentMessage(BlockContainer.Container.GetCount() + " Units");
     }
 
     public virtual void OnTrigger() { }

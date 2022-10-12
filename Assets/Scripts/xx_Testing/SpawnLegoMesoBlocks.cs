@@ -47,20 +47,20 @@ public class SpawnLegoMesoBlocks : MonoBehaviour
     static readonly float xzSpacing = 0.008f;
     static readonly float ySpacing = 0.0096f;
 
-    List<GPUInstancerPrefab> bricks = new List<GPUInstancerPrefab>();
-    GPUInstancerPrefab[] mesoBricks;
+    List<GPUInstancerPrefab> blocks = new List<GPUInstancerPrefab>();
+    GPUInstancerPrefab[] mesoBlocks;
     Matrix4x4[] transformArray;
-    GPUInstancerPrefab brickPrefab;
+    GPUInstancerPrefab partPrefab;
 
 
     // Start is called before the first frame update
     void Awake()
     {
         camTarget.transform.position = new Vector3(xOffset * extendX * xzSpacing / 2, yOffset * extendY * ySpacing / 2, zOffset * extendZ * xzSpacing / 2);
-        mesoBricks = mesoBlock.GetComponentsInChildren<GPUInstancerPrefab>();
-        partCount = mesoBricks.Length * extendX * extendY * extendZ;
+        mesoBlocks = mesoBlock.GetComponentsInChildren<GPUInstancerPrefab>();
+        partCount = mesoBlocks.Length * extendX * extendY * extendZ;
         matrixCounter = 0;
-        brickPrefab = mesoBlock.GetComponentInChildren<GPUInstancerPrefab>();
+        partPrefab = mesoBlock.GetComponentInChildren<GPUInstancerPrefab>();
 
         if (noGameObject)
             transformArray = new Matrix4x4[partCount];
@@ -71,7 +71,7 @@ public class SpawnLegoMesoBlocks : MonoBehaviour
             {
                 for (int i = 0; i < partCount; ++i)
                     transformArray[i] = Matrix4x4.zero;
-                GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, brickPrefab.prefabPrototype, transformArray);
+                GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, partPrefab.prefabPrototype, transformArray);
             }
 
             return;
@@ -84,15 +84,15 @@ public class SpawnLegoMesoBlocks : MonoBehaviour
                     if (!noGameObject)
                     {
                         var b = Instantiate(mesoBlock);
-                        bricks.AddRange(b.GetComponent<MesoInstanceContainer>().instances);
+                        blocks.AddRange(b.GetComponent<MesoInstanceContainer>().instances);
                         b.transform.position = new Vector3(xOffset * xzSpacing * x, yOffset * ySpacing * y, zOffset * xzSpacing * z);
                     }
                     else
                     {
-                        foreach (GPUInstancerPrefab _mesoBrick in mesoBricks)
+                        foreach (GPUInstancerPrefab _mesoBlock in mesoBlocks)
                         {
-                            Vector3 pos = new Vector3(xOffset * xzSpacing * x, yOffset * ySpacing * y, zOffset * xzSpacing * z) + _mesoBrick.transform.localPosition;
-                            Quaternion rot = _mesoBrick.transform.localRotation;
+                            Vector3 pos = new Vector3(xOffset * xzSpacing * x, yOffset * ySpacing * y, zOffset * xzSpacing * z) + _mesoBlock.transform.localPosition;
+                            Quaternion rot = _mesoBlock.transform.localRotation;
                             transformArray[matrixCounter] = Matrix4x4.TRS(pos, rot, Vector3.one);
                             ++matrixCounter;
                         }
@@ -100,14 +100,14 @@ public class SpawnLegoMesoBlocks : MonoBehaviour
                 }
 
         if (noGameObject)
-            GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, brickPrefab.prefabPrototype, transformArray);
+            GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, partPrefab.prefabPrototype, transformArray);
     }
 
     private void Start()
     {
         if (noGameObject) return;
 
-        GPUInstancerAPI.RegisterPrefabInstanceList(manager, bricks);
+        GPUInstancerAPI.RegisterPrefabInstanceList(manager, blocks);
         GPUInstancerAPI.InitializeGPUInstancer(manager);
     }
 
@@ -119,24 +119,24 @@ public class SpawnLegoMesoBlocks : MonoBehaviour
         if (!noGameObject)
         {
             var b = Instantiate(mesoBlock);
-            var mesoBrickContainer = b.GetComponent<MesoInstanceContainer>().instances;
+            var mesoBlockContainer = b.GetComponent<MesoInstanceContainer>().instances;
             b.transform.position = new Vector3(xOffset * xzSpacing * xVal, yOffset * ySpacing * yVal, zOffset * xzSpacing * zVal);
 
-            foreach (GPUInstancerPrefab brickPrefab in mesoBrickContainer)
-                GPUInstancerAPI.AddPrefabInstance(manager, brickPrefab, true);
+            foreach (GPUInstancerPrefab blockPrefab in mesoBlockContainer)
+                GPUInstancerAPI.AddPrefabInstance(manager, partPrefab, true);
         }
         else
         {
             if (matrixCounter >= transformArray.Length) return;
 
-            foreach (GPUInstancerPrefab _mesoBrick in mesoBricks)
+            foreach (GPUInstancerPrefab _mesoBlock in mesoBlocks)
             {
-                Vector3 pos = new Vector3(xOffset * xzSpacing * xVal, yOffset * ySpacing * yVal, zOffset * xzSpacing * zVal) + _mesoBrick.transform.localPosition;
-                Quaternion rot = _mesoBrick.transform.localRotation;
+                Vector3 pos = new Vector3(xOffset * xzSpacing * xVal, yOffset * ySpacing * yVal, zOffset * xzSpacing * zVal) + _mesoBlock.transform.localPosition;
+                Quaternion rot = _mesoBlock.transform.localRotation;
                 transformArray[matrixCounter] = Matrix4x4.TRS(pos, rot, Vector3.one);
                 ++matrixCounter;
             }
-            GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, brickPrefab.prefabPrototype, transformArray);
+            GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, partPrefab.prefabPrototype, transformArray);
         }
 
         ++xVal;

@@ -105,7 +105,7 @@ public class TargetSpawner : MonoBehaviour
 
     void Update()
     {
-        if (ModuleContainer.Container == null) return;
+        if (BlockContainer.Container == null) return;
 
         CheckMovement();
         CheckScale(scaleVector);
@@ -114,7 +114,7 @@ public class TargetSpawner : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.H))
             interfacePanel.SetActive(!interfacePanel.activeSelf);
 
-        MessageSystem.DisplayPermanentMessage(ModuleContainer.Container.GetCount() + " Bricks placed");
+        MessageSystem.DisplayPermanentMessage(BlockContainer.Container.GetCount() + " Blocks placed");
     }
 
     public void AddSpawnMesh(GameObject mesh)
@@ -136,24 +136,24 @@ public class TargetSpawner : MonoBehaviour
         if (Input.GetKey(KeyCode.Return))
         {
             if (Placement == PlacementVolume.Sphere)
-                SpawnBricksAtPosition(transform.position, radius);
+                SpawnBlocksAtPosition(transform.position, radius);
             else if (Placement == PlacementVolume.Box)
-                SpawnBricksInBox();
+                SpawnBlocksInBox();
             else if (Placement == PlacementVolume.Cylinder)
-                SpawnBricksInCylinder();
+                SpawnBlocksInCylinder();
             else if (Placement == PlacementVolume.Mesh)
-                SpawnBricksInMesh();
+                SpawnBlocksInMesh();
         }
         if (Input.GetKey(KeyCode.Backspace))
         {
             if (Placement == PlacementVolume.Sphere)
-                RemoveBricksAtPosition(transform.position, radius);
+                RemoveBlocksAtPosition(transform.position, radius);
             else if (Placement == PlacementVolume.Box)
-                RemoveBricksInBox();
+                RemoveBlocksInBox();
             else if (Placement == PlacementVolume.Cylinder)
-                RemoveBricksInCylinder();
+                RemoveBlocksInCylinder();
             else if (Placement == PlacementVolume.Mesh)
-                RemoveBricksInMesh();
+                RemoveBlocksInMesh();
         }
             
     }
@@ -174,65 +174,67 @@ public class TargetSpawner : MonoBehaviour
         Placement = PlacementVolume.Mesh;
     }
 
-    void SpawnBrickAtPosition(Vector3 pos)
+    void SpawnBlockAtPosition(Vector3 pos)
     {
-        ModuleContainer.Container.AddBrick(GameManager.Bond.GetClosestBrick(pos));
+        int blockType;
+        Matrix4x4 blockTransform = GameManager.Bond.GetClosestBlock(pos, out blockType);
+        BlockContainer.Container.AddBlock(blockTransform, blockType);
     }
 
-    void SpawnBricksAtPosition(Vector3 pos, float radius)
+    void SpawnBlocksAtPosition(Vector3 pos, float radius)
     {
-        Vector3Int[] dictPositions;
-        Matrix4x4[] bricks = GameManager.Bond.GetBricksInSphere(pos, radius, out dictPositions);
-        ModuleContainer.Container.AddBricks(bricks, dictPositions);
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(pos, radius, out blockDictKeys);
+        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
     }
 
-    void RemoveBricksAtPosition(Vector3 pos, float radius)
+    void RemoveBlocksAtPosition(Vector3 pos, float radius)
     {
-        Vector3Int[] dictPositions;
-        Matrix4x4[] bricks = GameManager.Bond.GetBricksInSphere(pos, radius, out dictPositions);
-        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(pos, radius, out blockDictKeys);
+        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
-    void SpawnBricksInBox()
+    void SpawnBlocksInBox()
     {
-        Vector3Int[] dictPositions;
-        Matrix4x4[] bricks = GameManager.Bond.GetBricksInBox(transform.position - boxSize / 2, transform.position + boxSize / 2, out dictPositions);
-        ModuleContainer.Container.AddBricks(bricks, dictPositions);
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInBox(transform.position - boxSize / 2, transform.position + boxSize / 2, out blockDictKeys);
+        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
     }
 
-    void RemoveBricksInBox()
+    void RemoveBlocksInBox()
     {
-        Vector3Int[] dictPositions;
-        Matrix4x4[] bricks = GameManager.Bond.GetBricksInBox(transform.position - boxSize / 2, transform.position + boxSize / 2, out dictPositions);
-        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInBox(transform.position - boxSize / 2, transform.position + boxSize / 2, out blockDictKeys);
+        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
-    void SpawnBricksInCylinder()
+    void SpawnBlocksInCylinder()
     {
-        Vector3Int[] dictPositions;
-        Matrix4x4[] bricks = GameManager.Bond.GetBricksInCylinder(transform.position, cylinderRadius, cylinderHeight, out dictPositions);
-        ModuleContainer.Container.AddBricks(bricks, dictPositions);
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCylinder(transform.position, cylinderRadius, cylinderHeight, out blockDictKeys);
+        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
     }
 
-    void SpawnBricksInMesh()
+    void RemoveBlocksInCylinder()
     {
-        Vector3Int[] dictPositions;
-        Matrix4x4[] bricks = GameManager.Bond.GetBricksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out dictPositions);
-        ModuleContainer.Container.AddBricks(bricks, dictPositions);
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCylinder(transform.position, cylinderRadius, cylinderHeight, out blockDictKeys);
+        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
-    void RemoveBricksInMesh()
+    void SpawnBlocksInMesh()
     {
-        Vector3Int[] dictPositions;
-        Matrix4x4[] bricks = GameManager.Bond.GetBricksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out dictPositions);
-        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out blockDictKeys);
+        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
     }
 
-    void RemoveBricksInCylinder()
+    void RemoveBlocksInMesh()
     {
-        Vector3Int[] dictPositions;
-        Matrix4x4[] bricks = GameManager.Bond.GetBricksInCylinder(transform.position, cylinderRadius, cylinderHeight, out dictPositions);
-        ModuleContainer.Container.RemoveBricks(bricks, dictPositions);
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out blockDictKeys);
+        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
     public void ClickScaleX(int xScale)

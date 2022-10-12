@@ -13,7 +13,7 @@ public class AssemblyIO : MonoBehaviour
 {
     static Matrix4x4 conversionMatrix = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0, 1));
 
-    static Matrix4x4[] loadContainer = null;
+    static Matrix4x4[][] loadContainer = null;
     static string loadBond = null;
     static bool loadAsPointCloud = false;
 
@@ -28,27 +28,35 @@ public class AssemblyIO : MonoBehaviour
 
         if (loadContainer != null)
         {
-            if (loadBond != GameManager.Bond.name)
+            if (loadBond != GameManager.Bond.BondName)
             {
-                if (ModuleContainer.Container.GetCount() < 1000 && GameManager.AvailableBonds.ContainsKey(loadBond))
+                if (BlockContainer.Container.GetCount() < 1000)
                 {
-                    NewGame();
-                    GameManager.Bond = GameManager.AvailableBonds[loadBond];
+                    if (GameManager.AvailableBonds.ContainsKey(loadBond))
+                    {
+                        GameManager.Manager.SetBond(GameManager.AvailableBonds[loadBond]);
+                        Debug.Log("Bond set to " + loadBond);
+                    }
+                    else
+                    {
+                        MessageSystem.DisplayWarning("File could not be loaded, because of unknown Bond");
+                    }
                 }
                 else
                 {
                     MessageSystem.DisplayWarning("File could not be loaded, because of incompatible Bond");
-                    MessageSystem.DisplayWarning("Session Bond: " + GameManager.Bond.name + ", File Bond: " + loadBond);
+                    MessageSystem.DisplayWarning("Session Bond: " + GameManager.Bond.BondName + ", File Bond: " + loadBond);
                     loadBond = null;
                     loadContainer = null;
                     return;
                 }
             }
+
             if (!loadAsPointCloud)
-                ModuleContainer.Container.AddBricks(loadContainer);
+                BlockContainer.Container.AddBlocks(loadContainer);
             else
             {
-                ModuleContainer.Container.AddBricks(loadContainer, null, true);
+                BlockContainer.Container.AddBlocks(loadContainer, null, true);
                 loadAsPointCloud = false;
             }
             loadContainer = null;
@@ -70,27 +78,32 @@ public class AssemblyIO : MonoBehaviour
             return;
         }
 
-        List<Matrix4x4> tempMatrices = new List<Matrix4x4>();
+        List<Matrix4x4>[] tempBlockTransforms = new List<Matrix4x4>[BlockContainer.Container.PartTypeCount];
+        for (int i = 0; i < tempBlockTransforms.Length; ++i)
+            tempBlockTransforms[i] = new List<Matrix4x4>();
 
-        if (ModuleContainer.Container.PcTransforms != null && saveInactive)
+        if (BlockContainer.Container.PcTransformArray != null && saveInactive)
         {
-            foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.PcTransforms)
+            //foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.PcTransforms)
+            for (int i = 0; i < tempBlockTransforms.Length; ++i)
+                foreach(Matrix4x4 matrix4x4 in BlockContainer.Container.PcTransformArray[i])
+                {
+                    if (matrix4x4 != Matrix4x4.zero)
+                        tempBlockTransforms[i].Add(conversionMatrix * matrix4x4);
+                }
+        }
+
+        for (int i = 0; i < tempBlockTransforms.Length; ++i)
+            foreach (Matrix4x4 matrix4x4 in BlockContainer.Container.TransformArray[i])
             {
                 if (matrix4x4 != Matrix4x4.zero)
-                    tempMatrices.Add(conversionMatrix * matrix4x4);
+                    tempBlockTransforms[i].Add(conversionMatrix * matrix4x4);
             }
-        }
-
-        foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.TransformArray)
-        {
-            if (matrix4x4 != Matrix4x4.zero)
-                tempMatrices.Add(conversionMatrix * matrix4x4);
-        }
 
         if (export)
         {
             currentSaveTargets.Add(path);
-            JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.name, tempMatrices);
+            JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.BondName, tempBlockTransforms);
 
             ExportAssemblyDelegate exportDelegate = new ExportAssemblyDelegate(ExportAsync);
             exportDelegate.BeginInvoke(path, container, null, null);
@@ -98,7 +111,7 @@ public class AssemblyIO : MonoBehaviour
         else
         {
             SaveAssemblyDelegate saveDelegate = new SaveAssemblyDelegate(SaveAsync);
-            saveDelegate.BeginInvoke(path, GameManager.Bond.name, tempMatrices, null, null);
+            saveDelegate.BeginInvoke(path, GameManager.Bond.BondName, tempBlockTransforms, null, null);
         }
     }
 
@@ -120,12 +133,12 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
-    static void SaveAsync(string path, string bondName, List<Matrix4x4> matrices)
+    static void SaveAsync(string path, string bondName, List<Matrix4x4>[] transforms)
     {
         Debug.Log("Start saving at " + DateTime.Now.ToString("T"));
         using (FileStream stream = new FileStream(path, FileMode.Create))
         {
-            ByteStreamContainer container = new ByteStreamContainer(bondName, matrices);
+            ByteStreamContainer container = new ByteStreamContainer(bondName, transforms);
             stream.Write(container.ToByteArray());
         }
 
@@ -150,7 +163,7 @@ public class AssemblyIO : MonoBehaviour
         LoadAssemblyLayout(path);
     }
 
-    static Matrix4x4[] LoadJsonMatrices(string path, out string bond)
+    static Matrix4x4[][] LoadJsonMatrices(string path, out string bond)
     {
         Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
         string jsonContent;
@@ -162,25 +175,41 @@ public class AssemblyIO : MonoBehaviour
 
         Debug.Log("File read at " + DateTime.Now.ToString("T"));
 
-        Matrix4x4[] matrices = DeserializeFromText(jsonContent, out bond).ToArray();
+        Matrix4x4[][] transforms = DeserializeFromText(jsonContent, out bond);
 
-        Debug.Log("Bond Name: " + bond + ", Matrices: " + matrices.Length);
+        Debug.Log("Bond Name: " + bond + ", Number of Parts: " + transforms.Length);
 
-        return matrices;
+        for (int i = 0; i < transforms.Length; ++i)
+            Debug.Log("Part " + i + " comes with " + transforms[i].Length + " blocks");
+
+        return transforms;
     }
 
-    static Matrix4x4[] LoadByteMatrices(string path, out string bond)
+    static Matrix4x4[][] LoadByteMatrices(string path, out string bond)
     {
         Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
         byte[] loadBytes = File.ReadAllBytes(path);
 
         Debug.Log("File read at " + DateTime.Now.ToString("T"));
-
         ByteStreamContainer container = new ByteStreamContainer(loadBytes);
+        
+        try
+        {
+            container = new ByteStreamContainer(loadBytes);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message);
+            bond = "";
+            return null;
+        }
 
         bond = container.bondName;
+        int loadAmount = 0;
+        for (int i = 0; i < container.matrices.Length; ++i)
+            loadAmount += container.matrices[i].Length;
 
-        Debug.Log("Bond Name: " + bond + ", Matrices: " + container.matrices.Length);
+        Debug.Log("Bond Name: " + bond + ", Matrices: " + loadAmount);
 
         return container.matrices;
     }
@@ -188,32 +217,37 @@ public class AssemblyIO : MonoBehaviour
     static void LoadAsync(string path)
     {
         string bond;
-        Matrix4x4[] matrices;
+        Matrix4x4[][] transforms;
         if (Path.GetExtension(path).ToLower() == ".json")
-            matrices = LoadJsonMatrices(path, out bond);
+            transforms = LoadJsonMatrices(path, out bond);
         else
-            matrices = LoadByteMatrices(path, out bond);
+            transforms = LoadByteMatrices(path, out bond);
 
-        if (matrices == null || matrices.Length == 0 || bond == null || bond == "")
+        Debug.Log("Transforms received! Bond: " + bond);
+
+        if (transforms == null || transforms.Length == 0 || bond == null || bond == "" || !GameManager.AvailableBonds.ContainsKey(bond))
         {
             MessageSystem.DisplayWarning("Loading Failed! Couldn't read file!");
             loadAsPointCloud = false;
             return;
         }
-
+        
         lock (lockKey)
         {
             loadBond = bond;
-            loadContainer = matrices;
+            loadContainer = transforms;
         }
-
+        
         Debug.Log("Loading finished at " + DateTime.Now.ToString("T"));
     }
 
-    static List<Matrix4x4> DeserializeFromText(string jsonContent, out string bond)
+    static Matrix4x4[][] DeserializeFromText(string jsonContent, out string bond)
     {
         Matrix4x4 currentMatrix = Matrix4x4.zero;
-        List<Matrix4x4> matrices = new List<Matrix4x4>();
+        List<List<Matrix4x4>> matrices = new List<List<Matrix4x4>>();
+        int partTypeCounter = 0;
+        matrices.Add(new List<Matrix4x4>());
+
         bond = "";
 
         Newtonsoft.Json.JsonTextReader reader = new Newtonsoft.Json.JsonTextReader(new StringReader(jsonContent));
@@ -311,6 +345,7 @@ public class AssemblyIO : MonoBehaviour
                         case "bondName":
                             {
                                 bond = reader.ReadAsString();
+                                Debug.Log("Bond read as: " + bond);
                                 break;
                             }
                     }
@@ -322,264 +357,49 @@ public class AssemblyIO : MonoBehaviour
                 {
                     if (currentMatrix != Matrix4x4.zero)
                     {
-                        matrices.Add(conversionMatrix * currentMatrix);
+                        matrices[partTypeCounter].Add(conversionMatrix * currentMatrix);
                         currentMatrix = Matrix4x4.zero;
                     }
+                }
+                if (reader.TokenType == Newtonsoft.Json.JsonToken.EndArray)
+                {
+                    matrices.Add(new List<Matrix4x4>());
+                    ++partTypeCounter;
                 }
             }
         }
 
-        return matrices;
+        Debug.Log("Everything read");
+
+        int bondPartCount = GameManager.AvailableBonds[bond].PartPrefabs.Length;
+
+        for (int i = matrices.Count - 1; i >= bondPartCount; --i)
+        {
+            matrices.RemoveAt(i);
+        }
+
+        Matrix4x4[][] _matrices = new Matrix4x4[matrices.Count][];
+        for (int i = 0; i < matrices.Count; ++i)
+            _matrices[i] = matrices[i].ToArray();
+
+        return _matrices;
     }
     
     public static void NewGame()
     {
-        if (ModuleContainer.Container == null) return;
-        ModuleContainer.Container.ResetContainer();
-    }
+        if (BlockContainer.Container == null) return;
 
-    public static void ExportAssemblyLayoutToLegoAssembly(string path)
-    {
-        Assembly assembly = SceneToLegoAssembly();
-        ExportAssembly.Export(path, assembly);
-    }
-
-    static Assembly SceneToLegoAssembly()
-    {
-        Vector3 boundsMin;
-        Vector3 boundsMax;
-
-        intVector boundsMinLego;
-        intVector boundsMaxLego;
-        doubleVector offset;
-
-        Matrix4x4[] allBrickMatrices;
-
-        List<Matrix4x4> rawBrickMatrices;
-        List<Matrix4x4> rawPotentialBrickMatrices;
-
-        List<Brick> rawBricks;
-        List<Brick> rawPotentialBricks;
-
-        Dictionary<int, List<Brick>> bricks;
-        Dictionary<int, List<Brick>> potentialBricks;
-
-        Assembly assembly;
-
-        EvaluateTransformArray(out boundsMin, out boundsMax);
-
-        BoundsToLegoSpace(ref boundsMin, ref boundsMax, out boundsMinLego, out offset);
-
-        allBrickMatrices = GameManager.Bond.GetBricksInBounds(boundsMin, boundsMax);
-
-        SplitBricks(allBrickMatrices, out rawBrickMatrices, out rawPotentialBrickMatrices);
-
-        rawBricks = MatrixTo4x2Brick(rawBrickMatrices, offset);
-        rawPotentialBricks = MatrixTo4x2Brick(rawPotentialBrickMatrices, offset);
-
-        boundsMaxLego = RecomputeMax(rawBricks, rawPotentialBricks);
-
-        bricks = SortBricks(rawBricks);
-        potentialBricks = SortBricks(rawPotentialBricks);
-
-        Debug.Log("min: " + boundsMinLego + ", max: " + boundsMaxLego + " Bricks Count: " + rawBricks.Count);
-
-        assembly = new Assembly(bricks, potentialBricks, boundsMinLego, boundsMaxLego);
-
-        return assembly;
-    }
-
-    static Dictionary<int, List<Brick>> SortBricks(List<Brick> bricks)
-    {
-        Dictionary<int, Dictionary<int, List<Brick>>> brickSorting = new Dictionary<int, Dictionary<int, List<Brick>>>();
-
-        foreach (Brick brick in bricks)
-        {
-            if (brickSorting.ContainsKey(brick.Pos.Z))
-            {
-                if (brickSorting[brick.Pos.Z].ContainsKey(brick.Pos.Y))
-                {
-                    if (brickSorting[brick.Pos.Z][brick.Pos.Y] == null)
-                        brickSorting[brick.Pos.Z][brick.Pos.Y] = new List<Brick>();
-
-                    brickSorting[brick.Pos.Z][brick.Pos.Y].Add(brick);
-                }
-                else
-                {
-                    List<Brick> tempList = new List<Brick>();
-                    tempList.Add(brick);
-                    brickSorting[brick.Pos.Z].Add(brick.Pos.Y, tempList);
-                }
-            }
-            else
-            {
-                List<Brick> tempList = new List<Brick>();
-                tempList.Add(brick);
-                Dictionary<int, List<Brick>> tempDict = new Dictionary<int, List<Brick>>();
-                tempDict.Add(brick.Pos.Y, tempList);
-                brickSorting.Add(brick.Pos.Z, tempDict);
-            }
-        }
-
-        Dictionary<int, List<Brick>> sortedBricks = new Dictionary<int, List<Brick>>();
-        foreach (int z in brickSorting.Keys)
-        {
-            List<Brick> tempList = new List<Brick>();
-            List<int> sortY = new List<int>();
-
-            foreach (int y in brickSorting[z].Keys)
-                sortY.Add(y);
-
-            sortY.Sort();
-
-            foreach(int y in sortY)
-            {
-                brickSorting[z][y].Sort();
-                tempList.AddRange(brickSorting[z][y]);
-            }
-
-            sortedBricks.Add(z, tempList);
-        }
-
-        return sortedBricks;
-    }
-
-    static intVector RecomputeMax(List<Brick> bricks, List<Brick> potentialBricks)
-    {
-        intVector max = new intVector(int.MinValue, int.MinValue, int.MinValue);
-
-        foreach(Brick b in bricks)
-        {
-            if (b.Pos.X + b.Size.X > max.X)
-                max.X = b.Pos.X + b.Size.X;
-
-            if (b.Pos.Y + b.Size.Y > max.Y)
-                max.Y = b.Pos.Y + b.Size.Y;
-
-            if (b.Pos.Z + b.Size.Z > max.Z)
-                max.Z = b.Pos.Z + b.Size.Z;
-        }
-
-        foreach (Brick b in potentialBricks)
-        {
-            if (b.Pos.X + b.Size.X > max.X)
-                max.X = b.Pos.X + b.Size.X;
-
-            if (b.Pos.Y + b.Size.Y > max.Y)
-                max.Y = b.Pos.Y + b.Size.Y;
-
-            if (b.Pos.Z + b.Size.Z > max.Z)
-                max.Z = b.Pos.Z + b.Size.Z;
-        }
-
-        return max;
-    }
-
-    static List<Brick> MatrixTo4x2Brick(List<Matrix4x4> matrices, doubleVector offset)
-    {
-        float xSpacing = GameManager.Bond.XSpacing;
-        float ySpacing = GameManager.Bond.YSpacing;
-        float zSpacing = GameManager.Bond.ZSpacing;
-
-        List<Brick> bricks = new List<Brick>();
-        foreach (Matrix4x4 matrix in matrices)
-        {
-            Matrix4x4 matrix4x4 = conversionMatrix * matrix;
-            if (Mathf.Abs(matrix4x4.rotation.eulerAngles.y) < 0.001f)
-            {
-                int posX = (int)System.Math.Round((matrix4x4.m03 - offset.X) / xSpacing) - 1;
-                int posY = (int)System.Math.Round((matrix4x4.m13 - offset.Y) / zSpacing) - 2;
-                int posZ = (int)System.Math.Round((matrix4x4.m23 - offset.Z) / ySpacing);
-
-                intVector size = new intVector(2, 4, 1);
-
-                if (posX < 0 || posY < 0 || posZ < 0) continue;
-
-                bricks.Add(new Brick(new intVector(posX, posY, posZ), size, offset));
-            }
-            else
-            {
-                int posX = (int)System.Math.Round((matrix4x4.m03 - offset.X) / xSpacing) - 2;
-                int posY = (int)System.Math.Round((matrix4x4.m13 - offset.Y) / zSpacing) - 1;
-                int posZ = (int)System.Math.Round((matrix4x4.m23 - offset.Z) / ySpacing);
-
-                intVector size = new intVector(4, 2, 1);
-
-                if (posX < 0 || posY < 0 || posZ < 0) continue;
-
-                bricks.Add(new Brick(new intVector(posX, posY, posZ), size, offset));
-            }
-        }
-
-        return bricks;
-    }
-
-    static void SplitBricks(Matrix4x4[] allBricks, out List<Matrix4x4> bricks, out List<Matrix4x4> potentialBricks)
-    {
-        bricks = new List<Matrix4x4>();
-        potentialBricks = new List<Matrix4x4>();
-
-        foreach(Matrix4x4 brick in allBricks)
-        {
-            if (ModuleContainer.Container.ModuleDictionary.ContainsKey(new DictPosition(brick.GetPosition())))
-            {
-                bricks.Add(brick);
-            }
-            else
-            {
-                potentialBricks.Add(brick);
-            }
-        }
-    }
-
-    static void BoundsToLegoSpace(ref Vector3 min, ref Vector3 max, out intVector minLego, out doubleVector offset)
-    {
-        min = GameManager.Bond.GetBondBase(min);
-        max = GameManager.Bond.GetBondBase(max) + new Vector3(GameManager.Bond.XSize * GameManager.Bond.XSpacing, GameManager.Bond.YSize * GameManager.Bond.YSpacing, GameManager.Bond.ZSize * GameManager.Bond.ZSpacing);
-
-        Vector3 minConvert = conversionMatrix * min;
-        Vector3 maxConvert = conversionMatrix * max;
-
-        minLego = new intVector(0, 0, 0);
-        offset = new doubleVector(minConvert.x, minConvert.y, minConvert.z);
-    }
-
-    static void EvaluateTransformArray(out Vector3 min, out Vector3 max)
-    {
-        min = Vector3.one * float.MaxValue;
-        max = Vector3.one * float.MinValue;
-
-        foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.TransformArray)
-        {
-            if (matrix4x4 == Matrix4x4.zero) continue;
-
-            if (matrix4x4.m03 < min.x)
-                min.x = matrix4x4.m03;
-            else if (matrix4x4.m03 > max.x)
-                max.x = matrix4x4.m03;
-
-            if (matrix4x4.m13 < min.y)
-                min.y = matrix4x4.m13;
-            else if (matrix4x4.m13 > max.y)
-                max.y = matrix4x4.m13;
-
-            if (matrix4x4.m23 < min.z)
-                min.z = matrix4x4.m23;
-            else if (matrix4x4.m23 > max.z)
-                max.z = matrix4x4.m23;
-        }
-
-        min -= new Vector3(5 * GameManager.Bond.XSize * GameManager.Bond.XSpacing, 5 * GameManager.Bond.YSize * GameManager.Bond.YSpacing, 5 * GameManager.Bond.ZSize * GameManager.Bond.ZSpacing);
-    }
+        BlockContainer.Container.ResetContainer();
+    }   
 }
 
 public delegate void ExportAssemblyDelegate(string path, JsonMatrixContainer container);
-public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4> matrices);
+public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4>[] matrices);
 public delegate void LoadAssemblyDelegate(string path);
 
 public class JsonMatrixContainer
 {
-    public JsonMatrix[] matrices;
+    public JsonMatrix[][] matrices;
     public string bondName;
 
     public JsonMatrixContainer()
@@ -592,15 +412,20 @@ public class JsonMatrixContainer
         bondName = _bondName;
     }
 
-    public JsonMatrixContainer(string _bondName, List<Matrix4x4> _matrices)
+    public JsonMatrixContainer(string _bondName, List<Matrix4x4>[] _matrices)
     {
         bondName = _bondName;
-        matrices = new JsonMatrix[_matrices.Count];
+        matrices = new JsonMatrix[_matrices.Length][];
 
         for (int i = 0; i < matrices.Length; ++i)
-            matrices[i] = new JsonMatrix(_matrices[i]);
+        {
+            matrices[i] = new JsonMatrix[_matrices[i].Count];
+            for (int j = 0; j < matrices[i].Length; ++j)
+                matrices[i][j] = new JsonMatrix(_matrices[i][j]);
+        }
     }
 }
+
 
 public class JsonMatrix
 {
