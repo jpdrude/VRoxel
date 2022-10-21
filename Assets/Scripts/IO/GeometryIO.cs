@@ -115,7 +115,7 @@ public class GeometryIO : MonoBehaviour
 
     }
 
-    public static void ImportSpawnShape(string path)
+    public static void ImportBrushes(string path)
     {
         if (isImporting)
         {
@@ -125,7 +125,7 @@ public class GeometryIO : MonoBehaviour
 
         isImporting = true;
         importStep = DateTime.Now;
-        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnSpawnShapeImport, OnImportProgress, OnImportError, null, options);
+        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnBrushImport, OnImportProgress, OnImportError, null, options);
     }
 
     static void OnTeleportAreaImport(AssetLoaderContext assetLoaderContext)
@@ -155,20 +155,20 @@ public class GeometryIO : MonoBehaviour
             nativeTeleport.SetActive(false);
     }
 
-    static void OnSpawnShapeImport(AssetLoaderContext assetLoaderContext)
+    static void OnBrushImport(AssetLoaderContext assetLoaderContext)
     {
         isImporting = false;
-        Debug.Log("SpawnMesh file imported");
+        Debug.Log("Brush file imported");
         MeshFilter[] meshFilters = assetLoaderContext.RootGameObject.GetComponentsInChildren<MeshFilter>();
 
         foreach (MeshFilter mf in meshFilters)
         {
-            Debug.Log("SpawnMesh added");
+            Debug.Log("Brush added");
             Vector3 size = ComputeMeshSize(mf.sharedMesh);
             
-            int  index = spawner.AddSpawnMesh(BuildSpawnerMesh(mf.sharedMesh, spawner.transform), size);
+            int  index = spawner.AddBrush(BuildSpawnerMesh(mf.sharedMesh, spawner.transform), size);
 
-            fpsSpawner.AddSpawnMesh(BuildSpawnerMesh(mf.sharedMesh, fpsSpawner.transform));
+            fpsSpawner.AddBrush(BuildSpawnerMesh(mf.sharedMesh, fpsSpawner.transform));
             
             BuildSpawnerButtons(mf.sharedMesh, index, size);
         }
@@ -220,14 +220,14 @@ public class GeometryIO : MonoBehaviour
         GameObject addButton = Instantiate(buttonPrefab, spawnAddButtonParent);
         GameObject removeButton = Instantiate(buttonPrefab, spawnRemoveButtonParent);
 
-        BuildButtonMesh(mesh, addButton.transform, size, addMaterial, index, VRPlacementMode.SpawnInMesh);
-        BuildButtonMesh(mesh, removeButton.transform, size, removeMaterial, index, VRPlacementMode.DeleteFromMesh);
+        BuildBrushButton(mesh, addButton.transform, size, addMaterial, index, VRPlacementMode.SpawnInBrush);
+        BuildBrushButton(mesh, removeButton.transform, size, removeMaterial, index, VRPlacementMode.DeleteFromBrush);
 
         buttonMenu.AddButtons.Add(addButton);
         buttonMenu.RemoveButtons.Add(removeButton);
     }
 
-    static void BuildButtonMesh(Mesh mesh, Transform parent, Vector3 size, Material mat, int index, VRPlacementMode mode)
+    static void BuildBrushButton(Mesh mesh, Transform parent, Vector3 size, Material mat, int index, VRPlacementMode mode)
     {
         GameObject buttonMesh = new GameObject("AddMesh");
         buttonMesh.transform.parent = parent;
@@ -246,7 +246,7 @@ public class GeometryIO : MonoBehaviour
         buttonMesh.transform.localScale = 0.04f / longestSide * Vector3.one;
 
         VRMenuItem menuItem = parent.GetComponent<VRMenuItem>();
-        menuItem.Action.AddListener(delegate { spawner.SetSpawnMesh(index, mode); });
+        menuItem.Action.AddListener(delegate { spawner.SetBrush(index, mode); });
 
         parent.gameObject.SetActive(false);
     }

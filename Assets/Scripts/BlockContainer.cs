@@ -40,6 +40,8 @@ public class BlockContainer
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[parts.Length];
 
         for (int i = 0; i < transformArray.Length; ++i)
+        {
+            blockTransforms[i] = new List<Matrix4x4>();
             for (int j = 0; j < transformArray[i].Length; ++j)
             {
                 {
@@ -53,6 +55,7 @@ public class BlockContainer
                     }
                 }
             }
+        }
 
 
         Matrix4x4[][] _blockTransforms = new Matrix4x4[parts.Length][];
@@ -295,7 +298,7 @@ public class BlockContainer
 
         if (blockDictionary.ContainsKey(key))
         {
-            if (blockDictionary[key].item <= 0) return false;
+            if (blockDictionary[key].item < 0) return false;
 
             PositionEntry entry = blockDictionary[key];
 

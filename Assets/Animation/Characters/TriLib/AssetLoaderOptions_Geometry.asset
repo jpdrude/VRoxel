@@ -37,7 +37,8 @@ MonoBehaviour:
   ImportTangents: 0
   SwapUVs: 0
   ImportMaterials: 1
-  MaterialMappers: []
+  MaterialMappers:
+  - {fileID: 11400000, guid: eba074036c40db84497043f195bc9219, type: 2}
   AddSecondAlphaMaterial: 0
   ImportTextures: 1
   Enforce16BitsTextures: 0
@@ -84,7 +85,7 @@ MonoBehaviour:
   MarkTexturesNoLongerReadable: 1
   UseUnityNativeNormalCalculator: 0
   GCHelperCollectionInterval: 0.5
-  LoadTexturesAsSRGB: 1
+  LoadTexturesAsSRGB: 0
   UserPropertiesMapper: {fileID: 0}
   ApplyTexturesOffsetAndScaling: 1
   UseAutodeskInteractiveMaterials: 0

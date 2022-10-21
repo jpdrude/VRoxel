@@ -47,9 +47,9 @@ public class TargetSpawner : MonoBehaviour
     float cylinderHeight = 0.1f;
     Vector3 scaleVector = Vector3.zero;
 
-    List<GameObject> spawnMeshes = new List<GameObject>();
-    List<Vector3> spawnMeshScales = new List<Vector3>();
-    int spawnMeshIndex;
+    List<GameObject> brushes = new List<GameObject>();
+    List<Vector3> brushScales = new List<Vector3>();
+    int brushIndex;
 
 
     float epsilon = 0.000001f;
@@ -86,13 +86,13 @@ public class TargetSpawner : MonoBehaviour
                 DeactivateAllMeshes();
                 CheckScale(Vector3.zero);
             }
-            else if (placement == PlacementVolume.Mesh)
+            else if (placement == PlacementVolume.Brush)
             {
                 sphere.SetActive(false);
                 box.SetActive(false);
                 cylinder.SetActive(false);
                 DeactivateAllMeshes();
-                spawnMeshes[spawnMeshIndex].SetActive(true); 
+                brushes[brushIndex].SetActive(true); 
             }
         }
     }
@@ -117,17 +117,17 @@ public class TargetSpawner : MonoBehaviour
         MessageSystem.DisplayPermanentMessage(BlockContainer.Container.GetCount() + " Blocks placed");
     }
 
-    public void AddSpawnMesh(GameObject mesh)
+    public void AddBrush(GameObject mesh)
     {
-        spawnMeshes.Add(mesh);
-        spawnMeshScales.Add(Vector3.one);
+        brushes.Add(mesh);
+        brushScales.Add(Vector3.one);
         spawnMeshButton.SetActive(true);
         mesh.GetComponent<MeshRenderer>().material = spawnerMaterial;
     }
 
     void DeactivateAllMeshes()
     {
-        foreach (GameObject mesh in spawnMeshes)
+        foreach (GameObject mesh in brushes)
             mesh.SetActive(false);
     }
 
@@ -141,8 +141,8 @@ public class TargetSpawner : MonoBehaviour
                 SpawnBlocksInBox();
             else if (Placement == PlacementVolume.Cylinder)
                 SpawnBlocksInCylinder();
-            else if (Placement == PlacementVolume.Mesh)
-                SpawnBlocksInMesh();
+            else if (Placement == PlacementVolume.Brush)
+                SpawnBlocksInBrush();
         }
         if (Input.GetKey(KeyCode.Backspace))
         {
@@ -152,8 +152,8 @@ public class TargetSpawner : MonoBehaviour
                 RemoveBlocksInBox();
             else if (Placement == PlacementVolume.Cylinder)
                 RemoveBlocksInCylinder();
-            else if (Placement == PlacementVolume.Mesh)
-                RemoveBlocksInMesh();
+            else if (Placement == PlacementVolume.Brush)
+                RemoveBlocksInBrush();
         }
             
     }
@@ -163,15 +163,15 @@ public class TargetSpawner : MonoBehaviour
         Placement = (PlacementVolume)volume;
     }
 
-    public void SetNextSpawnMesh()
+    public void SetNextBrush()
     {
         SpawnMeshBehaviour.AlignToWorld = false;
 
-        ++spawnMeshIndex;
-        if (spawnMeshIndex >= spawnMeshes.Count)
-            spawnMeshIndex = 0;
+        ++brushIndex;
+        if (brushIndex >= brushes.Count)
+            brushIndex = 0;
 
-        Placement = PlacementVolume.Mesh;
+        Placement = PlacementVolume.Brush;
     }
 
     void SpawnBlockAtPosition(Vector3 pos)
@@ -223,17 +223,17 @@ public class TargetSpawner : MonoBehaviour
         BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
-    void SpawnBlocksInMesh()
+    void SpawnBlocksInBrush()
     {
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(brushes[brushIndex].GetComponent<MeshCollider>(), out blockDictKeys);
         BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
     }
 
-    void RemoveBlocksInMesh()
+    void RemoveBlocksInBrush()
     {
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(brushes[brushIndex].GetComponent<MeshCollider>(), out blockDictKeys);
         BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
@@ -377,19 +377,19 @@ public class TargetSpawner : MonoBehaviour
 
             cylinder.transform.localScale = new Vector3(cylinderRadius * 2, cylinderHeight, cylinderRadius * 2);
         }
-        else if (Placement == PlacementVolume.Mesh)
+        else if (Placement == PlacementVolume.Brush)
         {
             if (direction.x > epsilon || direction.y > epsilon || direction.z > epsilon)
             {
-                spawnMeshScales[spawnMeshIndex] += Vector3.one * Time.deltaTime * scaleSpeed;
+                brushScales[brushIndex] += Vector3.one * Time.deltaTime * scaleSpeed;
             }
             else if (direction.x < -epsilon || direction.y < -epsilon || direction.z < -epsilon)
             {
-                spawnMeshScales[spawnMeshIndex] -= Vector3.one * Time.deltaTime * scaleSpeed;
-                if (spawnMeshScales[spawnMeshIndex].x < 0.01f) spawnMeshScales[spawnMeshIndex] = Vector3.one * 0.01f;
+                brushScales[brushIndex] -= Vector3.one * Time.deltaTime * scaleSpeed;
+                if (brushScales[brushIndex].x < 0.01f) brushScales[brushIndex] = Vector3.one * 0.01f;
             }
 
-            spawnMeshes[spawnMeshIndex].transform.localScale = spawnMeshScales[spawnMeshIndex];
+            brushes[brushIndex].transform.localScale = brushScales[brushIndex];
         }
     }
 
@@ -419,6 +419,6 @@ public class TargetSpawner : MonoBehaviour
         Sphere,
         Box,
         Cylinder,
-        Mesh
+        Brush
     }
 }

@@ -178,11 +178,11 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.ShowLoadDialog(OnGeometryImportSuccess, OnCancel, FileBrowser.PickMode.Files);
     }
 
-    public void ImportSpawnShapes()
+    public void ImportBrushes()
     {
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Geometry", ".fbx", ".obj", ".stl"));
         FileBrowser.SetDefaultFilter(".fbx");
-        FileBrowser.ShowLoadDialog(OnSpawnShapeImportSuccess, OnCancel, FileBrowser.PickMode.Files);
+        FileBrowser.ShowLoadDialog(OnBrushImportSuccess, OnCancel, FileBrowser.PickMode.Files);
     }
 
     public void ImportTeleportAreas()
@@ -241,28 +241,28 @@ public class EscapeMenu : MonoBehaviour
         switch (index)
         {
             case 0:
-                PointCloudIO.RuntimeViewer.pointCloudFormat = PointCloudFormat.XYZ;
-                PointCloudIO.RuntimeViewer.readRGB = false;
+                PointCloudIO.CloudFormat = PointCloudFormat.XYZ;
+                PointCloudIO.ReadRGB = false;
                 break;
             case 1:
-                PointCloudIO.RuntimeViewer.pointCloudFormat = PointCloudFormat.XYZRGB;
-                PointCloudIO.RuntimeViewer.readRGB = true;
+                PointCloudIO.CloudFormat = PointCloudFormat.XYZRGB;
+                PointCloudIO.ReadRGB = true;
                 break;
             case 2:
-                PointCloudIO.RuntimeViewer.pointCloudFormat = PointCloudFormat.PLY_ASCII;
-                PointCloudIO.RuntimeViewer.readRGB = true;
+                PointCloudIO.CloudFormat = PointCloudFormat.PLY_ASCII;
+                PointCloudIO.ReadRGB = true;
                 break;
             case 3:
-                PointCloudIO.RuntimeViewer.pointCloudFormat = PointCloudFormat.PTS;
-                PointCloudIO.RuntimeViewer.readRGB = true;
+                PointCloudIO.CloudFormat = PointCloudFormat.PTS;
+                PointCloudIO.ReadRGB = true;
                 break;
             case 4:
-                PointCloudIO.RuntimeViewer.pointCloudFormat = PointCloudFormat.ASC;
-                PointCloudIO.RuntimeViewer.readRGB = true;
+                PointCloudIO.CloudFormat = PointCloudFormat.ASC;
+                PointCloudIO.ReadRGB = true;
                 break;
             case 5:
-                PointCloudIO.RuntimeViewer.pointCloudFormat = PointCloudFormat.PCD_ASCII;
-                PointCloudIO.RuntimeViewer.readRGB = true;
+                PointCloudIO.CloudFormat = PointCloudFormat.PCD_ASCII;
+                PointCloudIO.ReadRGB = true;
                 break;
         }
     }
@@ -270,7 +270,7 @@ public class EscapeMenu : MonoBehaviour
     public void ChangeOverrideChache(bool ovr)
     {
         overrideCache = ovr;
-        PointCloudIO.RuntimeViewer.overrideExistingCacheFile = ovr;
+        PointCloudIO.OverrideCache = ovr;
     }
 
     public void ChangeResolution(float idx)
@@ -280,28 +280,23 @@ public class EscapeMenu : MonoBehaviour
         switch(index)
         {
             case 0:
-                PointCloudIO.RuntimeViewer.cloudMaterial = pcMat[0];
-                PointCloudIO.PcViewer.cloudMaterial = pcMat[0];
+                PointCloudIO.CloudMaterial = pcMat[0];
                 pcResolution.text = "Resolution: 1cm";
                 break;
             case 1:
-                PointCloudIO.RuntimeViewer.cloudMaterial = pcMat[1];
-                PointCloudIO.PcViewer.cloudMaterial = pcMat[1];
+                PointCloudIO.CloudMaterial = pcMat[1];
                 pcResolution.text = "Resolution: 2cm";
                 break;
             case 2:
-                PointCloudIO.RuntimeViewer.cloudMaterial = pcMat[2];
-                PointCloudIO.PcViewer.cloudMaterial = pcMat[2];
+                PointCloudIO.CloudMaterial = pcMat[2];
                 pcResolution.text = "Resolution: 3cm";
                 break;
             case 3:
-                PointCloudIO.RuntimeViewer.cloudMaterial = pcMat[3];
-                PointCloudIO.PcViewer.cloudMaterial = pcMat[3];
+                PointCloudIO.CloudMaterial = pcMat[3];
                 pcResolution.text = "Resolution: 4cm";
                 break;
             case 4:
-                PointCloudIO.RuntimeViewer.cloudMaterial = pcMat[4];
-                PointCloudIO.PcViewer.cloudMaterial = pcMat[4];
+                PointCloudIO.CloudMaterial = pcMat[4];
                 pcResolution.text = "Resolution: 5cm";
                 break;
         }
@@ -326,9 +321,9 @@ public class EscapeMenu : MonoBehaviour
         Resume();
     }
 
-    void OnSpawnShapeImportSuccess(string[] paths)
+    void OnBrushImportSuccess(string[] paths)
     {
-        GeometryIO.ImportSpawnShape(paths[0]);
+        GeometryIO.ImportBrushes(paths[0]);
         Resume();
     }
 

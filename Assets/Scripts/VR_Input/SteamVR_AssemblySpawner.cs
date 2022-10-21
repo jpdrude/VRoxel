@@ -22,10 +22,10 @@ public class SteamVR_AssemblySpawner : SpawnerActions
     [SerializeField]
     Material deleteMat;
 
-    List<GameObject> spawnMeshes = new List<GameObject>();
-    List<Vector3> meshScales = new List<Vector3>();
-    List<Vector3> meshSizes = new List<Vector3>();
-    int spawnMeshIndex;
+    List<GameObject> brushes = new List<GameObject>();
+    List<Vector3> brushScales = new List<Vector3>();
+    List<Vector3> brushSizes = new List<Vector3>();
+    int brushIndex;
 
     float radius = 0.05f;
     Vector3 boxSize = new Vector3(0.1f, 0.1f, 0.1f);
@@ -52,7 +52,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 sphere.GetComponent<MeshRenderer>().material = spawnMat;
                 box.SetActive(false);
                 cylinder.SetActive(false);
-                DeactivateSpawnMeshes();
+                DeactivateBrushes();
                 UpdateSphereScale();
             }
             else if (mode == VRPlacementMode.DeleteFromSphere)
@@ -61,7 +61,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 sphere.GetComponent<MeshRenderer>().material = deleteMat;
                 box.SetActive(false);
                 cylinder.SetActive(false);
-                DeactivateSpawnMeshes();
+                DeactivateBrushes();
                 UpdateSphereScale();
             }
             else if (mode == VRPlacementMode.SpawnInBox)
@@ -70,7 +70,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 box.GetComponent<MeshRenderer>().material = spawnMat;
                 sphere.SetActive(false);
                 cylinder.SetActive(false);
-                DeactivateSpawnMeshes();
+                DeactivateBrushes();
                 UpdateBoxScale();
             }
             else if (mode == VRPlacementMode.DeleteFromBox)
@@ -79,7 +79,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 box.GetComponent<MeshRenderer>().material = deleteMat;
                 sphere.SetActive(false);
                 cylinder.SetActive(false);
-                DeactivateSpawnMeshes();
+                DeactivateBrushes();
                 UpdateBoxScale();
             }
             else if (mode == VRPlacementMode.SpawnInCylinder)
@@ -88,7 +88,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 cylinder.GetComponent<MeshRenderer>().material = spawnMat;
                 sphere.SetActive(false);
                 box.SetActive(false);
-                DeactivateSpawnMeshes();
+                DeactivateBrushes();
                 UpdateCylinderScale();
             }
             else if (mode == VRPlacementMode.DeleteFromCylinder)
@@ -97,28 +97,28 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 cylinder.GetComponent<MeshRenderer>().material = deleteMat;
                 sphere.SetActive(false);
                 box.SetActive(false);
-                DeactivateSpawnMeshes();
+                DeactivateBrushes();
                 UpdateCylinderScale();
             }
-            else if (mode == VRPlacementMode.SpawnInMesh)
+            else if (mode == VRPlacementMode.SpawnInBrush)
             {
                 cylinder.SetActive(false);
                 sphere.SetActive(false);
                 box.SetActive(false);
-                DeactivateSpawnMeshes();
-                spawnMeshes[spawnMeshIndex].gameObject.SetActive(true);
-                spawnMeshes[spawnMeshIndex].GetComponent<MeshRenderer>().material = spawnMat;
-                UpdateMeshScale();
+                DeactivateBrushes();
+                brushes[brushIndex].gameObject.SetActive(true);
+                brushes[brushIndex].GetComponent<MeshRenderer>().material = spawnMat;
+                UpdateBrushScale();
             }
-            else if (mode == VRPlacementMode.DeleteFromMesh)
+            else if (mode == VRPlacementMode.DeleteFromBrush)
             {
                 cylinder.SetActive(false);
                 sphere.SetActive(false);
                 box.SetActive(false);
-                DeactivateSpawnMeshes();
-                spawnMeshes[spawnMeshIndex].gameObject.SetActive(true);
-                spawnMeshes[spawnMeshIndex].GetComponent<MeshRenderer>().material = deleteMat;
-                UpdateMeshScale();
+                DeactivateBrushes();
+                brushes[brushIndex].gameObject.SetActive(true);
+                brushes[brushIndex].GetComponent<MeshRenderer>().material = deleteMat;
+                UpdateBrushScale();
             }
         }
     }
@@ -139,29 +139,29 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         sphere.SetActive(false);
         box.SetActive(false);
         cylinder.SetActive(false);
-        DeactivateSpawnMeshes();
+        DeactivateBrushes();
 
         enabled = false;
     }
 
-    public int AddSpawnMesh(GameObject mesh, Vector3 size)
+    public int AddBrush(GameObject mesh, Vector3 size)
     {
-        spawnMeshes.Add(mesh);
-        meshScales.Add(Vector3.one);
-        meshSizes.Add(size);
-        return spawnMeshes.Count - 1;
+        brushes.Add(mesh);
+        brushScales.Add(Vector3.one);
+        brushSizes.Add(size);
+        return brushes.Count - 1;
     }
 
-    public void SetSpawnMesh(int idx, VRPlacementMode _mode)
+    public void SetBrush(int idx, VRPlacementMode _mode)
     {
-        spawnMeshIndex = idx;
+        brushIndex = idx;
         Mode = _mode;
     }
 
 
-    void DeactivateSpawnMeshes()
+    void DeactivateBrushes()
     {
-        foreach (GameObject go in spawnMeshes)
+        foreach (GameObject go in brushes)
             go.SetActive(false);
     }
 
@@ -179,10 +179,10 @@ public class SteamVR_AssemblySpawner : SpawnerActions
             SpawnBlocksInCylinder();
         else if (Mode == VRPlacementMode.DeleteFromCylinder)
             RemoveBlocksInCylinder();
-        else if (Mode == VRPlacementMode.SpawnInMesh)
-            SpawnBlocksInMesh();
-        else if (Mode == VRPlacementMode.DeleteFromMesh)
-            RemoveBlocksInMesh();
+        else if (Mode == VRPlacementMode.SpawnInBrush)
+            SpawnBlocksInBrush();
+        else if (Mode == VRPlacementMode.DeleteFromBrush)
+            RemoveBlocksInBrush();
     }
 
     public override void DPadInput(bool _up, bool _down, bool _left, bool _right)
@@ -193,8 +193,8 @@ public class SteamVR_AssemblySpawner : SpawnerActions
             CheckBoxScale(_up, _down, _left, _right);
         else if (Mode == VRPlacementMode.SpawnInCylinder || Mode == VRPlacementMode.DeleteFromCylinder)
             CheckCylinderScale(_up, _down, _left, _right);
-        else if (Mode == VRPlacementMode.SpawnInMesh || Mode == VRPlacementMode.DeleteFromMesh)
-            CheckMeshScale(_up, _down);
+        else if (Mode == VRPlacementMode.SpawnInBrush || Mode == VRPlacementMode.DeleteFromBrush)
+            CheckBrushScale(_up, _down);
     }
 
     void CheckSphereScale(bool up, bool down)
@@ -288,22 +288,22 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         }
     }
 
-    void CheckMeshScale(bool up, bool down)
+    void CheckBrushScale(bool up, bool down)
     {
-        if (Mode == VRPlacementMode.SpawnInMesh || Mode == VRPlacementMode.DeleteFromMesh)
+        if (Mode == VRPlacementMode.SpawnInBrush || Mode == VRPlacementMode.DeleteFromBrush)
         {
             if (up)
             {
-                meshScales[spawnMeshIndex] += Time.deltaTime * scaleSpeed * Vector3.one;
-                UpdateMeshScale();
+                brushScales[brushIndex] += Time.deltaTime * scaleSpeed * Vector3.one;
+                UpdateBrushScale();
             }
             else if (down)
             {
-                meshScales[spawnMeshIndex] -= Time.deltaTime * scaleSpeed * Vector3.one;
-                if (meshScales[spawnMeshIndex].x < 0.025f)
-                    meshScales[spawnMeshIndex] = Vector3.one * 0.025f;
+                brushScales[brushIndex] -= Time.deltaTime * scaleSpeed * Vector3.one;
+                if (brushScales[brushIndex].x < 0.025f)
+                    brushScales[brushIndex] = Vector3.one * 0.025f;
 
-                UpdateMeshScale();
+                UpdateBrushScale();
             }
         }
     }
@@ -355,17 +355,17 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
-    void SpawnBlocksInMesh()
+    void SpawnBlocksInBrush()
     {
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(brushes[brushIndex].GetComponent<MeshCollider>(), out blockDictKeys);
         BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
     }
 
-    void RemoveBlocksInMesh()
+    void RemoveBlocksInBrush()
     {
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(spawnMeshes[spawnMeshIndex].GetComponent<MeshCollider>(), out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(brushes[brushIndex].GetComponent<MeshCollider>(), out blockDictKeys);
         BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
@@ -387,10 +387,10 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         cylinder.transform.localPosition = Vector3.forward * cylinderRadius;
     }
 
-    public void UpdateMeshScale()
+    public void UpdateBrushScale()
     {
-        spawnMeshes[spawnMeshIndex].transform.localScale = meshScales[spawnMeshIndex];
-        spawnMeshes[spawnMeshIndex].transform.localPosition = Vector3.forward * meshSizes[spawnMeshIndex].z * meshScales[spawnMeshIndex].z / 2;
+        brushes[brushIndex].transform.localScale = brushScales[brushIndex];
+        //brushes[brushIndex].transform.localPosition = Vector3.forward * brushSizes[brushIndex].z * brushScales[brushIndex].z / 2;
     }
 }
 
@@ -402,8 +402,8 @@ public enum VRPlacementMode
     DeleteFromBox,
     SpawnInCylinder,
     DeleteFromCylinder,
-    SpawnInMesh,
-    DeleteFromMesh,
+    SpawnInBrush,
+    DeleteFromBrush,
     BlocksToPointCloud,
     PointCloudToBlocks
 }

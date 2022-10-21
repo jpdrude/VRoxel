@@ -111,7 +111,9 @@ public class AssemblyIO : MonoBehaviour
         else
         {
             SaveAssemblyDelegate saveDelegate = new SaveAssemblyDelegate(SaveAsync);
-            saveDelegate.BeginInvoke(path, GameManager.Bond.BondName, tempBlockTransforms, null, null);
+            Debug.Log("Version String: " + Application.version);
+            Debug.Log("Parsed Version String: " + float.Parse(Application.version, System.Globalization.CultureInfo.InvariantCulture.NumberFormat).ToString("F3"));
+            saveDelegate.BeginInvoke(path, GameManager.Bond.BondName, tempBlockTransforms, float.Parse(Application.version, System.Globalization.CultureInfo.InvariantCulture.NumberFormat), null, null);
         }
     }
 
@@ -133,13 +135,21 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
-    static void SaveAsync(string path, string bondName, List<Matrix4x4>[] transforms)
+    static void SaveAsync(string path, string bondName, List<Matrix4x4>[] transforms, float version)
     {
         Debug.Log("Start saving at " + DateTime.Now.ToString("T"));
-        using (FileStream stream = new FileStream(path, FileMode.Create))
+
+        try
         {
-            ByteStreamContainer container = new ByteStreamContainer(bondName, transforms);
-            stream.Write(container.ToByteArray());
+            using (FileStream stream = new FileStream(path, FileMode.Create))
+            {
+                ByteStreamContainer container = new ByteStreamContainer(bondName, transforms, version);
+                stream.Write(container.ToByteArray());
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e.Message);
         }
 
         Debug.Log("Finished saving at " + DateTime.Now.ToString("T"));
@@ -390,11 +400,12 @@ public class AssemblyIO : MonoBehaviour
         if (BlockContainer.Container == null) return;
 
         BlockContainer.Container.ResetContainer();
+        PointCloudIO.RestorePointCloud();
     }   
 }
 
 public delegate void ExportAssemblyDelegate(string path, JsonMatrixContainer container);
-public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4>[] matrices);
+public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4>[] matrices, float version);
 public delegate void LoadAssemblyDelegate(string path);
 
 public class JsonMatrixContainer

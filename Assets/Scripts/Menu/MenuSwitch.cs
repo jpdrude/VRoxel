@@ -201,7 +201,7 @@ public class MenuSwitch : MonoBehaviour
         }
 
         SpawnMeshBehaviour.AlignToWorld = !SpawnMeshBehaviour.AlignToWorld;
-        spawner.UpdateMeshScale();
+        spawner.UpdateBrushScale();
     }
 
     void SetPlayerHeight()
