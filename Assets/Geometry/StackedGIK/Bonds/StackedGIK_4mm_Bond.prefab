@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4168627618082520327}
   - component: {fileID: 2224302239791735262}
   m_Layer: 0
-  m_Name: StackedGIK_10mm_Bond
+  m_Name: StackedGIK_4mm_Bond
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52,7 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d2c7597527bc29438d92463be6a9621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bondName: StackedGIK_10mm
+  bondName: StackedGIK_4mm
   partPrefabs:
   - {fileID: 648004436608964068, guid: 7da099d2964d60a4e9bca3129dc2a324, type: 3}
   bondBlocks:

@@ -38,7 +38,7 @@ public class PointCloudIO : MonoBehaviour
     public static bool OverrideCache { get { return overrideCache; } set { overrideCache = value; } }
 
 
-    private void Start()
+    private void Awake()
     {
         runtimeViewer = _runtimeViewer;
         pcViewer = _pcViewer;

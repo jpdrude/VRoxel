@@ -17260,6 +17260,7 @@ GameObject:
   - component: {fileID: 1262178278}
   - component: {fileID: 1262178277}
   - component: {fileID: 1262178279}
+  - component: {fileID: 1262178280}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -17296,6 +17297,7 @@ MonoBehaviour:
   - {fileID: 8629960204850581128, guid: cd4dc3dfd43e01f4cbee744aaa1f674a, type: 3}
   - {fileID: 5245831860983081081, guid: 646fbd19dc4d81d41ad5eff06bff0366, type: 3}
   - {fileID: 2224302239791735262, guid: 4704f19bcd5d69341ab743ef59e7765f, type: 3}
+  - {fileID: 3158983586260567441, guid: e18820c5b12c77343bfbd161894e4547, type: 3}
   actionSet:
     actionSetPath: /actions/LegoPlacement
 --- !u!4 &1262178274
@@ -17395,6 +17397,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runtimeViewer: {fileID: 1731934934}
   viewer: {fileID: 300438424}
+--- !u!114 &1262178280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1262178272}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9448c8a7758a3544a63cdce77229943, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectPlatform: {fileID: 591982249}
+  escapeMenu: {fileID: 605811782}
+  loaderActive: 0
+  bondName: LegoBond_alternating
+  pointCloudPath: D:\OneDrive\Desktop\test\apartment_reduced.xyz
+  brushPath: D:\OneDrive\Desktop\test\spawnShapes\CAADFutures_Shapes.fbx
+  export: 0
 --- !u!1 &1267542236
 GameObject:
   m_ObjectHideFlags: 0

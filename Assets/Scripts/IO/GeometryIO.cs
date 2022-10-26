@@ -7,8 +7,7 @@ using Valve.VR.InteractionSystem;
 
 public class GeometryIO : MonoBehaviour
 {
-    static bool isImporting = false;
-    static DateTime importStep;
+    static Dictionary<string, DateTime> importSteps = new Dictionary<string, DateTime>();
 
     [Header("Defaults")]
     [SerializeField]
@@ -90,47 +89,24 @@ public class GeometryIO : MonoBehaviour
 
     public static void ImportGeometry(string path)
     {
-        if (isImporting)
-        {
-            MessageSystem.DisplayWarning("There is already another import in progress");
-            return;
-        }
-
-        isImporting = true;
-        importStep = DateTime.Now;
         AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnMaterialsImport, OnImportProgress, OnImportError, null, options);
     }
 
     public static void ImportTeleportArea(string path)
     {
-        if (isImporting)
-        {
-            MessageSystem.DisplayWarning("There is already another import in progress");
-            return;
-        }
-
-        isImporting = true;
-        importStep = DateTime.Now;
         AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnTeleportAreaImport, OnImportProgress, OnImportError, null, options);
-
     }
 
     public static void ImportBrushes(string path)
     {
-        if (isImporting)
-        {
-            MessageSystem.DisplayWarning("There is already another import in progress");
-            return;
-        }
-
-        isImporting = true;
-        importStep = DateTime.Now;
         AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnBrushImport, OnImportProgress, OnImportError, null, options);
     }
 
     static void OnTeleportAreaImport(AssetLoaderContext assetLoaderContext)
     {
-        isImporting = false;
+        if (importSteps.ContainsKey(assetLoaderContext.Filename))
+            importSteps.Remove(assetLoaderContext.Filename);
+
         var root = assetLoaderContext.RootGameObject;
 
         foreach (MeshFilter mf in root.GetComponentsInChildren<MeshFilter>())
@@ -157,7 +133,9 @@ public class GeometryIO : MonoBehaviour
 
     static void OnBrushImport(AssetLoaderContext assetLoaderContext)
     {
-        isImporting = false;
+        if (importSteps.ContainsKey(assetLoaderContext.Filename))
+            importSteps.Remove(assetLoaderContext.Filename);
+
         Debug.Log("Brush file imported");
         MeshFilter[] meshFilters = assetLoaderContext.RootGameObject.GetComponentsInChildren<MeshFilter>();
 
@@ -258,7 +236,8 @@ public class GeometryIO : MonoBehaviour
 
     static void OnMaterialsImport(AssetLoaderContext assetLoaderContext)
     {
-        isImporting = false;
+        if (importSteps.ContainsKey(assetLoaderContext.Filename))
+            importSteps.Remove(assetLoaderContext.Filename);
 
         foreach (MeshRenderer mr in assetLoaderContext.RootGameObject.GetComponentsInChildren<MeshRenderer>())
         {
@@ -271,11 +250,20 @@ public class GeometryIO : MonoBehaviour
 
     static void OnImportProgress(AssetLoaderContext assetLoaderContext, float progress)
     {
-        if ((DateTime.Now - importStep).TotalMilliseconds > 1000)
+        string path = assetLoaderContext.Filename;
+
+        if (!importSteps.ContainsKey(path))
         {
-            Debug.Log("Import: " + (int)(progress * 100) + "%");
-            MessageSystem.DisplayMessage("Import: " + (int)(progress * 100) + "%");
-            importStep = DateTime.Now;
+            importSteps.Add(path, DateTime.Now);
+            return;
+        }
+
+        if ((DateTime.Now - importSteps[path]).TotalMilliseconds > 500)
+        {
+            string message = System.IO.Path.GetFileName(assetLoaderContext.Filename) + " import: " + (int)(progress * 100) + "%";
+            Debug.Log(message);
+            MessageSystem.DisplayMessage(message);
+            importSteps[path] = DateTime.Now;
         }
     }
 
