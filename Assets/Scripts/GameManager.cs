@@ -52,12 +52,12 @@ public class GameManager : MonoBehaviour
 
     public void Save()
     {
-        AssemblyIO.SaveAssemblyLayout(Application.persistentDataPath + "/quickSave.json", true);
+        AssemblyIO.SaveAssemblyLayout(Application.persistentDataPath + "/quickSave.vrxl", true);
     }
 
     public void Load()
     {
-        AssemblyIO.LoadAssemblyLayout(Application.persistentDataPath + "/quickSave.json");
+        AssemblyIO.LoadAssemblyLayout(Application.persistentDataPath + "/quickSave.vrxl");
     }
 
     public void NewGame()

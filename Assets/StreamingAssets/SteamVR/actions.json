@@ -105,6 +105,10 @@
     {
       "name": "/actions/LegoPlacement/in/Teleport",
       "type": "boolean"
+    },
+    {
+      "name": "/actions/LegoPlacement/in/QuickSwitch",
+      "type": "boolean"
     }
   ],
   "action_sets": [

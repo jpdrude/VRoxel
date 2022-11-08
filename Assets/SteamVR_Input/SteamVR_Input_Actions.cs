@@ -67,6 +67,8 @@ namespace Valve.VR
         
         private static SteamVR_Action_Boolean p_legoPlacement_Teleport;
         
+        private static SteamVR_Action_Boolean p_legoPlacement_QuickSwitch;
+        
         public static SteamVR_Action_Boolean default_InteractUI
         {
             get
@@ -267,6 +269,14 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Boolean legoPlacement_QuickSwitch
+        {
+            get
+            {
+                return SteamVR_Actions.p_legoPlacement_QuickSwitch.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
@@ -294,7 +304,8 @@ namespace Valve.VR
                     SteamVR_Actions.legoPlacement_Right,
                     SteamVR_Actions.legoPlacement_Up,
                     SteamVR_Actions.legoPlacement_Down,
-                    SteamVR_Actions.legoPlacement_Teleport};
+                    SteamVR_Actions.legoPlacement_Teleport,
+                    SteamVR_Actions.legoPlacement_QuickSwitch};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -319,7 +330,8 @@ namespace Valve.VR
                     SteamVR_Actions.legoPlacement_Right,
                     SteamVR_Actions.legoPlacement_Up,
                     SteamVR_Actions.legoPlacement_Down,
-                    SteamVR_Actions.legoPlacement_Teleport};
+                    SteamVR_Actions.legoPlacement_Teleport,
+                    SteamVR_Actions.legoPlacement_QuickSwitch};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[] {
                     SteamVR_Actions.default_Haptic};
             Valve.VR.SteamVR_Input.actionsVibration = new Valve.VR.SteamVR_Action_Vibration[] {
@@ -343,7 +355,8 @@ namespace Valve.VR
                     SteamVR_Actions.legoPlacement_Right,
                     SteamVR_Actions.legoPlacement_Up,
                     SteamVR_Actions.legoPlacement_Down,
-                    SteamVR_Actions.legoPlacement_Teleport};
+                    SteamVR_Actions.legoPlacement_Teleport,
+                    SteamVR_Actions.legoPlacement_QuickSwitch};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.default_Squeeze,
                     SteamVR_Actions.buggy_Throttle};
@@ -374,7 +387,8 @@ namespace Valve.VR
                     SteamVR_Actions.legoPlacement_Right,
                     SteamVR_Actions.legoPlacement_Up,
                     SteamVR_Actions.legoPlacement_Down,
-                    SteamVR_Actions.legoPlacement_Teleport};
+                    SteamVR_Actions.legoPlacement_Teleport,
+                    SteamVR_Actions.legoPlacement_QuickSwitch};
         }
         
         private static void PreInitActions()
@@ -404,6 +418,7 @@ namespace Valve.VR
             SteamVR_Actions.p_legoPlacement_Up = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Up")));
             SteamVR_Actions.p_legoPlacement_Down = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Down")));
             SteamVR_Actions.p_legoPlacement_Teleport = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Teleport")));
+            SteamVR_Actions.p_legoPlacement_QuickSwitch = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/QuickSwitch")));
         }
     }
 }

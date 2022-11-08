@@ -64,5 +64,13 @@ namespace Valve.VR
                 return SteamVR_Actions.legoPlacement_Teleport;
             }
         }
+        
+        public virtual SteamVR_Action_Boolean QuickSwitch
+        {
+            get
+            {
+                return SteamVR_Actions.legoPlacement_QuickSwitch;
+            }
+        }
     }
 }

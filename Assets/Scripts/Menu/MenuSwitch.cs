@@ -204,6 +204,16 @@ public class MenuSwitch : MonoBehaviour
         spawner.UpdateBrushScale();
     }
 
+    public VRMenuItem GetCurrentAdd()
+    {
+        return AddButtons[addIndex].GetComponent<VRMenuItem>();
+    }
+
+    public VRMenuItem GetCurrentRemove()
+    {
+        return RemoveButtons[removeIndex].GetComponent<VRMenuItem>();
+    }
+
     void SetPlayerHeight()
     {
         Vector3 currentPos = vrPlayer.transform.position;

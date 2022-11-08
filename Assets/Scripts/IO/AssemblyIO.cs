@@ -70,6 +70,30 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
+    void RecoverFromPositions()
+    {
+        List<Matrix4x4>[] matrices = new List<Matrix4x4>[loadContainer.Length];
+
+        for (int i = 0; i < loadContainer.Length; i++)
+        {
+            matrices[i] = new List<Matrix4x4>();
+            foreach (Matrix4x4 matrix in loadContainer[i])
+            {
+                matrices[i].Add(GameManager.Bond.GetBlockFromPosition(matrix.GetPosition(), i));
+            }
+        }
+
+        Matrix4x4[][] outMatrices = new Matrix4x4[loadContainer.Length][];
+        for (int i = 0; i < loadContainer.Length; i++)
+        {
+            outMatrices[i] = matrices[i].ToArray();
+        }
+
+        BlockContainer.Container.AddBlocks(outMatrices);
+
+        Debug.Log("Referencing Position finished at " + DateTime.Now.ToString("T"));
+    }
+
     public static void SaveAssemblyLayout(string path, bool saveInactive, bool export = false)
     {
         if (currentSaveTargets.Contains(path))
@@ -89,7 +113,7 @@ public class AssemblyIO : MonoBehaviour
                 foreach(Matrix4x4 matrix4x4 in BlockContainer.Container.PcTransformArray[i])
                 {
                     if (matrix4x4 != Matrix4x4.zero)
-                        tempBlockTransforms[i].Add(conversionMatrix * matrix4x4);
+                        tempBlockTransforms[i].Add(matrix4x4);
                 }
         }
 
@@ -97,7 +121,7 @@ public class AssemblyIO : MonoBehaviour
             foreach (Matrix4x4 matrix4x4 in BlockContainer.Container.TransformArray[i])
             {
                 if (matrix4x4 != Matrix4x4.zero)
-                    tempBlockTransforms[i].Add(conversionMatrix * matrix4x4);
+                    tempBlockTransforms[i].Add(matrix4x4);
             }
 
         if (export)

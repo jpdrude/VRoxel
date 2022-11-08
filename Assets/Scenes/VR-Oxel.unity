@@ -1186,9 +1186,9 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.5000001
-  m_Height: 2
+  m_Height: 2.9197004
   m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+  m_Center: {x: 0.000000058207657, y: 0.45985815, z: -0.000000116414846}
 --- !u!23 &94535603
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1409,6 +1409,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 11401046, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+      propertyPath: otherHand
+      value: 
+      objectReference: {fileID: 107884156}
+    - target: {fileID: 11401046, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+      propertyPath: trackedObject
+      value: 
+      objectReference: {fileID: 107884154}
+    - target: {fileID: 11450312, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+      propertyPath: otherHand
+      value: 
+      objectReference: {fileID: 107884155}
+    - target: {fileID: 11450312, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+      propertyPath: trackedObject
+      value: 
+      objectReference: {fileID: 107884157}
     - target: {fileID: 11461462, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
       propertyPath: m_Enabled
       value: 1
@@ -1448,6 +1464,50 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f0522eaef74d984591c060d05a095c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &107884154 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114000011957598740, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+  m_PrefabInstance: {fileID: 107884151}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 796366739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a5fb0ca93b55ef4b8d54b512b103341, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &107884155 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 11401046, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+  m_PrefabInstance: {fileID: 107884151}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 796366739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29e3e4511966ba94d8ba0b98c6c62f82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &107884156 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 11450312, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+  m_PrefabInstance: {fileID: 107884151}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29e3e4511966ba94d8ba0b98c6c62f82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &107884157 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114000011273627542, guid: dc06161b6d97feb419f45f03b62e14b9, type: 3}
+  m_PrefabInstance: {fileID: 107884151}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a5fb0ca93b55ef4b8d54b512b103341, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &109120575
@@ -2321,6 +2381,70 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &192386458
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 192386459}
+  - component: {fileID: 192386460}
+  m_Layer: 26
+  m_Name: QuickOptionSwitch
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &192386459
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 192386458}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 107884152}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &192386460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 192386458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b201ffa3e132b147878db1d33e8963a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trigger:
+    actionPath: /actions/LegoPlacement/in/Trigger
+    needsReinit: 0
+  up:
+    actionPath: /actions/LegoPlacement/in/Up
+    needsReinit: 0
+  down:
+    actionPath: /actions/LegoPlacement/in/Down
+    needsReinit: 0
+  left:
+    actionPath: /actions/LegoPlacement/in/Left
+    needsReinit: 0
+  right:
+    actionPath: /actions/LegoPlacement/in/Right
+    needsReinit: 0
+  quickOptionSwitch:
+    actionPath: /actions/LegoPlacement/in/QuickSwitch
+    needsReinit: 0
+  spawner: {fileID: 961489917}
+  menu: {fileID: 6634426053651415017}
 --- !u!1 &197720499
 GameObject:
   m_ObjectHideFlags: 0
@@ -13022,6 +13146,9 @@ MonoBehaviour:
   right:
     actionPath: /actions/LegoPlacement/in/Right
     needsReinit: 0
+  quickOptionSwitch:
+    actionPath: /actions/LegoPlacement/in/QuickSwitch
+    needsReinit: 0
   sphere: {fileID: 2144019902}
   box: {fileID: 1366392918}
   cylinder: {fileID: 1140594564}
@@ -13053,6 +13180,9 @@ MonoBehaviour:
     needsReinit: 0
   right:
     actionPath: /actions/LegoPlacement/in/Right
+    needsReinit: 0
+  quickOptionSwitch:
+    actionPath: /actions/LegoPlacement/in/QuickSwitch
     needsReinit: 0
   sphere: {fileID: 603725847}
   mat_cloudToBlocks: {fileID: 2100000, guid: b22d4e90f5109f1499c7c773bf5ec3ba, type: 2}
@@ -29195,6 +29325,10 @@ PrefabInstance:
       propertyPath: action.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1262178273}
+    - target: {fileID: 604235377755395149, guid: b441865b6a387ff4c8edc2b57b3c9640, type: 3}
+      propertyPath: action.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Load
+      objectReference: {fileID: 0}
     - target: {fileID: 604235377781745996, guid: b441865b6a387ff4c8edc2b57b3c9640, type: 3}
       propertyPath: action.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 

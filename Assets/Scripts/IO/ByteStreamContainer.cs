@@ -10,8 +10,6 @@ public class ByteStreamContainer
     public Matrix4x4[][] matrices;
     public float version;
 
-    static Matrix4x4 conversionMatrix = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0, 1));
-
     public byte[] ToByteArray()
     {
         int matricesLength = 0;
@@ -182,9 +180,10 @@ public class ByteStreamContainer
                 float rotW = BitConverter.ToSingle(array, j + 4 * 6);
                 Quaternion rotation = new Quaternion(rotX, rotY, rotZ, rotW);
 
-                Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+                //Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+                Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, new Vector3(-1, 1, -1));
 
-                matrices[i][matrixCounter] = conversionMatrix * matrix;
+                matrices[i][matrixCounter] = matrix;
                 ++matrixCounter;
             }
 

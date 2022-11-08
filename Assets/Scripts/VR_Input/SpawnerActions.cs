@@ -17,12 +17,15 @@ public class SpawnerActions : MonoBehaviour
     SteamVR_Action_Boolean left;
     [SerializeField]
     SteamVR_Action_Boolean right;
+    [SerializeField]
+    SteamVR_Action_Boolean quickOptionSwitch;
 
     public SteamVR_Action_Boolean Trigger { get { return trigger; } }
     public SteamVR_Action_Boolean Up { get { return up; } }
     public SteamVR_Action_Boolean Down { get { return down; } }
     public SteamVR_Action_Boolean Left { get { return left; } }
     public SteamVR_Action_Boolean Right { get { return right; } }
+    public SteamVR_Action_Boolean QuickOptionSwitch { get { return quickOptionSwitch; } }
    
 
     private void Update()
@@ -34,6 +37,10 @@ public class SpawnerActions : MonoBehaviour
 
         if (trigger.GetStateUp(SteamVR_Input_Sources.RightHand))
             OnTriggerUp();
+
+        if (quickOptionSwitch.GetStateDown(SteamVR_Input_Sources.Any))
+            OnQuickSwitchDown();
+
 
         bool _up = up.GetState(SteamVR_Input_Sources.RightHand);
         bool _down = down.GetState(SteamVR_Input_Sources.RightHand);
@@ -48,6 +55,7 @@ public class SpawnerActions : MonoBehaviour
 
     public virtual void OnTrigger() { }
     public virtual void OnTriggerUp() { }
+    public virtual void OnQuickSwitchDown() { }
     public virtual void DPadInput(bool _up, bool _down, bool _left, bool _right) { }
     public virtual void Disable() { }
 }

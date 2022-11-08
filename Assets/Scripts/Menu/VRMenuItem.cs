@@ -77,4 +77,14 @@ public class VRMenuItem : MonoBehaviour
 
         transform.localScale =  Vector3.Lerp(Vector3.one, Vector3.one * effectScale, timer / effectLength);
     }
+
+    public void RemoteInvoke()
+    {
+        action.Invoke();
+    }
+
+    public void RemoteInvokePressed()
+    {
+        actionPressed.Invoke();
+    }
 }

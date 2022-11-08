@@ -85,6 +85,33 @@ public class Bond : MonoBehaviour
         return Matrix4x4.TRS(bondBase + best.localPosition, best.localRotation, Vector3.one);
     }
 
+    public Matrix4x4 GetBlockFromPosition(Vector3 position, int type)
+    {
+        int xInt = Mathf.RoundToInt(position.x * 10000);
+        int yInt = Mathf.RoundToInt(position.y * 10000);
+        int zInt = Mathf.RoundToInt(position.z * 10000);
+
+        Bond b = GameManager.Bond;
+
+        int xBondSize = Mathf.RoundToInt(b.xSpacing * 10000) * b.XSize;
+        int yBondSize = Mathf.RoundToInt(b.ySpacing * 10000) * b.YSize;
+        int zBondSize = Mathf.RoundToInt(b.zSpacing * 10000) * b.ZSize;
+
+        Transform fit = null;
+
+        foreach(Transform t in b.blocks[type])
+        {
+            int xBondInt = Mathf.RoundToInt(t.position.x * 10000);
+            int yBondInt = Mathf.RoundToInt(t.position.y * 10000);
+            int zBondInt = Mathf.RoundToInt(t.position.z * 10000);
+
+            if ((xInt - xBondInt) % xBondSize == 0 && (yInt - yBondInt) % yBondSize == 0 && (zInt - zBondInt) % zBondSize == 0)
+                fit = t;
+        }
+
+        return Matrix4x4.TRS(position, fit.localRotation, fit.localScale);
+    }
+
     public Vector3 GetBondBase(Vector3 position)
     {
         int x = Mathf.FloorToInt(position.x / GameManager.Bond.XSpacing);
