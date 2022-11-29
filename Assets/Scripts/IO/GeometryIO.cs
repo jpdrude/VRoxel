@@ -159,17 +159,28 @@ public class GeometryIO : MonoBehaviour
         GameObject spawnMesh = new GameObject("MeshSpawner");
         spawnMesh.transform.parent = parent;
         spawnMesh.transform.localPosition = Vector3.zero;
+
         MeshFilter filter = spawnMesh.AddComponent<MeshFilter>();
         filter.sharedMesh = mesh;
+
         MeshRenderer renderer = spawnMesh.AddComponent<MeshRenderer>();
+
         MeshCollider collider = spawnMesh.AddComponent<MeshCollider>();
         collider.sharedMesh = mesh;
+
         SpawnCubeBehaviour cubeBehaviour = spawnMesh.AddComponent<SpawnMeshBehaviour>();
         cubeBehaviour.Parent = rightHand;
+
+        XYZConstraint constraint = spawnMesh.AddComponent<XYZConstraint>();
+        constraint.Spawner = spawner;
+
         spawnMesh.layer = 8;
         spawnMesh.tag = "MeshSpawner";
+
         spawnMesh.SetActive(false);
+
         Debug.Log("SpawnerMesh built");
+
         return spawnMesh;
     }
 

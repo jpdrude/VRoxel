@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SpawnMeshBehaviour : SpawnCubeBehaviour
 {
-    static bool alignToWorld = true;
+    static bool alignToWorld = false;
     public static bool AlignToWorld
     {
         get { return alignToWorld; }

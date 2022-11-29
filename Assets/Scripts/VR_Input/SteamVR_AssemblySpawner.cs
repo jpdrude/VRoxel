@@ -392,6 +392,14 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         brushes[brushIndex].transform.localScale = brushScales[brushIndex];
         //brushes[brushIndex].transform.localPosition = Vector3.forward * brushSizes[brushIndex].z * brushScales[brushIndex].z / 2;
     }
+
+    public void UpdateAllScales()
+    {
+        UpdateSphereScale();
+        UpdateBoxScale();
+        UpdateCylinderScale();
+        UpdateBrushScale();
+    }
 }
 
 public enum VRPlacementMode

@@ -2362,7 +2362,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &190701063
 Transform:
   m_ObjectHideFlags: 0
@@ -16509,6 +16509,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43b2eb06550f65747bb6aeaf6e3ae7a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1140594568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1140594564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 837f305d042d0f245958a8d8d2a37373, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _trigger:
+    actionPath: /actions/LegoPlacement/in/Trigger
+    needsReinit: 0
+  spawner: {fileID: 961489917}
+  tolerance: 0.1
 --- !u!1 &1148725753
 GameObject:
   m_ObjectHideFlags: 0
@@ -19002,6 +19019,7 @@ GameObject:
   - component: {fileID: 1366392921}
   - component: {fileID: 1366392923}
   - component: {fileID: 1366392924}
+  - component: {fileID: 1366392925}
   m_Layer: 8
   m_Name: SpawnCube
   m_TagString: Untagged
@@ -19087,6 +19105,23 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1366392918}
   m_Mesh: {fileID: -2346428509227581198, guid: 5723f48fb7821bc4d9c5c70e71112339, type: 3}
+--- !u!114 &1366392925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366392918}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 837f305d042d0f245958a8d8d2a37373, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _trigger:
+    actionPath: /actions/LegoPlacement/in/Trigger
+    needsReinit: 0
+  spawner: {fileID: 961489917}
+  tolerance: 0.1
 --- !u!1 &1367364906 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2935581937495183245, guid: a0e7ba0cf5c619346a7f2f386e369fc7, type: 3}
@@ -29180,6 +29215,7 @@ GameObject:
   - component: {fileID: 2144019903}
   - component: {fileID: 2144019906}
   - component: {fileID: 2144019905}
+  - component: {fileID: 2144019907}
   m_Layer: 8
   m_Name: SpawnSphere
   m_TagString: Untagged
@@ -29252,6 +29288,23 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2144019902}
   m_Mesh: {fileID: -2346428509227581198, guid: 63fa99df8e0a1c84b8f06eef3fcd7e1f, type: 3}
+--- !u!114 &2144019907
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144019902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 837f305d042d0f245958a8d8d2a37373, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _trigger:
+    actionPath: /actions/LegoPlacement/in/Trigger
+    needsReinit: 0
+  spawner: {fileID: 961489917}
+  tolerance: 0.1
 --- !u!4 &307773173476286729
 Transform:
   m_ObjectHideFlags: 0
@@ -29337,6 +29390,14 @@ PrefabInstance:
       propertyPath: action.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 961489917}
+    - target: {fileID: 2552577570586722463, guid: b441865b6a387ff4c8edc2b57b3c9640, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2721622077674797999, guid: b441865b6a387ff4c8edc2b57b3c9640, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6084534104676108950, guid: b441865b6a387ff4c8edc2b57b3c9640, type: 3}
       propertyPath: m_RootOrder
       value: 4

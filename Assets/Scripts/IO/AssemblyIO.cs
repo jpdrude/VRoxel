@@ -225,7 +225,7 @@ public class AssemblyIO : MonoBehaviour
         byte[] loadBytes = File.ReadAllBytes(path);
 
         Debug.Log("File read at " + DateTime.Now.ToString("T"));
-        ByteStreamContainer container = new ByteStreamContainer(loadBytes);
+        ByteStreamContainer container;
         
         try
         {

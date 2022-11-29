@@ -8,6 +8,9 @@ public class SpawnCubeBehaviour : MonoBehaviour
     GameObject parent;
     public GameObject Parent { get { return parent; } set { parent = value; } }
 
+    Vector3 direction = Vector3.zero;
+    XYZConstraint constraint = null;
+
     public Vector3 Min
     {
         get
@@ -38,10 +41,22 @@ public class SpawnCubeBehaviour : MonoBehaviour
     bool flipXY = false;
     bool flipXZ = false;
 
+    private void Start()
+    {
+        constraint = GetComponent<XYZConstraint>();
+    }
+
     // Update is called once per frame
     protected virtual void Update()
     {
-        Vector3 direction = transform.position - parent.transform.position;
+        bool ortho;
+        if (constraint == null)
+            ortho = false;
+        else
+            ortho = constraint.Ortho;
+
+        if (!ortho || direction == Vector3.zero) 
+            direction = transform.position - parent.transform.position;
 
         if (Mathf.Abs(direction.z) > Mathf.Abs(direction.x) && Mathf.Abs(direction.z) > Mathf.Abs(direction.y))
         {
