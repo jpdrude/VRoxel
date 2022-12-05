@@ -234,6 +234,13 @@ public class Bond : MonoBehaviour
         Vector3Int min = GetBondBaseInt(position - Vector3.one * radius);
         Vector3 max = (position + Vector3.one * radius) * 10000;
 
+        if (max.x - min.x < GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+            max.x = min.x + GameManager.Bond.xSize * GameManager.Bond.XIntSpacing * 1.1f;
+        if (max.y - min.y < GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            max.y = min.y + GameManager.Bond.ySize * GameManager.Bond.YIntSpacing * 1.1f;
+        if (max.z - min.z < GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+            max.z = min.z + GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing * 1.1f;
+
         for (int i = 0; i < blockTransforms.Length; ++i)
         {
             blockTransforms[i] = new List<Matrix4x4>();
