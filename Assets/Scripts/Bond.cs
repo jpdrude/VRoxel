@@ -93,9 +93,9 @@ public class Bond : MonoBehaviour
 
         Bond b = GameManager.Bond;
 
-        int xBondSize = Mathf.RoundToInt(b.xSpacing * 10000) * b.XSize;
-        int yBondSize = Mathf.RoundToInt(b.ySpacing * 10000) * b.YSize;
-        int zBondSize = Mathf.RoundToInt(b.zSpacing * 10000) * b.ZSize;
+        int xBondSize = b.XIntSpacing * b.XSize;
+        int yBondSize = b.YIntSpacing * b.YSize;
+        int zBondSize = b.ZIntSpacing * b.ZSize;
 
         Transform fit = null;
 
@@ -108,6 +108,50 @@ public class Bond : MonoBehaviour
             if ((xInt - xBondInt) % xBondSize == 0 && (yInt - yBondInt) % yBondSize == 0 && (zInt - zBondInt) % zBondSize == 0)
                 fit = t;
         }
+
+        return Matrix4x4.TRS(position, fit.localRotation, fit.localScale);
+    }
+
+    //Doesn't work yet!
+    public Matrix4x4 GetClosestBlockFromPosition(Vector3 position, int type)
+    {
+        int xInt = Mathf.RoundToInt(position.x * 10000);
+        int yInt = Mathf.RoundToInt(position.y * 10000);
+        int zInt = Mathf.RoundToInt(position.z * 10000);
+
+        Bond b = GameManager.Bond;
+
+        int xBondSize = b.XIntSpacing * b.XSize;
+        int yBondSize = b.YIntSpacing * b.YSize;
+        int zBondSize = b.ZIntSpacing * b.ZSize;
+
+        Transform fit = null;
+        int bestError = int.MaxValue;
+
+        foreach (Transform t in b.blocks[type])
+        {
+            int xBondInt = Mathf.RoundToInt(t.position.x * 10000);
+            int yBondInt = Mathf.RoundToInt(t.position.y * 10000);
+            int zBondInt = Mathf.RoundToInt(t.position.z * 10000);
+
+            int error = (xInt - xBondInt) % xBondSize + (yInt - yBondInt) % yBondSize + (zInt - zBondInt) % zBondSize;
+
+            if (error < bestError)
+            {
+                fit = t;
+                bestError = error;
+            }  
+        }
+
+        xInt = xInt / xBondSize;
+        yInt = yInt / yBondSize;
+        zInt = zInt / zBondSize;
+
+        xInt *= xBondSize;
+        yInt *= yBondSize;
+        zInt *= zBondSize;
+
+        position = new Vector3(xInt / 10000.0f, yInt / 10000.0f, zInt / 10000.0f);
 
         return Matrix4x4.TRS(position, fit.localRotation, fit.localScale);
     }
@@ -181,6 +225,13 @@ public class Bond : MonoBehaviour
         Vector3Int minInt = GetBondBaseInt(min);
         Vector3 maxScaled = max * 10000;
 
+        if (maxScaled.x - minInt.x < GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+            maxScaled.x = minInt.x + GameManager.Bond.xSize * GameManager.Bond.XIntSpacing * 1.1f;
+        if (maxScaled.y - minInt.y < GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            maxScaled.y = minInt.y + GameManager.Bond.ySize * GameManager.Bond.YIntSpacing * 1.1f;
+        if (maxScaled.z - minInt.z < GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+            maxScaled.z = minInt.z + GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing * 1.1f;
+
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
         List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
 
@@ -202,7 +253,7 @@ public class Bond : MonoBehaviour
                         {
                             Transform block = blocks[i][j].transform;
                             Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
-                            if (blockPosition.x >= min.x && blockPosition.y >= min.y && blockPosition.z >= min.z)
+                            if (blockPosition.x >= min.x && blockPosition.y >= min.y && blockPosition.z >= min.z && blockPosition.x <= max.x && blockPosition.y <= max.y && blockPosition.z <= max.z)
                             {
                                 blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one));
                                 Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
@@ -230,6 +281,8 @@ public class Bond : MonoBehaviour
     {
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
         List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
+
+        int blockCounter = 0;
 
         Vector3Int min = GetBondBaseInt(position - Vector3.one * radius);
         Vector3 max = (position + Vector3.one * radius) * 10000;
@@ -259,16 +312,45 @@ public class Bond : MonoBehaviour
                         {
                             if (Vector3.Distance(blocks[i][j].localPosition + new Vector3Int(x, y, z).Divide(10000), position) < radius)
                             {
+                                
                                 Transform block = blocks[i][j].transform;
                                 blockTransforms[i].Add(Matrix4x4.TRS(block.localPosition + new Vector3Int(x, y, z).Divide(10000), block.localRotation, Vector3.one));
                                 Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
                                 blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
+                                ++blockCounter;
+                                
                             }
                         }
                     }
                 }
             }
         }
+
+        /*
+         * Not yet working!
+        if (blockCounter == 0)
+        {
+            KeyValuePair<int, Matrix4x4> bestBlock = new KeyValuePair<int, Matrix4x4>(0, new Matrix4x4());
+            float bestDistance = float.MaxValue;
+
+            for (int i = 0; i < blocks.Length; ++i)
+            {
+                Matrix4x4 b = GetClosestBlockFromPosition(position, i);
+                float dist = Vector3.Distance(b.GetPosition(), position);
+                if (dist < bestDistance)// && dist < 0.02f)
+                {
+                    bestDistance = dist;
+                    bestBlock = new KeyValuePair<int, Matrix4x4>(i, b);
+                }
+            }
+             
+            if (bestDistance != float.MaxValue)
+            {
+                blockTransforms[bestBlock.Key].Add(bestBlock.Value);
+                blockDictKeys[bestBlock.Key].Add(new PositionKey(bestBlock.Value));
+            }
+        }
+        */
 
         Matrix4x4[][] _blockTransforms = new Matrix4x4[blocks.Length][];
         _blockDictKeys = new PositionKey[blocks.Length][];
@@ -289,6 +371,13 @@ public class Bond : MonoBehaviour
 
         Vector3Int minInt = GetBondBaseInt(min);
         Vector3 maxScaled = max * 10000;
+
+        if (maxScaled.x - minInt.x < GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+            maxScaled.x = minInt.x + GameManager.Bond.xSize * GameManager.Bond.XIntSpacing * 1.1f;
+        if (maxScaled.y - minInt.y < GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            maxScaled.y = minInt.y + GameManager.Bond.ySize * GameManager.Bond.YIntSpacing * 1.1f;
+        if (maxScaled.z - minInt.z < GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+            maxScaled.z = minInt.z + GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing * 1.1f;
 
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
         List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
@@ -343,6 +432,13 @@ public class Bond : MonoBehaviour
         Vector3Int minInt = GetBondBaseInt(mesh.bounds.min);
         Vector3 maxScaled = mesh.bounds.max * 10000;
         float rayLength = mesh.bounds.max.x - mesh.bounds.min.x + 0.1f;
+
+        if (maxScaled.x - minInt.x < GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+            maxScaled.x = minInt.x + GameManager.Bond.xSize * GameManager.Bond.XIntSpacing * 1.1f;
+        if (maxScaled.y - minInt.y < GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            maxScaled.y = minInt.y + GameManager.Bond.ySize * GameManager.Bond.YIntSpacing * 1.1f;
+        if (maxScaled.z - minInt.z < GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+            maxScaled.z = minInt.z + GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing * 1.1f;
 
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
         List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
