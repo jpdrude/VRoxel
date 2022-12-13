@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1213240436894772975}
   - component: {fileID: 9171224354602676542}
   m_Layer: 0
-  m_Name: Ella_Bond_18cm
+  m_Name: Ella_Bond_18cm_MDF
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -59,6 +59,8 @@ MonoBehaviour:
   xSpacing: 0.09
   ySpacing: 0.12
   zSpacing: 0.09
+  minExtend: {x: -1, y: 0, z: 0}
+  maxExtend: {x: 0, y: 0, z: 1}
 --- !u!1001 &1230973762927101353
 PrefabInstance:
   m_ObjectHideFlags: 0

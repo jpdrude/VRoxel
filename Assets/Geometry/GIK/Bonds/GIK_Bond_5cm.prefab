@@ -67,6 +67,8 @@ MonoBehaviour:
   xSpacing: 0.03
   ySpacing: 0.03
   zSpacing: 0.03
+  minExtend: {x: -1, y: -1, z: -1}
+  maxExtend: {x: 1, y: 1, z: 1}
 --- !u!1001 &1403779494180393066
 PrefabInstance:
   m_ObjectHideFlags: 0

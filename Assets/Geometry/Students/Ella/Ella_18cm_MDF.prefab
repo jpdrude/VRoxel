@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 8615625059440279194}
   - component: {fileID: 4297433861793629891}
   m_Layer: 0
-  m_Name: Ella_18cm
+  m_Name: Ella_18cm_MDF
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

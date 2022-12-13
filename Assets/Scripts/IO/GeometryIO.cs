@@ -92,6 +92,11 @@ public class GeometryIO : MonoBehaviour
         AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnMaterialsImport, OnImportProgress, OnImportError, null, options);
     }
 
+    public static void ImportKitBashPalette(string path)
+    {
+        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnKitBashPaletteImport, OnImportProgress, OnImportError, null, options);
+    }
+
     public static void ImportTeleportArea(string path)
     {
         AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnTeleportAreaImport, OnImportProgress, OnImportError, null, options);
@@ -257,6 +262,11 @@ public class GeometryIO : MonoBehaviour
         }
 
         MessageSystem.DisplayMessage("Geometry Imported!");
+    }
+
+    static void OnKitBashPaletteImport(AssetLoaderContext assetLoaderContext)
+    {
+        KitBashIO.SetPalette(assetLoaderContext.RootGameObject);
     }
 
     static void OnImportProgress(AssetLoaderContext assetLoaderContext, float progress)

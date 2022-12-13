@@ -41,7 +41,7 @@ public class TargetSpawner : MonoBehaviour
     [SerializeField]
     List<TMP_InputField> inputs;
 
-    float radius = 0.05f;
+    float radius = 0.15f;
     Vector3 boxSize = new Vector3(0.1f, 0.1f, 0.1f);
     float cylinderRadius = 0.05f;
     float cylinderHeight = 0.1f;

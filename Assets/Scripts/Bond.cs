@@ -38,11 +38,14 @@ public class Bond : MonoBehaviour
     [SerializeField]
     float zSpacing;
 
-    int layerMask = 1 << 8;
+    [Space]
+    [Header("Extend")]
+    [SerializeField]
+    Vector3Int minExtend = new Vector3Int();
+    [SerializeField]
+    Vector3Int maxExtend = new Vector3Int();
 
-    public int XSize { get { return xSize; } }
-    public int YSize { get { return ySize; } }
-    public int ZSize { get { return zSize; } }
+    int layerMask = 1 << 8;
 
     public float XSpacing { get { return xSpacing; } }
     public float YSpacing { get { return ySpacing; } }
@@ -62,6 +65,48 @@ public class Bond : MonoBehaviour
 
         for (int i = 0; i < bondBlocks.Length; ++i)
             blocks[i] = bondBlocks[i].blocks;
+    }
+
+    public Vector3 GetBondBase(Vector3 position)
+    {
+        int x = Mathf.FloorToInt(position.x / xSpacing);
+        int y = Mathf.FloorToInt(position.y / ySpacing);
+        int z = Mathf.FloorToInt(position.z / zSpacing);
+
+        x /= xSize;
+        y /= ySize;
+        z /= zSize;
+        x *= xSize;
+        y *= ySize;
+        z *= zSize;
+
+        x += xSize * minExtend.x;
+        y += ySize * minExtend.y;
+        z += zSize * minExtend.z;
+
+        Vector3 bondBase = new Vector3(x * xSpacing, y * ySpacing, z * zSpacing);
+        return bondBase;
+    }
+
+    public Vector3Int GetBondBaseInt(Vector3 position)
+    {
+        int x = Mathf.FloorToInt(position.x * 10000) / XIntSpacing;
+        int y = Mathf.FloorToInt(position.y * 10000) / YIntSpacing;
+        int z = Mathf.FloorToInt(position.z * 10000) / ZIntSpacing;
+
+        x /= xSize;
+        y /= ySize;
+        z /= zSize;
+        x *= xSize;
+        y *= ySize;
+        z *= zSize;
+
+        x += xSize * minExtend.x;
+        y += ySize * minExtend.y;
+        z += zSize * minExtend.z;
+
+        Vector3Int bondBase = new Vector3Int(x * XIntSpacing, y * YIntSpacing, z * ZIntSpacing);
+        return bondBase;
     }
 
     public Matrix4x4 GetClosestBlock(Vector3 position, out int blockType)
@@ -91,15 +136,13 @@ public class Bond : MonoBehaviour
         int yInt = Mathf.RoundToInt(position.y * 10000);
         int zInt = Mathf.RoundToInt(position.z * 10000);
 
-        Bond b = GameManager.Bond;
-
-        int xBondSize = b.XIntSpacing * b.XSize;
-        int yBondSize = b.YIntSpacing * b.YSize;
-        int zBondSize = b.ZIntSpacing * b.ZSize;
+        int xBondSize = XIntSpacing * xSize;
+        int yBondSize = YIntSpacing * ySize;
+        int zBondSize = ZIntSpacing * zSize;
 
         Transform fit = null;
 
-        foreach(Transform t in b.blocks[type])
+        foreach(Transform t in blocks[type])
         {
             int xBondInt = Mathf.RoundToInt(t.position.x * 10000);
             int yBondInt = Mathf.RoundToInt(t.position.y * 10000);
@@ -119,16 +162,14 @@ public class Bond : MonoBehaviour
         int yInt = Mathf.RoundToInt(position.y * 10000);
         int zInt = Mathf.RoundToInt(position.z * 10000);
 
-        Bond b = GameManager.Bond;
-
-        int xBondSize = b.XIntSpacing * b.XSize;
-        int yBondSize = b.YIntSpacing * b.YSize;
-        int zBondSize = b.ZIntSpacing * b.ZSize;
+        int xBondSize = XIntSpacing * xSize;
+        int yBondSize = YIntSpacing * ySize;
+        int zBondSize = ZIntSpacing * zSize;
 
         Transform fit = null;
         int bestError = int.MaxValue;
 
-        foreach (Transform t in b.blocks[type])
+        foreach (Transform t in blocks[type])
         {
             int xBondInt = Mathf.RoundToInt(t.position.x * 10000);
             int yBondInt = Mathf.RoundToInt(t.position.y * 10000);
@@ -156,81 +197,19 @@ public class Bond : MonoBehaviour
         return Matrix4x4.TRS(position, fit.localRotation, fit.localScale);
     }
 
-    public Vector3 GetBondBase(Vector3 position)
-    {
-        int x = Mathf.FloorToInt(position.x / GameManager.Bond.XSpacing);
-        int y = Mathf.FloorToInt(position.y / GameManager.Bond.YSpacing);
-        int z = Mathf.FloorToInt(position.z / GameManager.Bond.ZSpacing);
-
-        x /= XSize;
-        y /= YSize;
-        z /= ZSize;
-        x *= XSize;
-        y *= YSize;
-        z *= ZSize;
-
-        Vector3 bondBase = new Vector3(x * GameManager.Bond.XSpacing, y * GameManager.Bond.YSpacing, z * GameManager.Bond.ZSpacing);
-        return bondBase;
-    }
-
-    public Vector3Int GetBondBaseInt(Vector3 position)
-    {
-        int x = Mathf.FloorToInt(position.x * 10000) / GameManager.Bond.XIntSpacing;
-        int y = Mathf.FloorToInt(position.y * 10000) / GameManager.Bond.YIntSpacing;
-        int z = Mathf.FloorToInt(position.z * 10000) / GameManager.Bond.ZIntSpacing;
-
-        x /= XSize;
-        y /= YSize;
-        z /= ZSize;
-        x *= XSize;
-        y *= YSize;
-        z *= ZSize;
-
-        Vector3Int bondBase = new Vector3Int(x * GameManager.Bond.XIntSpacing, y * GameManager.Bond.YIntSpacing, z * GameManager.Bond.ZIntSpacing);
-        return bondBase;
-    }
-
-    public Matrix4x4[][] GetBlocksInBounds(Vector3 min, Vector3 max)
-    {
-        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
-
-        for (int i = 0; i < blockTransforms.Length; ++i)
-            blockTransforms[i] = new List<Matrix4x4>();
-
-        for (float x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.Bond.XSpacing)
-        {
-            for (float y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.Bond.YSpacing)
-                for (float z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.Bond.ZSpacing)
-                {
-                    for (int i = 0; i < blocks.Length; ++i)
-                    {
-                        for (int j = 0; j < blocks[i].Length; ++j)
-                        {
-                            blockTransforms[i].Add(Matrix4x4.TRS(blocks[i][j].localPosition + new Vector3(x, y, z), blocks[i][j].localRotation, Vector3.one));
-                        }
-                    }
-                }
-        }
-
-        Matrix4x4[][] _blockTransforms = new Matrix4x4[blockTransforms.Length][];
-
-        for (int i = 0; i < blockTransforms.Length; ++i)
-            _blockTransforms[i] = blockTransforms[i].ToArray();
-
-        return _blockTransforms;
-    }
-
     public Matrix4x4[][] GetBlocksInBox(Vector3 min, Vector3 max, out PositionKey[][] _blockDictsKeys)
     {
         Vector3Int minInt = GetBondBaseInt(min);
         Vector3 maxScaled = max * 10000;
 
-        if (maxScaled.x - minInt.x < GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
-            maxScaled.x = minInt.x + GameManager.Bond.xSize * GameManager.Bond.XIntSpacing * 1.1f;
-        if (maxScaled.y - minInt.y < GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
-            maxScaled.y = minInt.y + GameManager.Bond.ySize * GameManager.Bond.YIntSpacing * 1.1f;
-        if (maxScaled.z - minInt.z < GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
-            maxScaled.z = minInt.z + GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing * 1.1f;
+        if (maxScaled.x - minInt.x < xSize * XIntSpacing)
+            maxScaled.x = minInt.x + xSize * XIntSpacing * 1.1f;
+        if (maxScaled.y - minInt.y < ySize * YIntSpacing)
+            maxScaled.y = minInt.y + ySize * YIntSpacing * 1.1f;
+        if (maxScaled.z - minInt.z < zSize * ZIntSpacing)
+            maxScaled.z = minInt.z + zSize * ZIntSpacing * 1.1f;
+
+        maxScaled += new Vector3(xSize * XIntSpacing * maxExtend.x, ySize * YIntSpacing * maxExtend.y, zSize * ZIntSpacing * maxExtend.z);
 
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
         List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
@@ -241,11 +220,11 @@ public class Bond : MonoBehaviour
             blockDictKeys[i] = new List<PositionKey>();
         }
 
-        for (int x = minInt.x; x < maxScaled.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+        for (int x = minInt.x; x < maxScaled.x; x += xSize * XIntSpacing)
         {
-            for (int y = minInt.y; y < maxScaled.y; y += GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            for (int y = minInt.y; y < maxScaled.y; y += ySize * YIntSpacing)
             {
-                for (int z = minInt.z; z < maxScaled.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+                for (int z = minInt.z; z < maxScaled.z; z += zSize * ZIntSpacing)
                 {
                     for (int i = 0; i < blocks.Length; ++i)
                     {
@@ -287,12 +266,14 @@ public class Bond : MonoBehaviour
         Vector3Int min = GetBondBaseInt(position - Vector3.one * radius);
         Vector3 max = (position + Vector3.one * radius) * 10000;
 
-        if (max.x - min.x < GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
-            max.x = min.x + GameManager.Bond.xSize * GameManager.Bond.XIntSpacing * 1.1f;
-        if (max.y - min.y < GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
-            max.y = min.y + GameManager.Bond.ySize * GameManager.Bond.YIntSpacing * 1.1f;
-        if (max.z - min.z < GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
-            max.z = min.z + GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing * 1.1f;
+        if (max.x - min.x < xSize * XIntSpacing)
+            max.x = min.x + xSize * XIntSpacing * 1.1f;
+        if (max.y - min.y < ySize * YIntSpacing)
+            max.y = min.y + ySize * YIntSpacing * 1.1f;
+        if (max.z - min.z < zSize * ZIntSpacing)
+            max.z = min.z + zSize * ZIntSpacing * 1.1f;
+
+        max += new Vector3(xSize * XIntSpacing * maxExtend.x, ySize * YIntSpacing * maxExtend.y, zSize * ZIntSpacing * maxExtend.z);
 
         for (int i = 0; i < blockTransforms.Length; ++i)
         {
@@ -300,11 +281,11 @@ public class Bond : MonoBehaviour
             blockDictKeys[i] = new List<PositionKey>();
         }
 
-        for (int x = min.x; x < max.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+        for (int x = min.x; x < max.x; x += xSize * XIntSpacing)
         {
-            for (int y = min.y; y < max.y; y += GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            for (int y = min.y; y < max.y; y += ySize * YIntSpacing)
             {
-                for (int z = min.z; z < max.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+                for (int z = min.z; z < max.z; z += zSize * ZIntSpacing)
                 {
                     for (int i = 0; i < blocks.Length; ++i)
                     {
@@ -372,12 +353,14 @@ public class Bond : MonoBehaviour
         Vector3Int minInt = GetBondBaseInt(min);
         Vector3 maxScaled = max * 10000;
 
-        if (maxScaled.x - minInt.x < GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
-            maxScaled.x = minInt.x + GameManager.Bond.xSize * GameManager.Bond.XIntSpacing * 1.1f;
-        if (maxScaled.y - minInt.y < GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
-            maxScaled.y = minInt.y + GameManager.Bond.ySize * GameManager.Bond.YIntSpacing * 1.1f;
-        if (maxScaled.z - minInt.z < GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
-            maxScaled.z = minInt.z + GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing * 1.1f;
+        if (maxScaled.x - minInt.x < xSize * XIntSpacing)
+            maxScaled.x = minInt.x + xSize * XIntSpacing * 1.1f;
+        if (maxScaled.y - minInt.y < ySize * YIntSpacing)
+            maxScaled.y = minInt.y + ySize * YIntSpacing * 1.1f;
+        if (maxScaled.z - minInt.z < zSize * ZIntSpacing)
+            maxScaled.z = minInt.z + zSize * ZIntSpacing * 1.1f;
+
+        maxScaled += new Vector3(xSize * XIntSpacing * maxExtend.x, ySize * YIntSpacing * maxExtend.y, zSize * ZIntSpacing * maxExtend.z);
 
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
         List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
@@ -388,11 +371,11 @@ public class Bond : MonoBehaviour
             blockDictKeys[i] = new List<PositionKey>();
         }
 
-        for (int x = minInt.x; x < maxScaled.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+        for (int x = minInt.x; x < maxScaled.x; x += xSize * XIntSpacing)
         {
-            for (int y = minInt.y; y < maxScaled.y; y += GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            for (int y = minInt.y; y < maxScaled.y; y += ySize * YIntSpacing)
             {
-                for (int z = minInt.z; z < maxScaled.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+                for (int z = minInt.z; z < maxScaled.z; z += zSize * ZIntSpacing)
                 {
                     for (int i = 0; i < blocks.Length; ++i)
                     {
@@ -433,12 +416,14 @@ public class Bond : MonoBehaviour
         Vector3 maxScaled = mesh.bounds.max * 10000;
         float rayLength = mesh.bounds.max.x - mesh.bounds.min.x + 0.1f;
 
-        if (maxScaled.x - minInt.x < GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
-            maxScaled.x = minInt.x + GameManager.Bond.xSize * GameManager.Bond.XIntSpacing * 1.1f;
-        if (maxScaled.y - minInt.y < GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
-            maxScaled.y = minInt.y + GameManager.Bond.ySize * GameManager.Bond.YIntSpacing * 1.1f;
-        if (maxScaled.z - minInt.z < GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
-            maxScaled.z = minInt.z + GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing * 1.1f;
+        if (maxScaled.x - minInt.x < xSize * XIntSpacing)
+            maxScaled.x = minInt.x + xSize * XIntSpacing * 1.1f;
+        if (maxScaled.y - minInt.y < ySize * YIntSpacing)
+            maxScaled.y = minInt.y + ySize * YIntSpacing * 1.1f;
+        if (maxScaled.z - minInt.z < zSize * ZIntSpacing)
+            maxScaled.z = minInt.z + zSize * ZIntSpacing * 1.1f;
+
+        maxScaled += new Vector3(xSize * XIntSpacing * maxExtend.x, ySize * YIntSpacing * maxExtend.y, zSize * ZIntSpacing * maxExtend.z);
 
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
         List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
@@ -449,11 +434,11 @@ public class Bond : MonoBehaviour
             blockDictKeys[i] = new List<PositionKey>();
         }
 
-        for (int x = minInt.x; x < maxScaled.x; x += GameManager.Bond.xSize * GameManager.Bond.XIntSpacing)
+        for (int x = minInt.x; x < maxScaled.x; x += xSize * XIntSpacing)
         {
-            for (int y = minInt.y; y < maxScaled.y; y += GameManager.Bond.ySize * GameManager.Bond.YIntSpacing)
+            for (int y = minInt.y; y < maxScaled.y; y += ySize * YIntSpacing)
             {
-                for (int z = minInt.z; z < maxScaled.z; z += GameManager.Bond.zSize * GameManager.Bond.ZIntSpacing)
+                for (int z = minInt.z; z < maxScaled.z; z += zSize * ZIntSpacing)
                 {
                     for (int i = 0; i < blocks.Length; ++i)
                     {
