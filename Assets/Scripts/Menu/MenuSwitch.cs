@@ -51,11 +51,16 @@ public class MenuSwitch : MonoBehaviour
     public List<GameObject> RemoveButtons { get { return removeButtons; } }
 
     [Space]
-    [Header("Lock Ortho")]
+    [Header("Constraint Options")]
     [SerializeField]
     GameObject lockOrthoSymbol;
     [SerializeField]
     GameObject unlockOrthoSymbol;
+
+    [Space]
+    [Header("Extra Panels")]
+    [SerializeField]
+    List<GameObject> extraPanels = new List<GameObject>();
 
     float playerHeight = 0;
     GameObject platform = null;
@@ -77,6 +82,8 @@ public class MenuSwitch : MonoBehaviour
 
         SetAddButton(0);
         SetRemoveButton(0);
+
+        HideExtraPanels();
     }
 
     void SetAddButton(int index)
@@ -100,7 +107,9 @@ public class MenuSwitch : MonoBehaviour
     {
         if (other.gameObject.tag != "MenuTrigger") return;
         Debug.Log("Should switch to selection mode");
-        activeAggregationTool.SetActive(false);
+        if (activeAggregationTool != null)
+            activeAggregationTool.SetActive(false);
+
         menuSelector.SetActive(true);
     }
 
@@ -108,8 +117,17 @@ public class MenuSwitch : MonoBehaviour
     {
         if (other.gameObject.tag != "MenuTrigger") return;
         Debug.Log("Should switch to placement mode");
-        activeAggregationTool.SetActive(true);
+        if (activeAggregationTool != null)
+            activeAggregationTool.SetActive(true);
+
         menuSelector.SetActive(false);
+        HideExtraPanels();
+    }
+
+    void HideExtraPanels()
+    {
+        foreach (GameObject panel in extraPanels)
+            panel.SetActive(false);
     }
 
     public void ReallyLoad()
@@ -149,6 +167,11 @@ public class MenuSwitch : MonoBehaviour
     public void ModulesToPointCloud()
     {
         BlockContainer.Container.BlocksToPointCloud();
+    }
+
+    public void ResetNUScaling()
+    {
+        spawner.ResetNUScaling();
     }
 
     public void NextAdd()
@@ -202,6 +225,11 @@ public class MenuSwitch : MonoBehaviour
 
         SpawnMeshBehaviour.AlignToWorld = !SpawnMeshBehaviour.AlignToWorld;
         spawner.UpdateBrushScale();
+    }
+
+    public void ToggleExtraPanel(GameObject _extraPanel)
+    {
+        _extraPanel.SetActive(!_extraPanel.activeSelf);
     }
 
     public VRMenuItem GetCurrentAdd()

@@ -8,6 +8,8 @@ public class ByteStreamContainer
 {
     public string bondName;
     public Matrix4x4[][] matrices;
+    public uint[][] times;
+    public float timeOffset = 0;
     public float version;
 
     public byte[] ToByteArray()
@@ -16,7 +18,7 @@ public class ByteStreamContainer
         for (int i = 0; i < matrices.Length; ++i)
             matricesLength += matrices[i].Length;
 
-        byte[] array = new byte[4 + 1 + bondName.Length + 1 + matrices.Length * 4 + matricesLength * 7 * 4];
+        byte[] array = new byte[4 + 1 + bondName.Length + 1 + matrices.Length * 4 + matricesLength * 8 * 4];
 
         byte[] vroxelVersion = BitConverter.GetBytes(version);
         array[0] = vroxelVersion[0];
@@ -53,75 +55,89 @@ public class ByteStreamContainer
             {
                 Vector3 position = matrices[i][j].GetPosition();
                 Quaternion rotation = matrices[i][j].GetRotation();
+                uint time = times[i][j];
                 
                 byte[] posX = BitConverter.GetBytes(position.x);
-                array[headerOffset + j * 7 * 4 + 0] = posX[0];
-                array[headerOffset + j * 7 * 4 + 1] = posX[1];
-                array[headerOffset + j * 7 * 4 + 2] = posX[2];
-                array[headerOffset + j * 7 * 4 + 3] = posX[3];
+                array[headerOffset + j * 8 * 4 + 0] = posX[0];
+                array[headerOffset + j * 8 * 4 + 1] = posX[1];
+                array[headerOffset + j * 8 * 4 + 2] = posX[2];
+                array[headerOffset + j * 8 * 4 + 3] = posX[3];
 
                 byte[] posY = BitConverter.GetBytes(position.y);
-                array[headerOffset + j * 7 * 4 + 4] = posY[0];
-                array[headerOffset + j * 7 * 4 + 5] = posY[1];
-                array[headerOffset + j * 7 * 4 + 6] = posY[2];
-                array[headerOffset + j * 7 * 4 + 7] = posY[3];
+                array[headerOffset + j * 8 * 4 + 4] = posY[0];
+                array[headerOffset + j * 8 * 4 + 5] = posY[1];
+                array[headerOffset + j * 8 * 4 + 6] = posY[2];
+                array[headerOffset + j * 8 * 4 + 7] = posY[3];
 
                 byte[] posZ = BitConverter.GetBytes(position.z);
-                array[headerOffset + j * 7 * 4 + 8] = posZ[0];
-                array[headerOffset + j * 7 * 4 + 9] = posZ[1];
-                array[headerOffset + j * 7 * 4 + 10] = posZ[2];
-                array[headerOffset + j * 7 * 4 + 11] = posZ[3];
+                array[headerOffset + j * 8 * 4 + 8] = posZ[0];
+                array[headerOffset + j * 8 * 4 + 9] = posZ[1];
+                array[headerOffset + j * 8 * 4 + 10] = posZ[2];
+                array[headerOffset + j * 8 * 4 + 11] = posZ[3];
 
                 byte[] rotX = BitConverter.GetBytes(rotation.x);
-                array[headerOffset + j * 7 * 4 + 12] = rotX[0];
-                array[headerOffset + j * 7 * 4 + 13] = rotX[1];
-                array[headerOffset + j * 7 * 4 + 14] = rotX[2];
-                array[headerOffset + j * 7 * 4 + 15] = rotX[3];
+                array[headerOffset + j * 8 * 4 + 12] = rotX[0];
+                array[headerOffset + j * 8 * 4 + 13] = rotX[1];
+                array[headerOffset + j * 8 * 4 + 14] = rotX[2];
+                array[headerOffset + j * 8 * 4 + 15] = rotX[3];
 
                 byte[] rotY = BitConverter.GetBytes(rotation.y);
-                array[headerOffset + j * 7 * 4 + 16] = rotY[0];
-                array[headerOffset + j * 7 * 4 + 17] = rotY[1];
-                array[headerOffset + j * 7 * 4 + 18] = rotY[2];
-                array[headerOffset + j * 7 * 4 + 19] = rotY[3];
+                array[headerOffset + j * 8 * 4 + 16] = rotY[0];
+                array[headerOffset + j * 8 * 4 + 17] = rotY[1];
+                array[headerOffset + j * 8 * 4 + 18] = rotY[2];
+                array[headerOffset + j * 8 * 4 + 19] = rotY[3];
 
                 byte[] rotZ = BitConverter.GetBytes(rotation.z);
-                array[headerOffset + j * 7 * 4 + 20] = rotZ[0];
-                array[headerOffset + j * 7 * 4 + 21] = rotZ[1];
-                array[headerOffset + j * 7 * 4 + 22] = rotZ[2];
-                array[headerOffset + j * 7 * 4 + 23] = rotZ[3];
+                array[headerOffset + j * 8 * 4 + 20] = rotZ[0];
+                array[headerOffset + j * 8 * 4 + 21] = rotZ[1];
+                array[headerOffset + j * 8 * 4 + 22] = rotZ[2];
+                array[headerOffset + j * 8 * 4 + 23] = rotZ[3];
 
                 byte[] rotW = BitConverter.GetBytes(rotation.w);
-                array[headerOffset + j * 7 * 4 + 24] = rotW[0];
-                array[headerOffset + j * 7 * 4 + 25] = rotW[1];
-                array[headerOffset + j * 7 * 4 + 26] = rotW[2];
-                array[headerOffset + j * 7 * 4 + 27] = rotW[3]; 
+                array[headerOffset + j * 8 * 4 + 24] = rotW[0];
+                array[headerOffset + j * 8 * 4 + 25] = rotW[1];
+                array[headerOffset + j * 8 * 4 + 26] = rotW[2];
+                array[headerOffset + j * 8 * 4 + 27] = rotW[3];
+
+                byte[] timeStamp = BitConverter.GetBytes(time);
+                array[headerOffset + j * 8 * 4 + 28] = timeStamp[0];
+                array[headerOffset + j * 8 * 4 + 29] = timeStamp[1];
+                array[headerOffset + j * 8 * 4 + 30] = timeStamp[2];
+                array[headerOffset + j * 8 * 4 + 31] = timeStamp[3];
             }
 
-            headerOffset += matrices[i].Length * 4 * 7;
+            headerOffset += matrices[i].Length * 4 * 8;
         }
 
         return array;
     }
 
-    public ByteStreamContainer(string _bondName, Matrix4x4[][] _matrices, float _version)
+    public ByteStreamContainer(string _bondName, Matrix4x4[][] _matrices, uint[][] _times, float _version)
     {
         bondName = _bondName;
         matrices = _matrices;
         version = _version;
+        times = _times;
     }
 
-    public ByteStreamContainer(string _bondName, List<Matrix4x4>[] _matrices, float _version)
+    public ByteStreamContainer(string _bondName, List<Matrix4x4>[] _matrices, List<uint>[] _times, float _version)
     {
         bondName = _bondName;
         matrices = new Matrix4x4[_matrices.Length][];
+        times = new uint[_times.Length][];
         for (int i = 0; i < matrices.Length; ++i)
+        {
             matrices[i] = _matrices[i].ToArray();
-
+            times[i] = _times[i].ToArray();
+        }
+            
         version = _version;
     }
 
     public ByteStreamContainer(byte[] array)
     {
+        uint startTime = (uint)(GameManager.gameTime * 10);
+
         version = BitConverter.ToSingle(array, 0);
         Debug.Log("VersionNumber: " + version.ToString("F3"));
 
@@ -158,16 +174,26 @@ public class ByteStreamContainer
         headerOffset += typeLength * 4;
 
         matrices = new Matrix4x4[typeLength][];
+        times = new uint[typeLength][];
         int matricesEnd = headerOffset;
 
         for (int i = 0; i < typeLength; ++i)
         {
-            matricesEnd += typeArrayLengths[i] * 4 * 7;
+            int increment = 4 * 8;
+
+            if (version < 0.28f)
+            {
+                increment = 4 * 7;
+                matricesEnd += typeArrayLengths[i] * 4 * 7;
+            }
+            else
+                matricesEnd += typeArrayLengths[i] * 4 * 8;
 
             matrices[i] = new Matrix4x4[typeArrayLengths[i]];
+            times[i] = new uint[typeArrayLengths[i]];
 
             int matrixCounter = 0;
-            for (int j = headerOffset; j < matricesEnd; j += 7 * 4)
+            for (int j = headerOffset; j < matricesEnd; j += increment)
             {
                 float posX = BitConverter.ToSingle(array, j + 4 * 0);
                 float posY = BitConverter.ToSingle(array, j + 4 * 1);
@@ -180,14 +206,26 @@ public class ByteStreamContainer
                 float rotW = BitConverter.ToSingle(array, j + 4 * 6);
                 Quaternion rotation = new Quaternion(rotX, rotY, rotZ, rotW);
 
+                if (version >= 0.28f)
+                {
+                    uint time = BitConverter.ToUInt32(array, j + 4 * 7);
+                    times[i][matrixCounter] = time + startTime;
+                    if (time / 10f > timeOffset)
+                        timeOffset = time / 10f;
+                }
+                else
+                    times[i][matrixCounter] = startTime;
+
                 //Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
                 Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, new Vector3(-1, 1, -1));
 
                 matrices[i][matrixCounter] = matrix;
                 ++matrixCounter;
             }
-
-            headerOffset += typeArrayLengths[i] * 4 * 7;
+            if (version < 0.28f)
+                headerOffset += typeArrayLengths[i] * 4 * 7;
+            else
+                headerOffset += typeArrayLengths[i] * 4 * 8;
         }
     }
 }

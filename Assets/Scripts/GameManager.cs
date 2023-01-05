@@ -34,6 +34,8 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     Valve.VR.SteamVR_ActionSet actionSet;
 
+    public static float gameTime = 0;
+
     public static Vector3 Spacing
     {
         get { return new Vector3(_bond.XSpacing, _bond.YSpacing, _bond.ZSpacing); }
@@ -48,6 +50,11 @@ public class GameManager : MonoBehaviour
                 _availableBonds.Add(bond.BondName, bond);
 
         manager = this;
+    }
+
+    private void Update()
+    {
+        gameTime += Time.deltaTime;
     }
 
     public void Save()

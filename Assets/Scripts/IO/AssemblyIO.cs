@@ -14,14 +14,21 @@ public class AssemblyIO : MonoBehaviour
     static Matrix4x4 conversionMatrix = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0, 1));
 
     static Matrix4x4[][] loadContainer = null;
+    static uint[][] loadTimes = null;
     static string loadBond = null;
     static bool loadAsPointCloud = false;
+    static float loadTimeOffset = 0;
 
     static List<string> currentSaveTargets = new List<string>();
 
     static object lockKey = new object();
 
     static string message = null;
+
+    [SerializeField]
+    bool loadIncrementally = false;
+    [SerializeField]
+    IncrementalLoader incrementalLoader;
 
     private void Update()
     {
@@ -48,19 +55,33 @@ public class AssemblyIO : MonoBehaviour
                     MessageSystem.DisplayWarning("Session Bond: " + GameManager.Bond.BondName + ", File Bond: " + loadBond);
                     loadBond = null;
                     loadContainer = null;
+                    loadTimes = null;
+                    loadTimeOffset = 0;
+                    loadAsPointCloud = false;
+
                     return;
                 }
             }
 
             if (!loadAsPointCloud)
-                BlockContainer.Container.AddBlocks(loadContainer);
+            {
+                if (!loadIncrementally)
+                    BlockContainer.Container.AddBlocks(loadContainer, null, loadTimes);
+                else
+                    incrementalLoader.SetLoadData(loadContainer, loadTimes);
+            }
             else
             {
-                BlockContainer.Container.AddBlocks(loadContainer, null, true);
+                BlockContainer.Container.AddBlocks(loadContainer, null, loadTimes, true);
                 loadAsPointCloud = false;
             }
+
+            GameManager.gameTime += loadTimeOffset;
+
             loadContainer = null;
             loadBond = null;
+            loadTimes = null;
+            loadTimeOffset = 0;
         }
 
         if (message != null)
@@ -103,17 +124,39 @@ public class AssemblyIO : MonoBehaviour
         }
 
         List<Matrix4x4>[] tempBlockTransforms = new List<Matrix4x4>[BlockContainer.Container.PartTypeCount];
-        for (int i = 0; i < tempBlockTransforms.Length; ++i)
-            tempBlockTransforms[i] = new List<Matrix4x4>();
+        List<uint>[] tempBlockTimeStamps = new List<uint>[BlockContainer.Container.PartTypeCount];
 
-        if (BlockContainer.Container.PcTransformArray != null && saveInactive)
+        for (int i = 0; i < tempBlockTransforms.Length; ++i)
+        {
+            tempBlockTransforms[i] = new List<Matrix4x4>();
+            tempBlockTimeStamps[i] = new List<uint>();
+        }
+            
+        foreach (PositionEntry entry in BlockContainer.Container.BlockDictionary.Values)
+        {
+            if (entry.item > 0)
+            {
+                tempBlockTransforms[entry.blockType].Add(BlockContainer.Container.TransformArray[entry.blockType][entry.item]);
+                tempBlockTimeStamps[entry.blockType].Add(entry.time);
+            }
+            else if (entry.item < 0 && saveInactive)
+            {
+                tempBlockTransforms[entry.blockType].Add(BlockContainer.Container.CloudTransformArray[entry.blockType][-entry.item]);
+                tempBlockTimeStamps[entry.blockType].Add(entry.time);
+            }
+        }
+
+        /*
+        if (BlockContainer.Container.CloudTransformArray != null && saveInactive)
         {
             //foreach (Matrix4x4 matrix4x4 in ModuleContainer.Container.PcTransforms)
             for (int i = 0; i < tempBlockTransforms.Length; ++i)
-                foreach(Matrix4x4 matrix4x4 in BlockContainer.Container.PcTransformArray[i])
+                foreach(Matrix4x4 matrix4x4 in BlockContainer.Container.CloudTransformArray[i])
                 {
                     if (matrix4x4 != Matrix4x4.zero)
+                    {
                         tempBlockTransforms[i].Add(matrix4x4);
+                    }   
                 }
         }
 
@@ -121,13 +164,16 @@ public class AssemblyIO : MonoBehaviour
             foreach (Matrix4x4 matrix4x4 in BlockContainer.Container.TransformArray[i])
             {
                 if (matrix4x4 != Matrix4x4.zero)
+                {
                     tempBlockTransforms[i].Add(matrix4x4);
+                }   
             }
+        */
 
         if (export)
         {
             currentSaveTargets.Add(path);
-            JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.BondName, tempBlockTransforms);
+            JsonMatrixContainer container = new JsonMatrixContainer(GameManager.Bond.BondName, tempBlockTransforms, tempBlockTimeStamps);
 
             ExportAssemblyDelegate exportDelegate = new ExportAssemblyDelegate(ExportAsync);
             exportDelegate.BeginInvoke(path, container, null, null);
@@ -137,7 +183,7 @@ public class AssemblyIO : MonoBehaviour
             SaveAssemblyDelegate saveDelegate = new SaveAssemblyDelegate(SaveAsync);
             Debug.Log("Version String: " + Application.version);
             Debug.Log("Parsed Version String: " + float.Parse(Application.version, System.Globalization.CultureInfo.InvariantCulture.NumberFormat).ToString("F3"));
-            saveDelegate.BeginInvoke(path, GameManager.Bond.BondName, tempBlockTransforms, float.Parse(Application.version, System.Globalization.CultureInfo.InvariantCulture.NumberFormat), null, null);
+            saveDelegate.BeginInvoke(path, GameManager.Bond.BondName, tempBlockTransforms, tempBlockTimeStamps, float.Parse(Application.version, System.Globalization.CultureInfo.InvariantCulture.NumberFormat), null, null);
         }
     }
 
@@ -159,7 +205,7 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
-    static void SaveAsync(string path, string bondName, List<Matrix4x4>[] transforms, float version)
+    static void SaveAsync(string path, string bondName, List<Matrix4x4>[] transforms, List<uint>[] timeStamps, float version)
     {
         Debug.Log("Start saving at " + DateTime.Now.ToString("T"));
 
@@ -167,7 +213,7 @@ public class AssemblyIO : MonoBehaviour
         {
             using (FileStream stream = new FileStream(path, FileMode.Create))
             {
-                ByteStreamContainer container = new ByteStreamContainer(bondName, transforms, version);
+                ByteStreamContainer container = new ByteStreamContainer(bondName, transforms, timeStamps, version);
                 stream.Write(container.ToByteArray());
             }
         }
@@ -197,7 +243,7 @@ public class AssemblyIO : MonoBehaviour
         LoadAssemblyLayout(path);
     }
 
-    static Matrix4x4[][] LoadJsonMatrices(string path, out string bond)
+    static Matrix4x4[][] LoadJsonMatrices(string path, out uint[][] times, out string bond, out float timeOffset)
     {
         Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
         string jsonContent;
@@ -209,7 +255,7 @@ public class AssemblyIO : MonoBehaviour
 
         Debug.Log("File read at " + DateTime.Now.ToString("T"));
 
-        Matrix4x4[][] transforms = DeserializeFromText(jsonContent, out bond);
+        Matrix4x4[][] transforms = DeserializeFromText(jsonContent, out times, out bond, out timeOffset);
 
         Debug.Log("Bond Name: " + bond + ", Number of Parts: " + transforms.Length);
 
@@ -219,7 +265,7 @@ public class AssemblyIO : MonoBehaviour
         return transforms;
     }
 
-    static Matrix4x4[][] LoadByteMatrices(string path, out string bond)
+    static Matrix4x4[][] LoadByteMatrices(string path, out uint[][] times, out string bond, out float timeOffset)
     {
         Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
         byte[] loadBytes = File.ReadAllBytes(path);
@@ -235,10 +281,17 @@ public class AssemblyIO : MonoBehaviour
         {
             Debug.LogError(e.Message);
             bond = "";
+            timeOffset = 0;
+            times = null;
             return null;
         }
 
+        times = container.times;
+
         bond = container.bondName;
+
+        timeOffset = container.timeOffset;
+
         int loadAmount = 0;
         for (int i = 0; i < container.matrices.Length; ++i)
             loadAmount += container.matrices[i].Length;
@@ -252,10 +305,13 @@ public class AssemblyIO : MonoBehaviour
     {
         string bond;
         Matrix4x4[][] transforms;
+        uint[][] times;
+        float timeOffset;
+
         if (Path.GetExtension(path).ToLower() == ".json")
-            transforms = LoadJsonMatrices(path, out bond);
+            transforms = LoadJsonMatrices(path, out times, out bond, out timeOffset);
         else
-            transforms = LoadByteMatrices(path, out bond);
+            transforms = LoadByteMatrices(path, out times, out bond, out timeOffset);
 
         Debug.Log("Transforms received! Bond: " + bond);
 
@@ -270,17 +326,28 @@ public class AssemblyIO : MonoBehaviour
         {
             loadBond = bond;
             loadContainer = transforms;
+            loadTimes = times;
+            loadTimeOffset = timeOffset;
+
         }
         
         Debug.Log("Loading finished at " + DateTime.Now.ToString("T"));
     }
 
-    static Matrix4x4[][] DeserializeFromText(string jsonContent, out string bond)
+    static Matrix4x4[][] DeserializeFromText(string jsonContent, out uint[][] _times, out string bond, out float timeOffset)
     {
         Matrix4x4 currentMatrix = Matrix4x4.zero;
+
+        uint startTime = (uint)(GameManager.gameTime * 10);
+        uint currentTime = 0;
+        timeOffset = 0;
+
         List<List<Matrix4x4>> matrices = new List<List<Matrix4x4>>();
+        List<List<uint>> times = new List<List<uint>>();
+
         int partTypeCounter = 0;
         matrices.Add(new List<Matrix4x4>());
+        times.Add(new List<uint>());
 
         bond = "";
 
@@ -376,6 +443,11 @@ public class AssemblyIO : MonoBehaviour
                                 currentMatrix.m33 = (float)reader.ReadAsDouble();
                                 break;
                             }
+                        case "time":
+                            {
+                                currentTime = (uint)reader.ReadAsInt32();
+                                break;
+                            }
                         case "bondName":
                             {
                                 bond = reader.ReadAsString();
@@ -392,12 +464,18 @@ public class AssemblyIO : MonoBehaviour
                     if (currentMatrix != Matrix4x4.zero)
                     {
                         matrices[partTypeCounter].Add(conversionMatrix * currentMatrix);
+                        times[partTypeCounter].Add(currentTime + startTime);
+
+                        if (currentTime / 10f > timeOffset)
+                            timeOffset = currentTime / 10f;
+
                         currentMatrix = Matrix4x4.zero;
                     }
                 }
                 if (reader.TokenType == Newtonsoft.Json.JsonToken.EndArray)
                 {
                     matrices.Add(new List<Matrix4x4>());
+                    times.Add(new List<uint>());
                     ++partTypeCounter;
                 }
             }
@@ -410,11 +488,17 @@ public class AssemblyIO : MonoBehaviour
         for (int i = matrices.Count - 1; i >= bondPartCount; --i)
         {
             matrices.RemoveAt(i);
+            times.RemoveAt(i);
         }
 
         Matrix4x4[][] _matrices = new Matrix4x4[matrices.Count][];
+        _times = new uint[times.Count][];
+
         for (int i = 0; i < matrices.Count; ++i)
+        {
             _matrices[i] = matrices[i].ToArray();
+            _times[i] = times[i].ToArray();
+        }
 
         return _matrices;
     }
@@ -424,12 +508,14 @@ public class AssemblyIO : MonoBehaviour
         if (BlockContainer.Container == null) return;
 
         BlockContainer.Container.ResetContainer();
-        PointCloudIO.RestorePointCloud();
+        BlockContainer.Container.ResetCloudContainer();
+        GameManager.gameTime = 0;
+        //PointCloudIO.RecalculatePointCloud();
     }   
 }
 
 public delegate void ExportAssemblyDelegate(string path, JsonMatrixContainer container);
-public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4>[] matrices, float version);
+public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4>[] matrices, List<uint>[] timeStamps, float version);
 public delegate void LoadAssemblyDelegate(string path);
 
 public class JsonMatrixContainer
@@ -447,7 +533,7 @@ public class JsonMatrixContainer
         bondName = _bondName;
     }
 
-    public JsonMatrixContainer(string _bondName, List<Matrix4x4>[] _matrices)
+    public JsonMatrixContainer(string _bondName, List<Matrix4x4>[] _matrices, List<uint>[] _times)
     {
         bondName = _bondName;
         matrices = new JsonMatrix[_matrices.Length][];
@@ -456,7 +542,7 @@ public class JsonMatrixContainer
         {
             matrices[i] = new JsonMatrix[_matrices[i].Count];
             for (int j = 0; j < matrices[i].Length; ++j)
-                matrices[i][j] = new JsonMatrix(_matrices[i][j]);
+                matrices[i][j] = new JsonMatrix(_matrices[i][j], _times[i][j]);
         }
     }
 }
@@ -484,15 +570,15 @@ public class JsonMatrix
     public float m32;
     public float m33;
 
+    public uint time;
+
     public Matrix4x4 ToMatrix4x4()
     {
         return new Matrix4x4(new Vector4(m00, m10, m20, m30), new Vector4(m01, m11, m21, m31), new Vector4(m02, m12, m22, m32), new Vector4(m03, m13, m23, m33));
     }
 
-    public JsonMatrix(Matrix4x4 matrix)
+    public JsonMatrix(Matrix4x4 matrix, uint _time)
     {
-
-
         m00 = matrix.m00;
         m01 = matrix.m01;
         m02 = matrix.m02;
@@ -512,5 +598,7 @@ public class JsonMatrix
         m31 = matrix.m31;
         m32 = matrix.m32;
         m33 = matrix.m33;
+
+        time = _time;
     }
 }

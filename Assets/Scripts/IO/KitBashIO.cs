@@ -25,11 +25,8 @@ public class KitBashIO : MonoBehaviour
 
             if (transforms == null) return;
 
-            if (palette.Keys.Count != transforms.Keys.Count)
-                return;
-
-            foreach(string key in palette.Keys)
-                if (!transforms.ContainsKey(key))
+            foreach(string key in transforms.Keys)
+                if (!palette.ContainsKey(key))
                     return;
 
             instance.btn_Distribute.interactable = true;
@@ -44,9 +41,6 @@ public class KitBashIO : MonoBehaviour
             transforms = value;
 
             if (palette == null) return;
-
-            if (palette.Keys.Count != transforms.Keys.Count)
-                return;
 
             foreach (string key in transforms.Keys)
                 if (!palette.ContainsKey(key))

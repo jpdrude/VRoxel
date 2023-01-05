@@ -18,6 +18,9 @@ public class KitBashMenu : MonoBehaviour
     [SerializeField]
     TMP_InputField inputZ;
 
+    [SerializeField]
+    EscapeMenu escapeMenu;
+
 
     public void ImportKitBashPalette()
     {
@@ -62,6 +65,7 @@ public class KitBashMenu : MonoBehaviour
     {
         KitBashIO.DestroyKitBashContext();
         gameObject.SetActive(false);
+        escapeMenu.Resume();
     }
 
     void OnGeometryImportSuccess(string[] paths)

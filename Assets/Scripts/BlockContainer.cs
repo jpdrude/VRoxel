@@ -17,8 +17,9 @@ public class BlockContainer
     Matrix4x4[][] transformArray;
     public Matrix4x4[][] TransformArray { get { return transformArray; } }
 
-    Matrix4x4[][] pcTransformArray;
-    public Matrix4x4[][] PcTransformArray { get { return pcTransformArray; } }
+    Stack<int>[] cloudIndexStack;
+    Matrix4x4[][] cloudTransformArray = null;
+    public Matrix4x4[][] CloudTransformArray { get { return cloudTransformArray; } }
 
     Dictionary<PositionKey, PositionEntry> blockDictionary;
     public Dictionary<PositionKey, PositionEntry> BlockDictionary { get { return blockDictionary; } }
@@ -33,50 +34,47 @@ public class BlockContainer
         parts = _parts;
 
         ResetContainer();
+        ResetCloudContainer();
     }
 
     public void BlocksToPointCloud()
     {
-        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[parts.Length];
+        List<Matrix4x4> toCloudTransforms = new List<Matrix4x4>();
 
         for (int i = 0; i < transformArray.Length; ++i)
         {
-            blockTransforms[i] = new List<Matrix4x4>();
             for (int j = 0; j < transformArray[i].Length; ++j)
             {
+                Matrix4x4 matrix4x4 = transformArray[i][j];
+                if (matrix4x4 != Matrix4x4.zero)
                 {
-                    Matrix4x4 matrix4x4 = transformArray[i][j];
-                    if (matrix4x4 != Matrix4x4.zero)
-                    {
-                        blockTransforms[i].Add(matrix4x4);
-                        var blockDictKey = new PositionKey(matrix4x4);
-                        indexStack[i].Push(blockDictionary[blockDictKey].item);
-                        blockDictionary[blockDictKey] = new PositionEntry(i, -1);
-                    }
+                    toCloudTransforms.Add(matrix4x4);
+
+                    var blockDictKey = new PositionKey(matrix4x4);
+                    indexStack[i].Push(blockDictionary[blockDictKey].item);
+
+                    if (cloudIndexStack[i].Count <= 0)
+                        NewCloudBatch(i);
+
+                    int cloudIndex = cloudIndexStack[i].Pop();
+
+                    cloudTransformArray[i][cloudIndex] = matrix4x4;
+
+                    uint timeStamp = blockDictionary[blockDictKey].time;
+
+                    blockDictionary[blockDictKey] = new PositionEntry(i, -cloudIndex, timeStamp);
                 }
             }
         }
 
-
-        Matrix4x4[][] _blockTransforms = new Matrix4x4[parts.Length][];
-        for (int i = 0; i < parts.Length; ++i)
-            _blockTransforms[i] = blockTransforms[i].ToArray();
-
-        PointCloudIO.ModulesToCloud(AddPCTransforms(_blockTransforms));
+        PointCloudIO.ModulesToCloud(toCloudTransforms);
 
         ResetContainer(true);
     }
 
-    public void BlocksToPointCloud(PositionKey[] blockKeys)
+    public void BlocksToPointCloud(PositionKey[] blockKeys, Dictionary<PositionKey, Matrix4x4> blockTransforms)
     {
-        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[parts.Length];
-        for (int i = 0; i < parts.Length; ++i)
-            blockTransforms[i] = new List<Matrix4x4>();
-
-        int[] blockCounter = new int[parts.Length];
-        int pcLength = 0;
-        if (pcTransformArray != null)
-            pcLength = pcTransformArray.Length;
+        List<Matrix4x4> toCloudTransforms = new List<Matrix4x4>();
 
         for (int i = 0; i < blockKeys.Length; ++i)
         {
@@ -85,37 +83,47 @@ public class BlockContainer
             PositionEntry blockIndex = blockDictionary[blockKeys[i]];
             if (blockIndex.item <= 0) continue;
 
-            blockTransforms[blockIndex.blockType].Add(transformArray[blockIndex.blockType][blockIndex.item]);
             indexStack[blockIndex.blockType].Push(blockIndex.item);
-            transformArray[blockIndex.blockType][blockIndex.item] = Matrix4x4.zero;
-            blockDictionary[blockKeys[i]] = new PositionEntry(blockIndex.blockType, -pcLength - blockCounter[blockIndex.blockType]);
-            ++blockCounter[blockIndex.blockType];
+
+            if (cloudIndexStack[blockIndex.blockType].Count <= 0)
+                NewCloudBatch(blockIndex.blockType);
+
+            int cloudIndex = cloudIndexStack[blockIndex.blockType].Pop();
+
+            cloudTransformArray[blockIndex.blockType][cloudIndex] = blockTransforms[blockKeys[i]];
+
+            uint timeStamp = blockDictionary[blockKeys[i]].time;
+
+            blockDictionary[blockKeys[i]] = new PositionEntry(blockIndex.blockType, -cloudIndex, timeStamp);
+
+            toCloudTransforms.Add(blockTransforms[blockKeys[i]]);
         }
 
-        Matrix4x4[][] _blockTransforms = new Matrix4x4[parts.Length][];
-        for (int i = 0; i < _blockTransforms.Length; ++i)
-            _blockTransforms[i] = blockTransforms[i].ToArray();
+        PointCloudIO.ModulesToCloud(toCloudTransforms);
+    }
 
-        PointCloudIO.ModulesToCloud(AddPCTransforms(_blockTransforms));
+    public Dictionary<PositionKey, Matrix4x4> HideBlocks(PositionKey[][] blockKeys)
+    {
+        Dictionary<PositionKey, Matrix4x4> blockTransforms = new Dictionary<PositionKey, Matrix4x4>();
+
+        for (int i = 0; i < blockKeys.Length; ++i)
+        {
+            for (int j = 0; j < blockKeys[i].Length; ++j)
+            {
+                if (!blockDictionary.ContainsKey(blockKeys[i][j])) continue;
+
+                PositionEntry blockIndex = blockDictionary[blockKeys[i][j]];
+                if (blockIndex.item <= 0) continue;
+
+                if (transformArray[blockIndex.blockType][blockIndex.item] == Matrix4x4.zero) continue;
+
+                blockTransforms.Add(blockKeys[i][j], transformArray[blockIndex.blockType][blockIndex.item]);
+                transformArray[blockIndex.blockType][blockIndex.item] = Matrix4x4.zero;
+            }
+        }
 
         for (int i = 0; i < parts.Length; ++i)
             GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
-    }
-
-    public Matrix4x4[][] AddPCTransforms(Matrix4x4[][] blockTransforms)
-    {
-        if (pcTransformArray == null)
-            pcTransformArray = blockTransforms;
-        else
-        {
-            for (int i = 0; i < parts.Length; ++i)
-            {
-                Matrix4x4[] combinedTransforms = new Matrix4x4[blockTransforms[i].Length + pcTransformArray[i].Length];
-                Array.Copy(pcTransformArray[i], combinedTransforms, pcTransformArray[i].Length);
-                Array.Copy(blockTransforms[i], 0, combinedTransforms, pcTransformArray[i].Length, blockTransforms[i].Length);
-                pcTransformArray[i] = combinedTransforms;
-            }
-        }
 
         return blockTransforms;
     }
@@ -123,15 +131,21 @@ public class BlockContainer
     public void ResetContainer(bool keepDictionary = false)
     {
         transformArray = new Matrix4x4[parts.Length][];
+
         indexStack = new Stack<int>[parts.Length];
+
         for (int i = 0; i < parts.Length; ++i)
         {
             transformArray[i] = new Matrix4x4[batchSize];
+
             indexStack[i] = new Stack<int>();
         }        
         
         if (!keepDictionary)
+        {
             blockDictionary = new Dictionary<PositionKey, PositionEntry>();
+            ResetCloudContainer();
+        }    
 
         for (int i = 0; i < parts.Length; ++i)
         {
@@ -146,20 +160,47 @@ public class BlockContainer
             GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
     }
 
+    public void ResetCloudContainer()
+    {
+        cloudTransformArray = new Matrix4x4[parts.Length][];
+
+        cloudIndexStack = new Stack<int>[parts.Length];
+
+        for (int i = 0; i < parts.Length; ++i)
+        {
+            cloudTransformArray[i] = new Matrix4x4[batchSize];
+
+            cloudIndexStack[i] = new Stack<int>();
+        }
+
+        for (int i = 0; i < parts.Length; ++i)
+        {
+            for (int j = batchSize - 1; j >= 0; --j)
+            {
+                cloudTransformArray[i][j] = Matrix4x4.zero;
+                cloudIndexStack[i].Push(j);
+            }
+        }
+    }
+
     public void AddBlock(Matrix4x4 _transform, int partType, PositionKey? blockDictKey = null)
     {
+        uint timeStamp = (uint)(GameManager.gameTime * 10);
+
         if (blockDictKey == null)
-            BlockToArray(_transform, partType);
+            BlockToArray(_transform, partType, timeStamp);
         else
-            BlockToArray(_transform, partType, blockDictKey);
+            BlockToArray(_transform, partType, timeStamp, blockDictKey);
 
         GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[partType].prefabPrototype, transformArray[partType]);
     }
 
-    public void AddBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys = null, bool asPointCloud = false)
+    //Needs Change
+    public void AddBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys = null, uint[][] times = null, bool asPointCloud = false)
     {
-        DateTime start = DateTime.Now;
-        int counter = 0;
+        List<Matrix4x4> toCloudTransforms = new List<Matrix4x4>();
+
+        uint timeStamp = (uint)(GameManager.gameTime * 10);
 
         for (int i = 0; i < blockTransforms.Length; ++i)
         {
@@ -167,39 +208,41 @@ public class BlockContainer
             {
                 var matrix4x4 = blockTransforms[i][j];
 
+                if (times != null)
+                    timeStamp = times[i][j];
+
                 if (blockDictKeys == null)
                 {
                     if (!asPointCloud)
                     {
-                        if (BlockToArray(matrix4x4, i)) ++counter;
+                        BlockToArray(matrix4x4, i, timeStamp);
                     }
                     else
                     {
-                        if (BlockToArray(matrix4x4, i, null, true)) ++counter;
+                        BlockToArray(matrix4x4, i, timeStamp, null, true);
+                        toCloudTransforms.Add(matrix4x4);
                     }
                 }
                 else
                 {
                     if (!asPointCloud)
                     {
-                        if (BlockToArray(matrix4x4, i, blockDictKeys[i][j])) ++counter;
+                        BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j]);
                     }
                     else
                     {
-                        if (BlockToArray(matrix4x4, i, blockDictKeys[i][j], true)) ++counter;
+                        BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j], true);
+                        toCloudTransforms.Add(matrix4x4);
                     }
                 }
             }
         }
 
-        TimeSpan duration = DateTime.Now - start;
-        if (logAddRemove) Debug.Log("Added " + counter + " blocks of " + blockTransforms.Length + " possible. Took " + duration.TotalMilliseconds.ToString("F1") + " milliseconds");
-
         if (!asPointCloud)
             for (int i = 0; i < parts.Length; ++i)
                 GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
         else
-            PointCloudIO.ModulesToCloud(AddPCTransforms(blockTransforms));
+            PointCloudIO.ModulesToCloud(toCloudTransforms);
     }
 
     public void ReinstateBlocks(PositionKey[][] blockDictPositions)
@@ -218,9 +261,10 @@ public class BlockContainer
                 if (indexStack[entry.blockType].Count < 1) NewBatch(entry.blockType);
 
                 int blockIndex = indexStack[entry.blockType].Pop();
-                transformArray[entry.blockType][blockIndex] = pcTransformArray[entry.blockType][pcIndex];
-                blockDictionary[dictKey] = new PositionEntry(entry.blockType, blockIndex);
-                pcTransformArray[entry.blockType][pcIndex] = Matrix4x4.zero;
+                transformArray[entry.blockType][blockIndex] = cloudTransformArray[entry.blockType][pcIndex];
+                blockDictionary[dictKey] = new PositionEntry(entry.blockType, blockIndex, entry.time);
+                cloudTransformArray[entry.blockType][pcIndex] = Matrix4x4.zero;
+
             }
         }
 
@@ -257,11 +301,8 @@ public class BlockContainer
             GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
     }
 
-    bool BlockToArray(Matrix4x4 _transform, int blockType, PositionKey? blockKey = null, bool skipGPUInstancer = false)
+    bool BlockToArray(Matrix4x4 _transform, int blockType, uint timeStamp, PositionKey? blockKey = null, bool skipGPUInstancer = false)
     {
-        if (indexStack[blockType].Count == 0)
-            NewBatch(blockType);
-
         PositionKey key;
         if (blockKey == null)
             key = new PositionKey(_transform.GetPosition());
@@ -272,14 +313,22 @@ public class BlockContainer
         {
             if (!skipGPUInstancer)
             {
+                if (indexStack[blockType].Count == 0)
+                    NewBatch(blockType);
+
                 int idx = indexStack[blockType].Pop();
-                blockDictionary.Add(key, new PositionEntry(blockType, idx));
+                blockDictionary.Add(key, new PositionEntry(blockType, idx, timeStamp));
                 transformArray[blockType][idx] = _transform;
                 return true;
             }
             else
             {
-                blockDictionary.Add(key, new PositionEntry(blockType, -1));
+                if (cloudIndexStack[blockType].Count == 0)
+                    NewCloudBatch(blockType);
+
+                int idx = cloudIndexStack[blockType].Pop();
+                blockDictionary.Add(key, new PositionEntry(blockType, -idx, timeStamp));
+                cloudTransformArray[blockType][idx] = _transform;
                 return true;
             }
         }
@@ -311,6 +360,22 @@ public class BlockContainer
             return false;
     }
 
+    void NewCloudBatch(int blockType)
+    {
+        Matrix4x4[] tempCloudTransformArray = new Matrix4x4[cloudTransformArray[blockType].Length + batchSize];
+
+        Array.Copy(cloudTransformArray[blockType], tempCloudTransformArray, cloudTransformArray[blockType].Length);
+
+        for (int i = cloudTransformArray[blockType].Length + 1; i < tempCloudTransformArray.Length; ++i)
+        {
+            if (i == 0) continue;
+            cloudIndexStack[blockType].Push(i);
+            tempCloudTransformArray[i] = Matrix4x4.zero;
+        }
+
+        cloudTransformArray[blockType] = tempCloudTransformArray;
+    }
+
     void NewBatch(int blockType)
     {
         Matrix4x4[] tempTransformArray = new Matrix4x4[transformArray[blockType].Length + batchSize];
@@ -337,11 +402,13 @@ public struct PositionEntry
 {
     public int blockType;
     public int item;
+    public uint time; //Time in 1/10 sec
 
-    public PositionEntry(int _blockType, int _item)
+    public PositionEntry(int _blockType, int _item, uint _time)
     {
         blockType = _blockType;
         item = _item;
+        time = _time;
     }
 }
 public struct PositionKey

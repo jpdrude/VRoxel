@@ -34,6 +34,8 @@ public class EscapeMenu : MonoBehaviour
     GameObject pointCloudPanel;
     [SerializeField]
     GameObject motionCapturePanel;
+    [SerializeField]
+    GameObject graphicsSettingsPanel;
 
     [Space]
     [Header("Buttons")]
@@ -136,8 +138,8 @@ public class EscapeMenu : MonoBehaviour
 
     public void LoadAsPointCloud()
     {
-        FileBrowser.SetFilters(true, new FileBrowser.Filter("Json", ".json"));
-        FileBrowser.SetDefaultFilter(".json");
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("VRoxel", ".vrxl", ".json"));
+        FileBrowser.SetDefaultFilter(".vrxl");
         FileBrowser.ShowLoadDialog(OnLoadAsPointCloudSuccess, OnCancel, FileBrowser.PickMode.Files, true);
     }
 
@@ -159,6 +161,7 @@ public class EscapeMenu : MonoBehaviour
         importPanel.SetActive(false);
         pointCloudPanel.SetActive(false);
         motionCapturePanel.SetActive(false);
+        graphicsSettingsPanel.SetActive(false);
         actionSet.Activate();
 
         menuActive = false;

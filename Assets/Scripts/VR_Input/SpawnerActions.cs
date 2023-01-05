@@ -9,6 +9,7 @@ public class SpawnerActions : MonoBehaviour
     [SerializeField]
     SteamVR_Action_Boolean trigger;
 
+    [Space]
     [SerializeField]
     SteamVR_Action_Boolean up;
     [SerializeField]
@@ -17,8 +18,15 @@ public class SpawnerActions : MonoBehaviour
     SteamVR_Action_Boolean left;
     [SerializeField]
     SteamVR_Action_Boolean right;
+
+    [Space]
     [SerializeField]
     SteamVR_Action_Boolean quickOptionSwitch;
+
+    [Space]
+    [SerializeField]
+    SteamVR_Input_Sources mainInputSource;
+
 
     public SteamVR_Action_Boolean Trigger { get { return trigger; } }
     public SteamVR_Action_Boolean Up { get { return up; } }
@@ -32,23 +40,30 @@ public class SpawnerActions : MonoBehaviour
     {
         if (BlockContainer.Container == null) return;
 
-        if (trigger.GetState(SteamVR_Input_Sources.RightHand))
+        if (trigger.GetState(mainInputSource))
             OnTrigger();
 
-        if (trigger.GetStateUp(SteamVR_Input_Sources.RightHand))
+        if (trigger.GetStateUp(mainInputSource))
             OnTriggerUp();
 
         if (quickOptionSwitch.GetStateDown(SteamVR_Input_Sources.Any))
             OnQuickSwitchDown();
 
-
-        bool _up = up.GetState(SteamVR_Input_Sources.RightHand);
-        bool _down = down.GetState(SteamVR_Input_Sources.RightHand);
-        bool _left = left.GetState(SteamVR_Input_Sources.RightHand);
-        bool _right = right.GetState(SteamVR_Input_Sources.RightHand);
+        bool _up = up.GetStateDown(mainInputSource);
+        bool _down = down.GetStateDown(mainInputSource);
+        bool _left = left.GetStateDown(mainInputSource);
+        bool _right = right.GetStateDown(mainInputSource);
 
         if (_up || _down || _left || _right)
             DPadInput(_up, _down, _left, _right);
+
+        _up = up.GetState(mainInputSource);
+        _down = down.GetState(mainInputSource);
+        _left = left.GetState(mainInputSource);
+        _right = right.GetState(mainInputSource);
+
+        if (_up || _down || _left || _right)
+            DPadInputPressed(_up, _down, _left, _right);
 
         MessageSystem.DisplayPermanentMessage(BlockContainer.Container.GetCount() + " Units");
     }
@@ -56,6 +71,7 @@ public class SpawnerActions : MonoBehaviour
     public virtual void OnTrigger() { }
     public virtual void OnTriggerUp() { }
     public virtual void OnQuickSwitchDown() { }
+    public virtual void DPadInputPressed(bool _up, bool _down, bool _left, bool _right) { }
     public virtual void DPadInput(bool _up, bool _down, bool _left, bool _right) { }
     public virtual void Disable() { }
 }

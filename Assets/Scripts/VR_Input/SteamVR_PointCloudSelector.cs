@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using GPUInstancer;
 
 public class SteamVR_PointCloudSelector : SpawnerActions
 {
@@ -14,13 +15,22 @@ public class SteamVR_PointCloudSelector : SpawnerActions
     [SerializeField]
     Material mat_blocksToCloud;
 
+    [Header("Placeholder")]
+    [SerializeField]
+    GPUInstancerPrefabManager manager;
+    [SerializeField]
+    GPUInstancerPrefab placeholder;
+    Matrix4x4[] placeholderArray = new Matrix4x4[100000];
+    Matrix4x4[] emptyArray = new Matrix4x4[1];
+    int placeholderArrayPos = 0;
+
     float radius = 0.05f;
     float scaleSpeed = 0.1f;
     Vector3 initialOffset = new Vector3(0, 0, 0.05f);
 
     SteamVR_AssemblySpawner spawner;
 
-    HashSet<PositionKey> toConvert = new HashSet<PositionKey>();
+    Dictionary<PositionKey, Matrix4x4> toConvertTransforms = new Dictionary<PositionKey, Matrix4x4>();
 
     VRPlacementMode mode = VRPlacementMode.BlocksToPointCloud;
     public VRPlacementMode Mode
@@ -45,6 +55,7 @@ public class SteamVR_PointCloudSelector : SpawnerActions
     private void Awake()
     {
         spawner = GetComponent<SteamVR_AssemblySpawner>();
+        GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, placeholder.prefabPrototype, emptyArray);
         Disable();
     }
 
@@ -59,6 +70,11 @@ public class SteamVR_PointCloudSelector : SpawnerActions
         enabled = false;
     }
 
+    private void OnDisable()
+    {
+        OnTriggerUp();
+    }
+
     public override void OnTrigger()
     {
         PositionKey[][] blockDictKeys;
@@ -67,13 +83,33 @@ public class SteamVR_PointCloudSelector : SpawnerActions
         if (mode == VRPlacementMode.BlocksToPointCloud)
         {
             for (int i = 0; i < blockDictKeys.Length; ++i)
-                foreach (PositionKey entry in blockDictKeys[i])
+                foreach (PositionKey key in blockDictKeys[i])
                 {
-                    if (!toConvert.Contains(entry) && BlockContainer.Container.BlockDictionary.ContainsKey(entry))
+                    if (!toConvertTransforms.ContainsKey(key) && BlockContainer.Container.BlockDictionary.ContainsKey(key))
                     {
-                        toConvert.Add(entry);
+                        PositionEntry entry = BlockContainer.Container.BlockDictionary[key];
+                        if (entry.item >= 0)
+                            toConvertTransforms.Add(key, BlockContainer.Container.TransformArray[entry.blockType][entry.item]);
                     }
                 }
+
+            Dictionary<PositionKey, Matrix4x4> blockTransforms = BlockContainer.Container.HideBlocks(blockDictKeys);
+             
+            if (placeholderArrayPos == 0)
+            {
+                GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, placeholder.prefabPrototype, placeholderArray);
+            }
+
+            Vector3 camPos = Camera.main.transform.position;
+            foreach (Matrix4x4 t in blockTransforms.Values)
+            {
+                Vector3 pos = t.GetPosition();
+                Matrix4x4 trans = Matrix4x4.TRS(pos, Quaternion.LookRotation(pos - camPos), Vector3.one * 2 * PointCloudIO.PointRadius);
+                placeholderArray[placeholderArrayPos] = trans;
+                ++placeholderArrayPos;
+            }
+
+            GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, placeholder.prefabPrototype, placeholderArray);
         }
         else
         {
@@ -85,26 +121,38 @@ public class SteamVR_PointCloudSelector : SpawnerActions
     {
         if (Mode == VRPlacementMode.BlocksToPointCloud)
         {
-            BlockContainer.Container.BlocksToPointCloud(GetConversionArray());
+            BlockContainer.Container.BlocksToPointCloud(GetConversionArray(), toConvertTransforms);
+
+            toConvertTransforms = new Dictionary<PositionKey, Matrix4x4>();
+
+            placeholderArray = new Matrix4x4[100000];
+
+            placeholderArrayPos = 0;
+
+            GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, placeholder.prefabPrototype, emptyArray);
+        }
+        else
+        {
+            PointCloudIO.RecalculatePointCloud();
         }
     }
 
     PositionKey[] GetConversionArray()
     {
-        PositionKey[] toConvertArray = new PositionKey[toConvert.Count];
+
+        PositionKey[] toConvertArray = new PositionKey[toConvertTransforms.Count];
 
         int counter = 0;
-        foreach (PositionKey key in toConvert)
+        foreach (PositionKey key in toConvertTransforms.Keys)
         {
             toConvertArray[counter] = key;
             ++counter;
         }
 
-        toConvert.Clear();
         return toConvertArray;
     }
 
-    public override void DPadInput(bool _up, bool _down, bool _left, bool _right)
+    public override void DPadInputPressed(bool _up, bool _down, bool _left, bool _right)
     {
         CheckSphereScale(_up, _down);
     }

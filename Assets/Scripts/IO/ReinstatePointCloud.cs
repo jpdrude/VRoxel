@@ -20,7 +20,6 @@ public class ReinstatePointCloud : MonoBehaviour
 
     void LoadComplete(string args)
     {
-        if (BlockContainer.Container.GetCount() > 0)
-            PointCloudIO.ModulesToCloud(BlockContainer.Container.PcTransformArray);
+        PointCloudIO.RecalculatePointCloud();
     }
 }

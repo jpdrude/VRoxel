@@ -185,7 +185,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
             RemoveBlocksInBrush();
     }
 
-    public override void DPadInput(bool _up, bool _down, bool _left, bool _right)
+    public override void DPadInputPressed(bool _up, bool _down, bool _left, bool _right)
     {
         if (Mode == VRPlacementMode.SpawnInSphere || Mode == VRPlacementMode.DeleteFromSphere)
             CheckSphereScale(_up, _down);
@@ -194,7 +194,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         else if (Mode == VRPlacementMode.SpawnInCylinder || Mode == VRPlacementMode.DeleteFromCylinder)
             CheckCylinderScale(_up, _down, _left, _right);
         else if (Mode == VRPlacementMode.SpawnInBrush || Mode == VRPlacementMode.DeleteFromBrush)
-            CheckBrushScale(_up, _down);
+            CheckBrushScale(_up, _down, _left, _right);
     }
 
     void CheckSphereScale(bool up, bool down)
@@ -271,13 +271,13 @@ public class SteamVR_AssemblySpawner : SpawnerActions
             }
             else if (right)
             {
-                boxSize += Time.deltaTime * scaleSpeed * new Vector3(1, 1, 0);
+                boxSize += Time.deltaTime * scaleSpeed * BrushOptions.GetConstraints();
 
                 UpdateBoxScale();
             }
             else if (left)
             {
-                boxSize -= Time.deltaTime * scaleSpeed * new Vector3(1, 1, 0);
+                boxSize -= Time.deltaTime * scaleSpeed * BrushOptions.GetConstraints();
                 if (boxSize.x < 0.025f)
                     boxSize.x = 0.025f;
                 if (boxSize.y < 0.025f)
@@ -288,7 +288,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         }
     }
 
-    void CheckBrushScale(bool up, bool down)
+    void CheckBrushScale(bool up, bool down, bool left, bool right)
     {
         if (Mode == VRPlacementMode.SpawnInBrush || Mode == VRPlacementMode.DeleteFromBrush)
         {
@@ -305,6 +305,46 @@ public class SteamVR_AssemblySpawner : SpawnerActions
 
                 UpdateBrushScale();
             }
+            else if (right)
+            {
+                brushScales[brushIndex] += Time.deltaTime * scaleSpeed * BrushOptions.GetConstraints();
+                UpdateBrushScale();
+            }
+            else if (left)
+            {
+                brushScales[brushIndex] -= Time.deltaTime * scaleSpeed * BrushOptions.GetConstraints();
+                if (brushScales[brushIndex].x < 0.025f)
+                    brushScales[brushIndex] = new Vector3(0.025f, brushScales[brushIndex].y, brushScales[brushIndex].z);
+                if (brushScales[brushIndex].y < 0.025f)
+                    brushScales[brushIndex] = new Vector3(brushScales[brushIndex].x, 0.025f, brushScales[brushIndex].z);
+                if (brushScales[brushIndex].z < 0.025f)
+                    brushScales[brushIndex] = new Vector3(brushScales[brushIndex].x, brushScales[brushIndex].y, 0.025f);
+
+                UpdateBrushScale();
+            }
+        }
+    }
+
+    public void ResetNUScaling()
+    {
+        if (Mode == VRPlacementMode.DeleteFromBox || Mode == VRPlacementMode.SpawnInBox)
+        {
+            float scale = boxSize.x;
+            if (boxSize.y < scale) scale = boxSize.y;
+            if (boxSize.z < scale) scale = boxSize.z;
+
+            boxSize = Vector3.one * scale;
+            UpdateBoxScale();
+        }
+
+        if (Mode == VRPlacementMode.DeleteFromBrush || Mode == VRPlacementMode.SpawnInBrush)
+        {
+            float scale = brushScales[brushIndex].x;
+            if (brushScales[brushIndex].y < scale) scale = brushScales[brushIndex].y;
+            if (brushScales[brushIndex].z < scale) scale = brushScales[brushIndex].z;
+
+            brushScales[brushIndex] = Vector3.one * scale;
+            UpdateBrushScale();
         }
     }
 
@@ -389,8 +429,8 @@ public class SteamVR_AssemblySpawner : SpawnerActions
 
     public void UpdateBrushScale()
     {
-        brushes[brushIndex].transform.localScale = brushScales[brushIndex];
-        //brushes[brushIndex].transform.localPosition = Vector3.forward * brushSizes[brushIndex].z * brushScales[brushIndex].z / 2;
+        if (brushes[brushIndex] != null)
+            brushes[brushIndex].transform.localScale = brushScales[brushIndex];
     }
 
     public void UpdateAllScales()
