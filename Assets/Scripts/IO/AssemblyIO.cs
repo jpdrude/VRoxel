@@ -8,6 +8,7 @@ using LegoAssembly;
 using System;
 using GameDevWare.Serialization;
 using System.Runtime.Serialization;
+using UnityEngine.Events;
 
 public class AssemblyIO : MonoBehaviour
 {
@@ -15,9 +16,10 @@ public class AssemblyIO : MonoBehaviour
 
     static Matrix4x4[][] loadContainer = null;
     static uint[][] loadTimes = null;
-    static string loadBond = null;
     static bool loadAsPointCloud = false;
     static float loadTimeOffset = 0;
+    static string loadBond = null;
+    public static string LoadBond { get { return loadBond; } }
 
     static List<string> currentSaveTargets = new List<string>();
 
@@ -25,16 +27,34 @@ public class AssemblyIO : MonoBehaviour
 
     static string message = null;
 
+    static bool remapBond = false;
+
+    static bool loadComplete = false;
+
     [SerializeField]
     bool loadIncrementally = false;
     [SerializeField]
     IncrementalLoader incrementalLoader;
+    [SerializeField]
+    UnityEvent OnLoadComplete;
 
     private void Update()
     {
+        if (loadComplete)
+        {
+            OnLoadComplete.Invoke();
+            loadComplete = false;
+        }
 
         if (loadContainer != null)
         {
+            if (remapBond)
+            {
+                Debug.Log("Aborted Loading for Remapping!");
+                return;
+            }
+
+
             if (loadBond != GameManager.Bond.BondName)
             {
                 if (BlockContainer.Container.GetCount() < 1000)
@@ -46,7 +66,13 @@ public class AssemblyIO : MonoBehaviour
                     }
                     else
                     {
-                        MessageSystem.DisplayWarning("File could not be loaded, because of unknown Bond");
+                        if (!CheckBondReplacements())
+                        {
+                            Debug.LogError("File could not be loaded, because of unknown Bond");
+                            MessageSystem.DisplayWarning("File could not be loaded, because of unknown Bond");
+                        }
+                        else
+                            Debug.Log("Old bond name found and switched to new version");
                     }
                 }
                 else
@@ -73,7 +99,6 @@ public class AssemblyIO : MonoBehaviour
             else
             {
                 BlockContainer.Container.AddBlocks(loadContainer, null, loadTimes, true);
-                loadAsPointCloud = false;
             }
 
             GameManager.gameTime += loadTimeOffset;
@@ -82,6 +107,7 @@ public class AssemblyIO : MonoBehaviour
             loadBond = null;
             loadTimes = null;
             loadTimeOffset = 0;
+            loadAsPointCloud = false;
         }
 
         if (message != null)
@@ -89,6 +115,11 @@ public class AssemblyIO : MonoBehaviour
             MessageSystem.DisplayMessage(message);
             message = null;
         }
+    }
+
+    public static bool CheckBondReplacements()
+    {
+        return BondReplacements.CheckBondReplacement(ref loadBond);
     }
 
     void RecoverFromPositions()
@@ -187,6 +218,22 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
+    public static void RemapBond(string newBond)
+    {
+        loadBond = newBond;
+        remapBond = false;
+    }
+
+    public static void ClearLoadData()
+    {
+        loadContainer = null;
+        loadBond = null;
+        loadTimes = null;
+        loadTimeOffset = 0;
+        loadAsPointCloud = false;
+        remapBond = false;
+    }
+
     static void ExportAsync(string path, JsonMatrixContainer container)
     {
         Debug.Log("Start exporting at " + DateTime.Now.ToString("T"));
@@ -231,14 +278,16 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
-    public static void LoadAssemblyLayout(string path)
+    public static void LoadAssemblyLayout(string path, bool _remapBond = false)
     {
+        remapBond = _remapBond;
         LoadAssemblyDelegate loadDelegate = new LoadAssemblyDelegate(LoadAsync);
         loadDelegate.BeginInvoke(path, null, null);
     }
 
-    public static void LoadAssemblyAsPointCloud(string path)
+    public static void LoadAssemblyAsPointCloud(string path, bool _remapBond = false)
     {
+        remapBond = _remapBond;
         loadAsPointCloud = true;
         LoadAssemblyLayout(path);
     }
@@ -315,7 +364,7 @@ public class AssemblyIO : MonoBehaviour
 
         Debug.Log("Transforms received! Bond: " + bond);
 
-        if (transforms == null || transforms.Length == 0 || bond == null || bond == "" || !GameManager.AvailableBonds.ContainsKey(bond))
+        if (transforms == null || transforms.Length == 0 || bond == null || bond == "")
         {
             MessageSystem.DisplayWarning("Loading Failed! Couldn't read file!");
             loadAsPointCloud = false;
@@ -329,6 +378,7 @@ public class AssemblyIO : MonoBehaviour
             loadTimes = times;
             loadTimeOffset = timeOffset;
 
+            loadComplete = true;
         }
         
         Debug.Log("Loading finished at " + DateTime.Now.ToString("T"));

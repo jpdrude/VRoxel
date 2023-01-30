@@ -132,8 +132,8 @@ public class GeometryIO : MonoBehaviour
 
         MessageSystem.DisplayMessage("Teleport Areas Imported!");
 
-        if (nativeTeleport != null)
-            nativeTeleport.SetActive(false);
+        //if (nativeTeleport != null)
+            //nativeTeleport.SetActive(false);
     }
 
     static void OnBrushImport(AssetLoaderContext assetLoaderContext)

@@ -70,6 +70,7 @@ public class KitBashIO : MonoBehaviour
         if (palette.Keys.Count <= 0)
         {
             Distribute = false;
+            DestroyKitBashContext();
             return;
         }
 

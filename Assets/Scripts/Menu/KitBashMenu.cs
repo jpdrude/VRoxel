@@ -18,9 +18,6 @@ public class KitBashMenu : MonoBehaviour
     [SerializeField]
     TMP_InputField inputZ;
 
-    [SerializeField]
-    EscapeMenu escapeMenu;
-
 
     public void ImportKitBashPalette()
     {
@@ -53,19 +50,17 @@ public class KitBashMenu : MonoBehaviour
 
         KitBashIO.Offset = new Vector3(offsetX, offsetY, offsetZ);
         KitBashIO.Distribute = true;
-        gameObject.SetActive(false);
+
     }
 
     void OnCancel()
     {
-        Resume();
+
     }
 
     public void Resume()
     {
         KitBashIO.DestroyKitBashContext();
-        gameObject.SetActive(false);
-        escapeMenu.Resume();
     }
 
     void OnGeometryImportSuccess(string[] paths)

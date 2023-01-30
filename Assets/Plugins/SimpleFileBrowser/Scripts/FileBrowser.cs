@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+
 #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
 using UnityEngine.InputSystem;
 #endif
@@ -189,6 +190,8 @@ namespace SimpleFileBrowser
 			set { m_singleClickMode = value; }
 		}
 
+		public static bool LoadAsPointCloud { get; private set; }
+
 		private static FileSystemEntryFilter m_displayedEntriesFilter;
 		public static event FileSystemEntryFilter DisplayedEntriesFilter
 		{
@@ -328,7 +331,7 @@ namespace SimpleFileBrowser
 		}
 
 		private static FileBrowser m_instance = null;
-		private static FileBrowser Instance
+		public static FileBrowser Instance
 		{
 			get
 			{
@@ -478,6 +481,9 @@ namespace SimpleFileBrowser
 
 		[SerializeField]
 		private Toggle showHiddenFilesToggle;
+
+		[SerializeField]
+		private Toggle loadAsPointCloudToggle;
 
 		[SerializeField]
 		private Text submitButtonText;
@@ -1270,6 +1276,13 @@ namespace SimpleFileBrowser
 			m_skinPrevDriveIcon = m_skin.DriveIcon;
 			m_skinPrevFolderIcon = m_skin.FolderIcon;
 		}
+
+		public void SetPointCloudToggle()
+        {
+			LoadAsPointCloud = false;
+			loadAsPointCloudToggle.gameObject.SetActive(true);
+			loadAsPointCloudToggle.isOn = false;
+        }
 		#endregion
 
 		#region Button Events
@@ -1595,6 +1608,11 @@ namespace SimpleFileBrowser
 			PersistFileEntrySelection();
 			RefreshFiles( false );
 		}
+
+		public void OnLoadAsPointCloudToggleChanged(bool value)
+        {
+			LoadAsPointCloud = value;
+        }
 
 		public void OnItemSelected( FileBrowserItem item, bool isDoubleClick )
 		{

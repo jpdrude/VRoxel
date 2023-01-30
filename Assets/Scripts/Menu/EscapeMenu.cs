@@ -29,14 +29,10 @@ public class EscapeMenu : MonoBehaviour
     [SerializeField]
     GameObject escapePanel;
     [SerializeField]
-    GameObject importPanel;
+    GameObject selectPlatform;
     [SerializeField]
-    GameObject pointCloudPanel;
-    [SerializeField]
-    GameObject motionCapturePanel;
-    [SerializeField]
-    GameObject graphicsSettingsPanel;
-
+    List<GameObject> panels;
+    
     [Space]
     [Header("Buttons")]
     [SerializeField]
@@ -70,6 +66,7 @@ public class EscapeMenu : MonoBehaviour
     private void Start()
     {
         escapePanel.SetActive(false);
+        selectPlatform.SetActive(true);
     }
 
     // Update is called once per frame
@@ -134,8 +131,10 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.SetFilters(false, filter);
 
         FileBrowser.ShowLoadDialog(OnLoadSuccess, OnCancel, FileBrowser.PickMode.Files, true);
+        FileBrowser.Instance.SetPointCloudToggle();
     }
 
+    //Not in use any more
     public void LoadAsPointCloud()
     {
         FileBrowser.SetFilters(true, new FileBrowser.Filter("VRoxel", ".vrxl", ".json"));
@@ -158,10 +157,10 @@ public class EscapeMenu : MonoBehaviour
         reallyNewGame.SetActive(false);
 
         escapePanel.SetActive(false);
-        importPanel.SetActive(false);
-        pointCloudPanel.SetActive(false);
-        motionCapturePanel.SetActive(false);
-        graphicsSettingsPanel.SetActive(false);
+
+        foreach (GameObject panel in panels)
+            panel.SetActive(false);
+
         actionSet.Activate();
 
         menuActive = false;
@@ -280,7 +279,7 @@ public class EscapeMenu : MonoBehaviour
     {
         int index = Mathf.RoundToInt(idx);
 
-        switch(index)
+        switch (index)
         {
             case 0:
                 PointCloudIO.CloudMaterial = pcMat[0];
@@ -371,8 +370,13 @@ public class EscapeMenu : MonoBehaviour
 
     void OnLoadSuccess(string[] paths)
     {
-        foreach(string path in paths)
-            AssemblyIO.LoadAssemblyLayout(path);
+        foreach (string path in paths)
+        {
+            if (!FileBrowser.LoadAsPointCloud)
+                AssemblyIO.LoadAssemblyLayout(path);
+            else
+                AssemblyIO.LoadAssemblyAsPointCloud(path);
+        }
 
         Resume();
     }
@@ -413,3 +417,4 @@ public class EscapeMenu : MonoBehaviour
         Resume();
     }
 }
+

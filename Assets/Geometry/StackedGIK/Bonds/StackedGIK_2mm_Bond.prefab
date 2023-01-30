@@ -52,7 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d2c7597527bc29438d92463be6a9621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bondName: StackedGIK_2mm
+  bondName: StackedGIK_2cm
   partPrefabs:
   - {fileID: 3945611901703551219, guid: b4b350f59d6fd524785c21a59c7d8211, type: 3}
   bondBlocks:
