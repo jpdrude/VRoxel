@@ -55,7 +55,7 @@ public class AutomaticSceneLoader : MonoBehaviour
         escapeMenu.SetVRPlayer();
         selectPlatform.SetActive(false);
         manager.SetBond(GameManager.AvailableBonds[options.bondName]);
-        GeometryIO.ImportBrushes(options.brushPath);
+        GeometryIO.ImportBrushes(options.brushPath, false);
         PointCloudIO.ImportPointCloud(options.pointCloadPath);
     }
 

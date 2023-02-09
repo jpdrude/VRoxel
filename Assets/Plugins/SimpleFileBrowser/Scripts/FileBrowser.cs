@@ -192,6 +192,8 @@ namespace SimpleFileBrowser
 
 		public static bool LoadAsPointCloud { get; private set; }
 
+		public static bool FixTransform { get; private set; }
+
 		private static FileSystemEntryFilter m_displayedEntriesFilter;
 		public static event FileSystemEntryFilter DisplayedEntriesFilter
 		{
@@ -484,6 +486,9 @@ namespace SimpleFileBrowser
 
 		[SerializeField]
 		private Toggle loadAsPointCloudToggle;
+
+		[SerializeField]
+		private Toggle fixTransformToggle;
 
 		[SerializeField]
 		private Text submitButtonText;
@@ -1283,6 +1288,13 @@ namespace SimpleFileBrowser
 			loadAsPointCloudToggle.gameObject.SetActive(true);
 			loadAsPointCloudToggle.isOn = false;
         }
+
+		public void SetFixTransformToggle(bool startValue)
+        {
+			FixTransform = startValue;
+			fixTransformToggle.gameObject.SetActive(true);
+			fixTransformToggle.isOn = startValue;
+        }
 		#endregion
 
 		#region Button Events
@@ -1612,6 +1624,11 @@ namespace SimpleFileBrowser
 		public void OnLoadAsPointCloudToggleChanged(bool value)
         {
 			LoadAsPointCloud = value;
+        }
+
+		public void OnFixTransformToggleChanged(bool value)
+        {
+			FixTransform = value;
         }
 
 		public void OnItemSelected( FileBrowserItem item, bool isDoubleClick )

@@ -31,6 +31,8 @@ public class EscapeMenu : MonoBehaviour
     [SerializeField]
     GameObject selectPlatform;
     [SerializeField]
+    GameObject cadPanel;
+    [SerializeField]
     List<GameObject> panels;
     
     [Space]
@@ -80,6 +82,7 @@ public class EscapeMenu : MonoBehaviour
             {
                 escapePanel.SetActive(true);
                 actionSet.Deactivate();
+                cadPanel.SetActive(false);
 
                 quit.SetActive(true);
                 reallyQuit.SetActive(false);
@@ -166,6 +169,9 @@ public class EscapeMenu : MonoBehaviour
         menuActive = false;
 
         pcPath = null;
+
+        if (fpsController.activeSelf)
+            cadPanel.SetActive(true);
     }
 
     public void ReallyQuit()
@@ -178,6 +184,7 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Geometry", ".fbx", ".obj", ".stl"));
         FileBrowser.SetDefaultFilter(".fbx");
         FileBrowser.ShowLoadDialog(OnGeometryImportSuccess, OnCancel, FileBrowser.PickMode.Files);
+        FileBrowser.Instance.SetFixTransformToggle(true);
     }
 
     public void ImportBrushes()
@@ -185,6 +192,7 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Geometry", ".fbx", ".obj", ".stl"));
         FileBrowser.SetDefaultFilter(".fbx");
         FileBrowser.ShowLoadDialog(OnBrushImportSuccess, OnCancel, FileBrowser.PickMode.Files);
+        //FileBrowser.Instance.SetFixTransformToggle(false);
     }
 
     public void ImportTeleportAreas()
@@ -199,6 +207,7 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Geometry", ".fbx", ".obj", ".stl"));
         FileBrowser.SetDefaultFilter(".fbx");
         FileBrowser.ShowLoadDialog(OnTeleportAreaImportSuccess, OnCancel, FileBrowser.PickMode.Files);
+        FileBrowser.Instance.SetFixTransformToggle(true);
     }
 
     public void ImportMotionCapture()
@@ -319,19 +328,19 @@ public class EscapeMenu : MonoBehaviour
 
     void OnGeometryImportSuccess(string[] paths)
     {
-        GeometryIO.ImportGeometry(paths[0]);
+        GeometryIO.ImportGeometry(paths[0], FileBrowser.FixTransform);
         Resume();
     }
 
     void OnBrushImportSuccess(string[] paths)
     {
-        GeometryIO.ImportBrushes(paths[0]);
+        GeometryIO.ImportBrushes(paths[0], FileBrowser.FixTransform);
         Resume();
     }
 
     void OnTeleportAreaImportSuccess(string[] paths)
     {
-        GeometryIO.ImportTeleportArea(paths[0]);
+        GeometryIO.ImportTeleportArea(paths[0], FileBrowser.FixTransform);
         Resume();
     }
 

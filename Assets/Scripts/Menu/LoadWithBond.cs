@@ -20,11 +20,26 @@ public class LoadWithBond : MonoBehaviour
     [SerializeField]
     TMP_Text bondNameText;
 
-    [SerializeField]
-    StringListStringDictionary bondMapping;
-
     string loadBond;
     bool waitingForCallback = false;
+
+    Dictionary<string, List<string>> bondMapping = new Dictionary<string, List<string>>()
+    {
+        {"inter(b)lock_6cm_black", new List<string>() {"inter(b)lock_6cm_white"} },
+        {"inter(b)lock_6cm_white", new List<string>() {"inter(b)lock_6cm_black"} },
+        {"inter(b)lock_18cm_black", new List<string>() {"inter(b)lock_18cm_white"} },
+        {"inter(b)lock_18cm_white", new List<string>() {"inter(b)lock_18cm_black"} },
+        {"Cuboct_Bond_2cm", new List<string>() {"Cuboct_Volumetric_Bond_2cm"} },
+        {"Cuboct_Volumetric_Bond_2cm", new List<string>() {"Cuboct_Bond_2cm"} },
+        {"Cuboct_Bond_2.5cm", new List<string>() {"Cuboct_Volumetric_Bond_2.5cm"} },
+        {"Cuboct_Volumetric_Bond_2.5cm", new List<string>() {"Cuboct_Bond_2.5cm"} },
+        {"Cuboct_Bond_3cm", new List<string>() {"Cuboct_Volumetric_Bond_3cm"} },
+        {"Cuboct_Volumetric_Bond_3cm", new List<string>() {"Cuboct_Bond_3cm"} },
+        {"Cuboct_Bond_5cm", new List<string>() {"Cuboct_Volumetric_Bond_5cm"} },
+        {"Cuboct_Volumetric_Bond_5cm", new List<string> {"Cuboct_Bond_5cm"} },
+        {"Cuboct_Bond_10cm", new List<string>() {"Cuboct_Volumetric_Bond_10cm"} },
+        {"Cuboct_Volumetric_Bond_10cm", new List<string>() {"Cuboct_Bond_10cm"} }
+    };
 
     public void SelectLoadFile()
     {

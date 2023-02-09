@@ -27,9 +27,48 @@ public class GraphicsSettingsMenu : MonoBehaviour
     [SerializeField]
     PostProcessProfile postProfileHigh;
 
+    Dictionary<string, bool> occlusionCulling = null;
+
     private void Start()
     {
         GraphicsMedium();
+    }
+
+
+    public void DeactivateCulling()
+    {
+        bool saveValues = false;
+
+        if (occlusionCulling == null)
+        {
+            occlusionCulling = new Dictionary<string, bool>();
+            saveValues = true;
+        }
+
+        foreach (Bond b in GameManager.AvailableBonds.Values)
+        {
+            foreach (GPUInstancerPrefab p in b.PartPrefabs)
+            {
+                if (saveValues)
+                    occlusionCulling.Add(b.BondName + p.name, p.prefabPrototype.isOcclusionCulling);
+
+                p.prefabPrototype.isOcclusionCulling = false;
+            }
+        }
+    }
+
+    public void ActivateCulling()
+    {
+        foreach (Bond b in GameManager.AvailableBonds.Values)
+        {
+            foreach (GPUInstancerPrefab p in b.PartPrefabs)
+            {
+                if (occlusionCulling.ContainsKey(b.BondName + p.name))
+                    p.prefabPrototype.isOcclusionCulling = occlusionCulling[b.BondName + p.name];
+                else
+                    p.prefabPrototype.isOcclusionCulling = true;
+            }
+        }
     }
 
     public void GraphicsLow()

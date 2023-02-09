@@ -66,6 +66,11 @@ public class GeometryIO : MonoBehaviour
 
     static AssetLoaderOptions options;
 
+    //fix transform variables
+    static bool fixGeometryTransform = false;
+    static bool fixBrushTransform = false;
+    static bool fixTeleportTransform = false;
+
     private void Start()
     {
         defaultMaterial = _defaultMaterial;
@@ -87,9 +92,10 @@ public class GeometryIO : MonoBehaviour
         options = _options;
     }
 
-    public static void ImportGeometry(string path)
+    public static void ImportGeometry(string path, bool fixTransform)
     {
-        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnMaterialsImport, OnImportProgress, OnImportError, null, options);
+        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnMaterialsImport, OnImportProgress, OnGeometryImportError, null, options);
+        fixGeometryTransform = fixTransform;
     }
 
     public static void ImportKitBashPalette(string path)
@@ -97,14 +103,16 @@ public class GeometryIO : MonoBehaviour
         AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnKitBashPaletteImport, OnImportProgress, OnImportError, null, options);
     }
 
-    public static void ImportTeleportArea(string path)
+    public static void ImportTeleportArea(string path, bool fixTransform)
     {
-        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnTeleportAreaImport, OnImportProgress, OnImportError, null, options);
+        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnTeleportAreaImport, OnImportProgress, OnTeleportImportError, null, options);
+        fixTeleportTransform = fixTransform;
     }
 
-    public static void ImportBrushes(string path)
+    public static void ImportBrushes(string path, bool fixTransform)
     {
-        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnBrushImport, OnImportProgress, OnImportError, null, options);
+        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnBrushImport, OnImportProgress, OnBrushImportError, null, options);
+        fixBrushTransform = fixTransform;
     }
 
     static void OnTeleportAreaImport(AssetLoaderContext assetLoaderContext)
@@ -113,6 +121,12 @@ public class GeometryIO : MonoBehaviour
             importSteps.Remove(assetLoaderContext.Filename);
 
         var root = assetLoaderContext.RootGameObject;
+
+        if (fixTeleportTransform)
+        {
+            fixTeleportTransform = false;
+            root.transform.Rotate(Vector3.up, 180);
+        }
 
         foreach (MeshFilter mf in root.GetComponentsInChildren<MeshFilter>())
         {
@@ -140,6 +154,12 @@ public class GeometryIO : MonoBehaviour
     {
         if (importSteps.ContainsKey(assetLoaderContext.Filename))
             importSteps.Remove(assetLoaderContext.Filename);
+
+        if (fixBrushTransform)
+        {
+            fixBrushTransform = false;
+            assetLoaderContext.RootGameObject.transform.Rotate(Vector3.up, 180);
+        }
 
         Debug.Log("Brush file imported");
         MeshFilter[] meshFilters = assetLoaderContext.RootGameObject.GetComponentsInChildren<MeshFilter>();
@@ -261,6 +281,12 @@ public class GeometryIO : MonoBehaviour
                 mr.material = defaultMaterial;
         }
 
+        if (fixGeometryTransform)
+        {
+            assetLoaderContext.RootGameObject.transform.Rotate(Vector3.up, 180);
+            fixGeometryTransform = false;
+        }
+
         MessageSystem.DisplayMessage("Geometry Imported!");
     }
 
@@ -291,5 +317,23 @@ public class GeometryIO : MonoBehaviour
     static void OnImportError(IContextualizedError contextualizedError)
     {
         MessageSystem.DisplayWarning("Import was interrupted due to an error");
+    }
+
+    static void OnGeometryImportError(IContextualizedError contextualizedError)
+    {
+        OnImportError(contextualizedError);
+        fixGeometryTransform = false;
+    }
+
+    static void OnTeleportImportError(IContextualizedError contextualizedError)
+    {
+        OnImportError(contextualizedError);
+        fixTeleportTransform = false;
+    }
+
+    static void OnBrushImportError(IContextualizedError contextualizedError)
+    {
+        OnImportError(contextualizedError);
+        fixBrushTransform = false;
     }
 }
