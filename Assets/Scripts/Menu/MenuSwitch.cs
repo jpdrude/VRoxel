@@ -229,7 +229,11 @@ public class MenuSwitch : MonoBehaviour
 
     public void ToggleExtraPanel(GameObject _extraPanel)
     {
-        _extraPanel.SetActive(!_extraPanel.activeSelf);
+        bool newState = !_extraPanel.activeSelf;
+
+        HideExtraPanels();
+
+        _extraPanel.SetActive(newState);
     }
 
     public VRMenuItem GetCurrentAdd()

@@ -33,6 +33,10 @@ public class EscapeMenu : MonoBehaviour
     [SerializeField]
     GameObject cadPanel;
     [SerializeField]
+    GameObject selectBondPanel;
+    [SerializeField]
+    GameObject selectPlatformPanel;
+    [SerializeField]
     List<GameObject> panels;
     
     [Space]
@@ -41,10 +45,6 @@ public class EscapeMenu : MonoBehaviour
     GameObject quit;
     [SerializeField]
     GameObject reallyQuit;
-    [SerializeField]
-    GameObject newGame;
-    [SerializeField]
-    GameObject reallyNewGame;
 
     [Space]
     [Header("Point Cloud Options")]
@@ -86,8 +86,6 @@ public class EscapeMenu : MonoBehaviour
 
                 quit.SetActive(true);
                 reallyQuit.SetActive(false);
-                newGame.SetActive(true);
-                reallyNewGame.SetActive(false);
             }
             else
             {
@@ -98,15 +96,40 @@ public class EscapeMenu : MonoBehaviour
 
     public void NewGame()
     {
-        newGame.SetActive(false);
-        reallyNewGame.SetActive(true);
-    }
+        try
+        {
+            UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.activeLoader.Start();
+        }
+        catch
+        {
 
-    public void ReallyNewGame()
-    {
+        }
+
         AssemblyIO.NewGame();
         Destroy(player);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+    }
+
+    public void ClearAssembly()
+    {
+        BlockContainer.Container.ResetContainer();
+        PointCloudIO.RecalculatePointCloud();
+
+        Resume();
+        selectBondPanel.SetActive(true);
+    }
+
+    public void ChangeController()
+    {
+        vrController.SetActive(false);
+        fpsController.SetActive(false);
+        startCamera.SetActive(true);
+
+        UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
+        UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.StartSubsystems();
+
+        Resume();
+        selectPlatformPanel.SetActive(true);
     }
 
     public void Save(bool saveInactive)
@@ -136,7 +159,7 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.ShowLoadDialog(OnLoadSuccess, OnCancel, FileBrowser.PickMode.Files, true);
         FileBrowser.Instance.SetPointCloudToggle();
     }
-
+    
     //Not in use any more
     public void LoadAsPointCloud()
     {
@@ -155,9 +178,6 @@ public class EscapeMenu : MonoBehaviour
     {
         quit.SetActive(true);
         reallyQuit.SetActive(false);
-
-        newGame.SetActive(true);
-        reallyNewGame.SetActive(false);
 
         escapePanel.SetActive(false);
 
@@ -210,13 +230,6 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.Instance.SetFixTransformToggle(true);
     }
 
-    public void ImportMotionCapture()
-    {
-        FileBrowser.SetFilters(true, new FileBrowser.Filter("Motion Capture", ".fbx"));
-        FileBrowser.SetDefaultFilter(".fbx");
-        FileBrowser.ShowLoadDialog(OnMotionCaptureSuccess, OnCancel, FileBrowser.PickMode.Files);
-    }
-
     public void ImportPointCloud()
     {
         if (!File.Exists(pcPath)) return;
@@ -227,24 +240,6 @@ public class EscapeMenu : MonoBehaviour
             PointCloudIO.ImportPointCloud(pcPath);
 
         Resume();
-    }
-
-    public void ChangeMocapSteps(float _steps)
-    {
-        int steps = Mathf.RoundToInt(_steps);
-        fadeSteps.text = "Trail steps: " + steps;
-        CustomAnimationPlayer.fadeSteps = steps;
-    }
-
-    public void ChangeMocapTime(float time)
-    {
-        fadeTime.text = "Fade time: " + time.ToString("F1") + " seconds";
-        CustomAnimationPlayer.fadeTime = time;
-    }
-
-    public void ChangeMocapTrails(bool trails)
-    {
-        CustomAnimationPlayer.trails = trails;
     }
 
     public void ChangePCImportFormat(int index)
@@ -318,12 +313,6 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Point Cloud Files (Ascii)", ".xyz", ".xyzrgb", ".ply", ".pts", ".pcd", ".asc"));
         FileBrowser.SetDefaultFilter(".xyz");
         FileBrowser.ShowLoadDialog(OnPointCloudImportSuccess, OnCancel, FileBrowser.PickMode.Files);
-    }
-
-    void OnMotionCaptureSuccess(string[] paths)
-    {
-        AnimationIO.ImportMotionCapture(paths[0]);
-        Resume();
     }
 
     void OnGeometryImportSuccess(string[] paths)
@@ -404,15 +393,33 @@ public class EscapeMenu : MonoBehaviour
         //UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.StartSubsystems();
 
         //Valve.VR.SteamVR_Settings.instance.autoEnableVR = true;
+        //ManualXRControl.StartXRCoroutine();
 
         startCamera.SetActive(false);
         vrController.SetActive(true);
+
+
+        if (GameManager.Bond == null)
+            selectBondPanel.SetActive(true);
     }
 
     public void SetFPSPlayer()
     {
         startCamera.SetActive(false);
         fpsController.SetActive(true);
+
+        if (GameManager.Bond == null)
+            selectBondPanel.SetActive(true);
+
+        try
+        {
+            UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.activeLoader.Stop();
+        }
+        catch
+        {
+            Debug.Log("No XR to stop");
+        }
+        
     }
 
     void OnCancel()

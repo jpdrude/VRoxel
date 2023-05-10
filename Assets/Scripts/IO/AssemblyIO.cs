@@ -559,6 +559,7 @@ public class AssemblyIO : MonoBehaviour
 
         BlockContainer.Container.ResetContainer();
         BlockContainer.Container.ResetCloudContainer();
+        GameManager.Bond = null;
         GameManager.gameTime = 0;
         //PointCloudIO.RecalculatePointCloud();
     }   

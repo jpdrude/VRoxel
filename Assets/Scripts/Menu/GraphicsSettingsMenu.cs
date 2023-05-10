@@ -11,6 +11,8 @@ public class GraphicsSettingsMenu : MonoBehaviour
     PostProcessVolume postVolume;
     [SerializeField]
     PostProcessLayer[] sceneCameraLayers;
+    [SerializeField]
+    GPUInstancerManager manager;
 
     [Space]
     [Header("Low Graphics")]
@@ -27,7 +29,7 @@ public class GraphicsSettingsMenu : MonoBehaviour
     [SerializeField]
     PostProcessProfile postProfileHigh;
 
-    Dictionary<string, bool> occlusionCulling = null;
+    float currentLODLevel = 1;
 
     private void Start()
     {
@@ -37,20 +39,10 @@ public class GraphicsSettingsMenu : MonoBehaviour
 
     public void DeactivateCulling()
     {
-        bool saveValues = false;
-
-        if (occlusionCulling == null)
-        {
-            occlusionCulling = new Dictionary<string, bool>();
-            saveValues = true;
-        }
-
         foreach (Bond b in GameManager.AvailableBonds.Values)
         {
             foreach (GPUInstancerPrefab p in b.PartPrefabs)
             {
-                if (saveValues)
-                    occlusionCulling.Add(b.BondName + p.name, p.prefabPrototype.isOcclusionCulling);
 
                 p.prefabPrototype.isOcclusionCulling = false;
             }
@@ -63,10 +55,7 @@ public class GraphicsSettingsMenu : MonoBehaviour
         {
             foreach (GPUInstancerPrefab p in b.PartPrefabs)
             {
-                if (occlusionCulling.ContainsKey(b.BondName + p.name))
-                    p.prefabPrototype.isOcclusionCulling = occlusionCulling[b.BondName + p.name];
-                else
-                    p.prefabPrototype.isOcclusionCulling = true;
+                p.prefabPrototype.isOcclusionCulling = true;
             }
         }
     }
@@ -82,9 +71,12 @@ public class GraphicsSettingsMenu : MonoBehaviour
             foreach (GPUInstancerPrefab p in b.PartPrefabs)
             {
                 p.prefabPrototype.isShadowCasting = false;
-                p.prefabPrototype.lodBiasAdjustment = 0.6f;
+                p.prefabPrototype.isOcclusionCulling = true;
             }
         }
+
+        GPUInstancerAPI.SetLODBias(manager, 0.7f);
+        currentLODLevel = 0.7f;
 
         foreach (PostProcessLayer layer in sceneCameraLayers)
             layer.antialiasingMode = PostProcessLayer.Antialiasing.None;
@@ -101,9 +93,11 @@ public class GraphicsSettingsMenu : MonoBehaviour
             foreach (GPUInstancerPrefab p in b.PartPrefabs)
             {
                 p.prefabPrototype.isShadowCasting = true;
-                p.prefabPrototype.lodBiasAdjustment = 1;
+                p.prefabPrototype.isOcclusionCulling = true;
             }
         }
+
+        GPUInstancerAPI.SetLODBias(manager, 1f);
 
         foreach (PostProcessLayer layer in sceneCameraLayers)
             layer.antialiasingMode = PostProcessLayer.Antialiasing.FastApproximateAntialiasing;
@@ -120,10 +114,16 @@ public class GraphicsSettingsMenu : MonoBehaviour
         {
             foreach (GPUInstancerPrefab p in b.PartPrefabs)
             {
+                if (p.prefabPrototype.name == "PointObj")
+                    continue;
+
                 p.prefabPrototype.isShadowCasting = true;
-                p.prefabPrototype.lodBiasAdjustment = 2;
+                p.prefabPrototype.isOcclusionCulling = true;
             }
         }
+
+        GPUInstancerAPI.SetLODBias(manager, 2f);
+        currentLODLevel = 2;
 
         foreach (PostProcessLayer layer in sceneCameraLayers)
         {
@@ -132,5 +132,15 @@ public class GraphicsSettingsMenu : MonoBehaviour
             else
                 layer.antialiasingMode = PostProcessLayer.Antialiasing.TemporalAntialiasing;
         }
+    }
+
+    public void SetAllLOD0()
+    {
+        GPUInstancerAPI.SetLODBias(manager, 100f);
+    }
+
+    public void ResetLOD()
+    {
+        GPUInstancerAPI.SetLODBias(manager, currentLODLevel);
     }
 }

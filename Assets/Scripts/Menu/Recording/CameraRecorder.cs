@@ -139,10 +139,6 @@ public class CameraRecorder : MonoBehaviour
             if (Vector3.Distance(camPositions[camPositions.Count - 1], transform.position) > 1 || 
                 Quaternion.Angle(camRotations[camRotations.Count - 1], transform.rotation) > 30)
             {
-                Debug.Log("Clearing Recording! Posiiton Offset: " +
-                    Vector3.Distance(camPositions[camPositions.Count - 1], transform.position) + " Rotation Angle: " + 
-                    Quaternion.Angle(camRotations[camRotations.Count - 1], transform.rotation));
-
                 camPositions.Clear();
                 camRotations.Clear();
 

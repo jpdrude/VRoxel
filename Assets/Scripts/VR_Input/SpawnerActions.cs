@@ -40,6 +40,9 @@ public class SpawnerActions : MonoBehaviour
     {
         if (BlockContainer.Container == null) return;
 
+        if (trigger.GetStateDown(mainInputSource))
+            OnTriggerDown();
+
         if (trigger.GetState(mainInputSource))
             OnTrigger();
 
@@ -69,6 +72,7 @@ public class SpawnerActions : MonoBehaviour
     }
 
     public virtual void OnTrigger() { }
+    public virtual void OnTriggerDown() { }
     public virtual void OnTriggerUp() { }
     public virtual void OnQuickSwitchDown() { }
     public virtual void DPadInputPressed(bool _up, bool _down, bool _left, bool _right) { }

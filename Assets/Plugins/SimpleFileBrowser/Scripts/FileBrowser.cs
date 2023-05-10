@@ -2750,6 +2750,9 @@ namespace SimpleFileBrowser
 
 			Instance.Show( initialPath, initialFilename );
 
+			Instance.fixTransformToggle.gameObject.SetActive(false);
+			Instance.loadAsPointCloudToggle.gameObject.SetActive(false);
+
 			return true;
 		}
 

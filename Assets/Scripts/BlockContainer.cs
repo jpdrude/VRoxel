@@ -392,6 +392,16 @@ public class BlockContainer
         GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, parts[blockType].prefabPrototype, transformArray[blockType]);
     }
 
+    public int GetCloudCount()
+    {
+
+        int counter = 0;
+        for (int i = 0; i < cloudTransformArray.Length; ++i)
+            counter += cloudTransformArray[i].Length - cloudIndexStack[i].Count;
+
+        return counter;
+    }
+
     public int GetCount()
     {
         return blockDictionary.Count;

@@ -5,15 +5,17 @@ using UnityEngine;
 public class TrailBehaviour : MonoBehaviour
 {
     float timer = 0;
-    Renderer body;
+    List<Renderer> body;
     float startFade;
     float lifeTime;
     Color startCol;
     Color endCol;
 
-    public void Initialize(Renderer _body, Renderer joints, Material fadeMat, float _startFade, float _lifeTime)
+    public void Initialize(List<Renderer> _body, List<Renderer> joints, Material fadeMat, float _startFade, float _lifeTime)
     {
-        Destroy(joints);
+        foreach(Renderer joint in joints)
+            Destroy(joint);
+
         body = _body;
         lifeTime = _lifeTime;
         startFade = _startFade;
@@ -23,11 +25,14 @@ public class TrailBehaviour : MonoBehaviour
 
     public void SetAsTrail(float fade, Material fadeMat)
     {
-        body.material = fadeMat;
+        foreach (Renderer renderer in body)
+        {
+            renderer.material = fadeMat;
 
-        startCol = body.material.color;
-        startCol.a = fade;
-        body.material.color = startCol;
+            startCol = renderer.material.color;
+            startCol.a = fade;
+            renderer.material.color = startCol;
+        }
 
         endCol = startCol;
         endCol.a = 0;
@@ -41,7 +46,9 @@ public class TrailBehaviour : MonoBehaviour
             return;
         }
 
-        body.material.color = Color.Lerp(startCol, endCol, timer / lifeTime);
+        foreach (Renderer renderer in body)
+            renderer.material.color = Color.Lerp(startCol, endCol, timer / lifeTime);
+
         timer += Time.deltaTime;
     }
 }

@@ -34,7 +34,8 @@ public class SteamVR_AssemblySpawner : SpawnerActions
     SpawnCubeBehaviour cubeBehaviour;
     float scaleSpeed = 0.1f;
 
-    SteamVR_PointCloudSelector selector;
+    SteamVR_PointCloudSelector cloudSelector;
+    SteamVR_CharacterPointer characterPointer;
 
     VRPlacementMode mode = VRPlacementMode.SpawnInSphere;
     public VRPlacementMode Mode
@@ -44,7 +45,8 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         {
             mode = value;
             enabled = true;
-            selector.Disable();
+            cloudSelector.Disable();
+            characterPointer.Disable();
 
             if (mode == VRPlacementMode.SpawnInSphere)
             {
@@ -125,7 +127,8 @@ public class SteamVR_AssemblySpawner : SpawnerActions
 
     private void Awake()
     {
-        selector = GetComponent<SteamVR_PointCloudSelector>();
+        cloudSelector = GetComponent<SteamVR_PointCloudSelector>();
+        characterPointer = GetComponent<SteamVR_CharacterPointer>();
         cubeBehaviour = GetComponentInChildren<SpawnCubeBehaviour>(true);
     }
 
@@ -429,7 +432,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
 
     public void UpdateBrushScale()
     {
-        if (brushes[brushIndex] != null)
+        if (brushes.Count > 0 && brushes[brushIndex] != null)
             brushes[brushIndex].transform.localScale = brushScales[brushIndex];
     }
 

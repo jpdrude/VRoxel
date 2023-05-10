@@ -115,6 +115,12 @@ public class PointCloudIO : MonoBehaviour
 
         Array.Copy(cloudViewer.points, loadedPoints, loadedPoints.Length);
         Array.Copy(cloudViewer.pointColors, loadedColors, loadedColors.Length);
+
+        Debug.Log("Point Cload loaded. BlockContainer has " + BlockContainer.Container.GetCloudCount() + " blocks to add to cloud");
+        
+        if (BlockContainer.Container.GetCloudCount() > 0)
+            RecalculatePointCloud();
+        
     }
 
     static void OnRuntimeViewerLoad(string fileName)
@@ -124,6 +130,12 @@ public class PointCloudIO : MonoBehaviour
 
         Array.Copy(runtimeViewer.Points, loadedPoints, loadedPoints.Length);
         Array.Copy(runtimeViewer.PointColors, loadedColors, loadedColors.Length);
+
+        Debug.Log("Point Cload loaded. BlockContainer has " + BlockContainer.Container.GetCloudCount() + " blocks to add to cloud");
+        
+        if (BlockContainer.Container.GetCloudCount() > 0)
+            RecalculatePointCloud();
+        
     }
 
     static void ResetPointCloudViewer()

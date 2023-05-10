@@ -101,6 +101,7 @@ public class RecordMenu : MonoBehaviour
         targetSpawner.SetActive(false);
         messagePanel.SetActive(false);
         graphicsMenu.DeactivateCulling();
+        graphicsMenu.SetAllLOD0();
 
         escapeMenu.enabled = false;
         recorder.PlayRecording(true, true, paths[0]);
@@ -112,6 +113,7 @@ public class RecordMenu : MonoBehaviour
         targetSpawner.SetActive(true);
         messagePanel.SetActive(true);
         escapeMenu.enabled = true;
+        graphicsMenu.ResetLOD();
 
         graphicsMenu.ActivateCulling();
     }

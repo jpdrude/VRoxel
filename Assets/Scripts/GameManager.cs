@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     GPUInstancerPrefabManager GPUIPrefabManager;
 
-    static Bond _bond;
+    static Bond _bond = null;
     public static Bond Bond { 
         get 
         { 
@@ -18,7 +18,9 @@ public class GameManager : MonoBehaviour
         set 
         { 
             _bond = value;
-            _bond.Initialize(); 
+
+            if (_bond != null)
+                _bond.Initialize(); 
         } 
     }
 

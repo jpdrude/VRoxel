@@ -39,6 +39,9 @@ public class TargetSpawner : MonoBehaviour
     Material spawnerMaterial;
 
     [SerializeField]
+    GameObject messagePanel;
+
+    [SerializeField]
     List<TMP_InputField> inputs;
 
     float radius = 0.15f;
@@ -51,8 +54,9 @@ public class TargetSpawner : MonoBehaviour
     List<Vector3> brushScales = new List<Vector3>();
     int brushIndex;
 
-
     float epsilon = 0.000001f;
+
+    bool interfaceVisible = true;
 
     PlacementVolume placement;
     PlacementVolume Placement
@@ -107,14 +111,29 @@ public class TargetSpawner : MonoBehaviour
     {
         if (BlockContainer.Container == null) return;
 
+        if (Input.GetKeyDown(KeyCode.H))
+            HideMenuToggle();
+
+        if (!interfaceVisible) return;
+
         CheckMovement();
         CheckScale(scaleVector);
         CheckSpawn();
 
-        if (Input.GetKeyDown(KeyCode.H))
-            interfacePanel.SetActive(!interfacePanel.activeSelf);
-
         MessageSystem.DisplayPermanentMessage(BlockContainer.Container.GetCount() + " Blocks placed");
+    }
+
+    void HideMenuToggle()
+    {
+        interfaceVisible = !interfaceVisible;
+        
+        interfacePanel.SetActive(interfaceVisible);
+        messagePanel.SetActive(interfaceVisible);
+
+        if (!interfaceVisible)
+            HideAllBrushes();
+        else
+            ShowCurrentBrush();
     }
 
     public void AddBrush(GameObject mesh)
@@ -156,6 +175,19 @@ public class TargetSpawner : MonoBehaviour
                 RemoveBlocksInBrush();
         }
             
+    }
+
+    void HideAllBrushes()
+    {
+        sphere.SetActive(false);
+        box.SetActive(false);
+        cylinder.SetActive(false);
+        DeactivateAllMeshes();
+    }
+
+    void ShowCurrentBrush()
+    {
+        Placement = placement;
     }
 
     public void SetPlacementVolume(int volume)
