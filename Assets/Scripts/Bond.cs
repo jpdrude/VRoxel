@@ -410,6 +410,98 @@ public class Bond : MonoBehaviour
         return _blockTransforms;
     }
 
+    public Matrix4x4[][] GetBlocksInCapsule(Vector3 positionA, Vector3 positionB, float radius, out PositionKey[][] _blockDictKeys)
+    {
+        Vector3 min = positionA;
+        if (positionB.x < min.x) min.x = positionB.x;
+        if (positionB.y < min.y) min.y = positionB.y;
+        if (positionB.z < min.z) min.z = positionB.z;
+        min -= Vector3.one * radius;
+
+        Vector3 max = positionB;
+        if (positionA.x > max.x) max.x = positionA.x;
+        if (positionA.y > max.y) max.y = positionA.y;
+        if (positionA.z > max.z) max.z = positionA.z;
+        max += Vector3.one * radius;
+
+        Vector3Int minInt = GetBondBaseInt(min);
+        Vector3 maxScaled = max * 10000;
+
+        if (maxScaled.x - minInt.x < xSize * XIntSpacing)
+            maxScaled.x = minInt.x + xSize * XIntSpacing * 1.1f;
+        if (maxScaled.y - minInt.y < ySize * YIntSpacing)
+            maxScaled.y = minInt.y + ySize * YIntSpacing * 1.1f;
+        if (maxScaled.z - minInt.z < zSize * ZIntSpacing)
+            maxScaled.z = minInt.z + zSize * ZIntSpacing * 1.1f;
+
+        maxScaled += new Vector3(xSize * XIntSpacing * maxExtend.x, ySize * YIntSpacing * maxExtend.y, zSize * ZIntSpacing * maxExtend.z);
+
+        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
+        List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            blockTransforms[i] = new List<Matrix4x4>();
+            blockDictKeys[i] = new List<PositionKey>();
+        }
+
+        for (int x = minInt.x; x < maxScaled.x; x += xSize * XIntSpacing)
+        {
+            for (int y = minInt.y; y < maxScaled.y; y += ySize * YIntSpacing)
+            {
+                for (int z = minInt.z; z < maxScaled.z; z += zSize * ZIntSpacing)
+                {
+                    for (int i = 0; i < blocks.Length; ++i)
+                    {
+                        for (int j = 0; j < blocks[i].Length; ++j)
+                        {
+                            Transform block = blocks[i][j];
+                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
+
+                            bool inCylinder = Vector3.Distance(blockPosition, NearestPointOnLine(positionA, positionB, blockPosition)) < radius;
+
+                            if (inCylinder)
+                            {
+                                blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one));
+                                Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
+                                blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Matrix4x4[][] _blockTransforms = new Matrix4x4[blocks.Length][];
+        _blockDictKeys = new PositionKey[blocks.Length][];
+
+        for (int i = 0; i < blockTransforms.Length; ++i)
+        {
+            _blockTransforms[i] = blockTransforms[i].ToArray();
+            _blockDictKeys[i] = blockDictKeys[i].ToArray();
+        }
+
+        return _blockTransforms;
+    }
+
+    public static Vector3 NearestPointOnLine(Vector3 lineStart, Vector3 lineEnd, Vector3 pnt)
+    {
+        Vector3 lineDir = lineEnd - lineStart;
+        lineDir.Normalize();
+        var v = pnt - lineStart;
+        var d = Vector3.Dot(v, lineDir);
+
+        Vector3 cp = lineStart + lineDir * d;
+
+        if (Vector3.Distance(lineStart, lineEnd) < Vector3.Distance(lineStart, cp))
+            cp = lineEnd;
+
+        if (Vector3.Distance(lineEnd, lineStart) < Vector3.Distance(lineEnd, cp))
+            cp = lineStart;
+
+        return cp;
+    }
+
     public Matrix4x4[][] GetBlocksInMesh(Collider mesh, out PositionKey[][] _blockDictKeys)
     {
         Vector3Int minInt = GetBondBaseInt(mesh.bounds.min);

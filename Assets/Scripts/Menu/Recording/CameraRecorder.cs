@@ -84,6 +84,7 @@ public class CameraRecorder : MonoBehaviour
 
     void FinishExport()
     {
+        AnimationIO.constantAnimationTime = false;
         export = false;
         exportPath = null;
         StopPlayback();
@@ -93,6 +94,7 @@ public class CameraRecorder : MonoBehaviour
 
     void StartExport(string _path)
     {
+        AnimationIO.constantAnimationTime = true;
         exportPath = _path;
         export = true;
         ClearTempFiles();

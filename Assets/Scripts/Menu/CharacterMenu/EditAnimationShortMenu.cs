@@ -7,6 +7,7 @@ using System.Globalization;
 using Valve.Newtonsoft.Json;
 using SimpleFileBrowser;
 using System.IO;
+using UnityEngine.UI;
 
 public class EditAnimationShortMenu : MonoBehaviour
 {
@@ -19,6 +20,9 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     [SerializeField]
     CustomAnimationPlayer animationPlayer;
+
+    [SerializeField]
+    CharacterSpawner characterSpawner;
 
     [Space]
     [Header("UI Elements")]
@@ -49,9 +53,15 @@ public class EditAnimationShortMenu : MonoBehaviour
     [Space]
     [Header("Trails")]
     [SerializeField]
+    Toggle toggleStroke;
+    [SerializeField]
+    Toggle toggleShadow;
+    [SerializeField]
     TMP_InputField inputFadeSteps;
     [SerializeField]
     TMP_InputField inputFadeTime;
+    [SerializeField]
+    TMP_InputField inputStrokeLength;
 
     [Space]
     [Header("Avatar Color")]
@@ -116,6 +126,7 @@ public class EditAnimationShortMenu : MonoBehaviour
         characterObject = _characterObject;
         animationCharacter = characterObject.GetComponent<CharacterModel>();
         animationPlayer = characterObject.GetComponent<CustomAnimationPlayer>();
+        characterSpawner = characterObject.GetComponent<CharacterSpawner>();
 
         inputName.text = characterObject.name;
 
@@ -150,9 +161,15 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     void UpdateTrails()
     {
+        toggleShadow.isOn = animationPlayer.ShadowTrails;
+
+        toggleStroke.isOn = animationCharacter.StrokeTrails;
+
         inputFadeSteps.text = animationPlayer.FadeSteps.ToString();
 
         inputFadeTime.text = animationPlayer.FadeTime.ToString("F1");
+
+        inputStrokeLength.text = animationCharacter.StrokeLength.ToString("F1");
     }
 
     void UpdateSpeed()
@@ -278,6 +295,29 @@ public class EditAnimationShortMenu : MonoBehaviour
         UpdateTrim();
     }
 
+    public void SetShadowTrails(bool value)
+    {
+        animationPlayer.ShadowTrails = value;
+    }
+
+    public void SetStrokeTrails(bool value)
+    {
+        animationCharacter.SetTrails(value, animationCharacter.StrokeLength);
+    }
+
+    public void SetStrokeLength(string textValue)
+    {
+        float? value = ParseStringToFloat(textValue);
+        if (value == null)
+        {
+            inputStrokeLength.text = animationCharacter.StrokeLength.ToString("F1");
+            return;
+        }
+
+        animationCharacter.SetTrails(animationCharacter.StrokeTrails, (float)value);
+        UpdateTrails();
+    }
+
     public void SetFadeSteps(string textValue)
     {
         int value;
@@ -373,8 +413,12 @@ public class EditAnimationShortMenu : MonoBehaviour
         options.startTime = animationPlayer.AnimationStart;
         options.endTime = animationPlayer.AnimationEnd;
 
+        options.useShadowTrails = animationPlayer.ShadowTrails;
+        options.useStrokeTrails = animationCharacter.StrokeTrails;
+
         options.fadeSteps = animationPlayer.FadeSteps;
         options.fadeTime = animationPlayer.FadeTime;
+        options.strokeLength = animationCharacter.StrokeLength;
 
         options.speed = animationPlayer.Speed;
 
@@ -404,8 +448,10 @@ public class EditAnimationShortMenu : MonoBehaviour
         animationPlayer.AnimationEnd = options.endTime;
         UpdateTrim();
 
+        animationCharacter.SetTrails(options.useStrokeTrails, options.strokeLength);
         animationPlayer.FadeSteps = options.fadeSteps;
         animationPlayer.FadeTime = options.fadeTime;
+        animationPlayer.ShadowTrails = options.useShadowTrails;
         UpdateTrails();
 
         animationPlayer.Speed = options.speed;
@@ -416,6 +462,22 @@ public class EditAnimationShortMenu : MonoBehaviour
 
         SetColorSet(options.color);
         dropdownColor.value = options.color;
+    }
+
+    public void ToggleAddCharacterBrush()
+    {
+        if (!characterSpawner.AddBlocks)
+            characterSpawner.AddCharacterBrush();
+        else
+            characterSpawner.DisableCharacterBrush();
+    }
+
+    public void ToggleRemvoeCharacterBrush()
+    {
+        if (!characterSpawner.RemoveBlocks)
+            characterSpawner.RemoveCharacterBrush();
+        else
+            characterSpawner.DisableCharacterBrush();
     }
 
     float? ParseStringToFloat(string text)
@@ -449,6 +511,11 @@ public class EditAnimationShortMenu : MonoBehaviour
 
         return result;
     }
+
+    private void OnDisable()
+    {
+        characterSpawner.DisableCharacterBrush();
+    }
 }
 
 public class AnimationOptions
@@ -464,8 +531,11 @@ public class AnimationOptions
     public float startTime;
     public float endTime;
 
+    public bool useStrokeTrails;
+    public bool useShadowTrails;
     public int fadeSteps;
     public float fadeTime;
+    public float strokeLength;
 
     public float speed;
 

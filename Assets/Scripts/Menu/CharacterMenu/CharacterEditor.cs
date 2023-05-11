@@ -67,6 +67,12 @@ public class CharacterEditor : MonoBehaviour
     Slider sliderTrailTime;
     [SerializeField]
     Text labelTrailTime;
+    [SerializeField]
+    Toggle toggleUseBrushTrails;
+    [SerializeField]
+    Slider sliderBrushStrokeLength;
+    [SerializeField]
+    Text labelBrushStrokeLength;
 
     [Space]
     [Header("Color")]
@@ -175,9 +181,12 @@ public class CharacterEditor : MonoBehaviour
         inputAnkleHeight.text = characterOptions.bodyDimensions.ankleHeight.ToString("F1") + " cm";
         inputSoleThickness.text = characterOptions.bodyDimensions.extraShowSoleThickness.ToString("F1") + " cm";
 
-        sliderTrailSteps.value = characterOptions.trailSteps;
-        sliderTrailTime.value = characterOptions.trailTime;
+        SetTrailSteps(characterOptions.trailSteps);
+        SetTrailTime(characterOptions.trailTime);
         toggleUseTrails.isOn = characterOptions.useMotionTrails;
+
+        SetBrushStrokeLength(characterOptions.strokeLength);
+        toggleUseBrushTrails.isOn = characterOptions.useBrushStrokes;
 
         dropdownColorSets.value = characterOptions.colorSet;
         SetUnitDropdownFromValue(characterOptions.unitFactor);
@@ -325,6 +334,19 @@ public class CharacterEditor : MonoBehaviour
     {
         characterOptions.trailTime = time;
         labelTrailTime.text = "Fade Time:\n" + time.ToString("F1") + " seconds";
+    }
+
+    public void SetBrushStrokes(bool state)
+    {
+        characterOptions.useBrushStrokes = state;
+
+        sliderBrushStrokeLength.interactable = state;
+    }
+
+    public void SetBrushStrokeLength(float length)
+    {
+        characterOptions.strokeLength = length;
+        labelBrushStrokeLength.text = "Stroke length;\n" + length.ToString("F1") + " seconds";
     }
 
     public void SetSimpleDimensions(bool state)
@@ -629,9 +651,13 @@ public class CharacterOptions
     public AvatarDimensions bodyDimensions = new AvatarDimensions();
 
     [Space]
-    public bool useMotionTrails = true;
+    public bool useMotionTrails = false;
     public int trailSteps = 5;
     public float trailTime = 10;
+
+    [Space]
+    public bool useBrushStrokes = true;
+    public float strokeLength = 5;
 
     [Space]
     public int colorSet = 0;
@@ -646,4 +672,5 @@ public class CharacterColorSet
     public Material mainColor;
     public Material secondaryColor;
     public Material fadeColor;
+    public Material strokeColor;
 }

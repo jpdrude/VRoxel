@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class CustomAnimationPlayer : MonoBehaviour
 {
@@ -61,7 +62,6 @@ public class CustomAnimationPlayer : MonoBehaviour
     Transform Neck;
     [SerializeField]
     Transform Head;
-    
 
 
     [Space]
@@ -80,7 +80,8 @@ public class CustomAnimationPlayer : MonoBehaviour
     [Header("Trails")]
     [SerializeField]
     float startFade = 0.5f;
-    bool trails = true;
+    bool shadowTrails = true;
+    public bool ShadowTrails { get { return shadowTrails; } set { shadowTrails = value; } }
     int fadeSteps = 5;
     public int FadeSteps
     {
@@ -91,15 +92,12 @@ public class CustomAnimationPlayer : MonoBehaviour
             if (fadeSteps <= 0)
             {
                 fadeSteps = 0;
-                trails = false;
+                shadowTrails = false;
             }
             else if (fadeSteps > 25 && fadeTime > 0.1f)
             {
                 fadeSteps = 25;
-                trails = true;
             }
-            else if (fadeTime > 0.1f)
-                trails = true;
         }
     }
     float fadeTime = 10;
@@ -112,11 +110,7 @@ public class CustomAnimationPlayer : MonoBehaviour
             if (fadeTime < 0)
             {
                 fadeTime = 0;
-                trails = false;
-            }
-            else if (fadeSteps > 0)
-            {
-                trails = true;
+                shadowTrails = false;
             }
         }
     }
@@ -125,12 +119,12 @@ public class CustomAnimationPlayer : MonoBehaviour
     [Space]
     [Header("Trim Animation")]
     [SerializeField]
-    float animationStart = 0;
+    float animationStart;
     public float AnimationStart 
     { 
         get { return animationStart; } 
         set 
-        { 
+        {
             if (value < animation["Hips"]["localRotation.x"].length / frameRate)
             {
                 animationStart = value;
@@ -138,6 +132,8 @@ public class CustomAnimationPlayer : MonoBehaviour
                 if (timer < animationStart)
                     timer = animationStart;
             }
+            else if (value < 1.0f / frameRate)
+                animationStart = 1.0f / frameRate;
         } 
     }
     [SerializeField]
@@ -158,7 +154,7 @@ public class CustomAnimationPlayer : MonoBehaviour
     }
 
     [Space]
-    [Header("Animation Spped")]
+    [Header("Animation Speed")]
     [SerializeField]
     float speed = 1;
     public float Speed
@@ -179,10 +175,15 @@ public class CustomAnimationPlayer : MonoBehaviour
     [SerializeField]
     CharacterModel characterModel;
 
+    [Space]
+    [Header("Events")]
+    [SerializeField]
+    UnityEvent OnLoopBegin = new UnityEvent();
+
     Dictionary<string, Dictionary<string, AnimationCurve>> animation = null;
     float frameRate = 0;
 
-    float timer = 0;
+    float timer = 0.1f;
     float trailTimer = 0;
 
     float unitFactor = 1;
@@ -197,11 +198,12 @@ public class CustomAnimationPlayer : MonoBehaviour
         //Debug.Log("Curves Set");
 
         animationEnd = animation["Hips"]["localRotation.x"].length / frameRate;
+        animationStart = 1.0f / frameRate;
     }
 
     public void SetTrails(bool _trails, int _fadeSteps, float _fadeTime)
     {
-        trails = _trails;
+        shadowTrails = _trails;
         fadeSteps = _fadeSteps;
         fadeTime = _fadeTime;
     }
@@ -247,17 +249,27 @@ public class CustomAnimationPlayer : MonoBehaviour
 
         CheckTrails();
 
-        timer += Time.deltaTime * speed;
-        trailTimer += Time.deltaTime;
-
+        if (!AnimationIO.constantAnimationTime)
+        {
+            timer += Time.deltaTime * speed;
+            trailTimer += Time.deltaTime;
+        }
+        else
+        {
+            timer += 1f / AnimationIO.animationFrameRate * speed;
+            trailTimer += 1f / AnimationIO.animationFrameRate;
+        }
 
         if (timer > animationEnd)
+        {
             timer = animationStart;
+            OnLoopBegin.Invoke();
+        }   
     }
 
     public void CheckTrails()
     {
-        if (!trails) return;
+        if (!shadowTrails) return;
 
         if (trailTimer < fadeTime / fadeSteps) return;
 

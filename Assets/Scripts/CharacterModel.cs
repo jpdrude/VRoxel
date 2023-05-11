@@ -64,19 +64,13 @@ public class CharacterModel : MonoBehaviour
     Transform Head;
 
     [Space]
-    [Space]
-    [Space]
     [SerializeField]
     AvatarDimensions bodyDimensions;
 
     [Space]
-    [Space]
-    [Space]
     [SerializeField]
     AvatarDimensions avatarDimensions = new AvatarDimensions();
 
-    [Space]
-    [Space]
     [Space]
     [Header("Blend Shapes")]
     [SerializeField]
@@ -95,7 +89,13 @@ public class CharacterModel : MonoBehaviour
     SkinnedMeshRenderer neckSkinB;
 
     [Space]
-    [Space]
+    [Header("TrailBrushes")]
+    [SerializeField]
+    List<LineRenderer> trailBrushes;
+
+    public bool StrokeTrails { get; private set; }
+    public float StrokeLength { get; private set; }
+
     [Space]
     [Header("Setup")]
     [SerializeField]
@@ -163,7 +163,29 @@ public class CharacterModel : MonoBehaviour
 
         animationPlayer.FadeMaterial = colorSet.fadeColor;
 
+        foreach (LineRenderer lr in trailBrushes)
+            lr.material = colorSet.strokeColor;
+
         CurrentColorSet = colorSet;
+    }
+
+    public void SetTrails(bool trailsActive, float strokeLength)
+    {
+        if (strokeLength < 0) return;
+
+        StrokeTrails = trailsActive;
+        StrokeLength = strokeLength;
+
+        foreach (LineRenderer lr in trailBrushes)
+        {
+            if (!trailsActive)
+                lr.gameObject.SetActive(false);
+            else
+            {
+                lr.gameObject.SetActive(true);
+                lr.gameObject.GetComponent<AnimationTrailBrush>().StrokeLength = strokeLength;
+            }
+        }
     }
 
     void ResetSkeleton()

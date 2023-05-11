@@ -36,6 +36,9 @@ public class AnimationIO : MonoBehaviour
     static DateTime importStep;
     static bool isImporting = false;
 
+    public static bool constantAnimationTime = false;
+    public static int animationFrameRate = 30;
+         
     private void Start()
     {
         options = _options;
@@ -124,6 +127,7 @@ public class AnimationIO : MonoBehaviour
 
         var avatarInstance = Instantiate(avatar);
         avatarInstance.GetComponent<CharacterModel>().InitializeAvatar(characterOptions.bodyDimensions, CharacterEditor.ColorSets[characterOptions.colorSet]);
+        avatarInstance.GetComponent<CharacterModel>().SetTrails(characterOptions.useBrushStrokes, characterOptions.strokeLength);
         avatarInstance.GetComponent<CustomAnimationPlayer>().SetAnimation(animation, loadAnimations[0].FrameRate);
         avatarInstance.GetComponent<CustomAnimationPlayer>().SetTrails(characterOptions.useMotionTrails, characterOptions.trailSteps, characterOptions.trailTime);
         avatarInstance.GetComponent<CustomAnimationPlayer>().UnitFactor = characterOptions.unitFactor;
