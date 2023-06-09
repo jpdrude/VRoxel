@@ -27,7 +27,7 @@ public class PositionAvatar : MonoBehaviour
             if (pickUpPosition == null)
                 pickUpPosition = pickupCharacter.transform.position;
 
-            pickupCharacter.GetComponent<CustomAnimationPlayer>().PauseAnimation();
+            pickupCharacter.GetComponent<CustomAnimationPlayer>().PauseAnimation(true);
             pickupCharacter.transform.position = transform.position;
         }
         else if (setDirection)

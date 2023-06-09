@@ -8,6 +8,11 @@ using System.IO;
 public class CameraRecorder : MonoBehaviour
 {
     [SerializeField]
+    int width = 3840;
+    [SerializeField]
+    int height = 2160;
+
+    [SerializeField]
     bool record = false;
     public bool Record { get { return record; } }
 
@@ -38,6 +43,8 @@ public class CameraRecorder : MonoBehaviour
     int playbackPosition;
 
     float recordTimer = 1;
+
+    int frameCounter;
 
     // Start is called before the first frame update
     void Start()
@@ -80,6 +87,7 @@ public class CameraRecorder : MonoBehaviour
                 SaveFrame();
         }
 
+        ++frameCounter;
     }
 
     void FinishExport()
@@ -114,6 +122,78 @@ public class CameraRecorder : MonoBehaviour
 
         frameImgs.Add(path);
         ScreenCapture.CaptureScreenshot(path);
+    }
+
+    public void StartScreenshotCoroutine(string path)
+    {
+        frameCounter = 0;
+        StartCoroutine(CaptureScreenshot(path));
+    }
+
+    public IEnumerator CaptureScreenshot(string path)
+    {
+        if (!Directory.Exists(Path.GetDirectoryName(path)))
+        {
+            ExportFinished.Invoke();
+            yield break;
+        }
+
+        RenderTexture renderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
+        renderTexture.antiAliasing = 8;
+        GetComponent<Camera>().targetTexture = renderTexture;
+
+        yield return new WaitWhile(() => frameCounter < 3);
+
+        if (File.Exists(path))
+            File.Delete(path);
+
+        RenderTexture.active = renderTexture;
+
+        Texture2D tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+        tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        tex.Apply();
+
+        //ApplyGammaCorrection(tex);
+
+        byte[] bytes = tex.EncodeToJPG();
+        File.WriteAllBytes(path, bytes);
+
+        RenderTexture.active = null;
+        GetComponent<Camera>().targetTexture = null;
+        Destroy(renderTexture);
+
+        yield return new WaitWhile(() => frameCounter < 5);
+
+        ExportFinished.Invoke();
+    }
+
+    void ApplyGammaCorrection(Texture2D texture)
+    {
+        //float gamma = 2.2f;
+        float gamma = 1 / 2.2f;
+
+        // Get the pixel data from the source texture
+        Color[] sourcePixels = texture.GetPixels();
+
+        // Create a new array to store the gamma-corrected pixels
+        Color[] targetPixels = new Color[sourcePixels.Length];
+
+        // Apply gamma correction to each pixel
+        for (int i = 0; i < sourcePixels.Length; i++)
+        {
+            Color sourcePixel = sourcePixels[i];
+            Color targetPixel = new Color(
+                Mathf.Pow(sourcePixel.r, gamma),
+                Mathf.Pow(sourcePixel.g, gamma),
+                Mathf.Pow(sourcePixel.b, gamma),
+                sourcePixel.a
+            );
+            targetPixels[i] = targetPixel;
+        }
+
+        // Set the gamma-corrected pixels to the target texture
+        texture.SetPixels(targetPixels);
+        texture.Apply();
     }
 
     void ClearTempFiles()

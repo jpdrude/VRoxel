@@ -112,8 +112,7 @@ public class EscapeMenu : MonoBehaviour
 
     public void ClearAssembly()
     {
-        BlockContainer.Container.ResetContainer();
-        PointCloudIO.RecalculatePointCloud();
+        GameManager.Manager.ClearAssembly();
 
         Resume();
         selectBondPanel.SetActive(true);

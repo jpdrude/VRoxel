@@ -84,4 +84,10 @@ public class GameManager : MonoBehaviour
 
         actionSet.Activate();
     }
+
+    public void ClearAssembly()
+    {
+        BlockContainer.Container.ResetContainer();
+        PointCloudIO.RecalculatePointCloud();
+    }
 }

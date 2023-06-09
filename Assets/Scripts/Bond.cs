@@ -539,7 +539,7 @@ public class Bond : MonoBehaviour
                             Transform block = blocks[i][j];
                             Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
 
-                            if (PointInMesh(blockPosition, rayLength))
+                            if (PointInMesh(blockPosition, rayLength, Vector3.right) && PointInMesh(blockPosition, rayLength, Vector3.forward) && PointInMesh(blockPosition, rayLength, Vector3.up))
                             {
                                 blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one));
                                 Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
@@ -563,17 +563,17 @@ public class Bond : MonoBehaviour
         return _blockTransforms;
     }
 
-    bool PointInMesh(Vector3 pos, float rayLength)
+    bool PointInMesh(Vector3 pos, float rayLength, Vector3 rayDirection)
     {
         Physics.queriesHitBackfaces = true;
-        Ray ray = new Ray(pos, Vector3.right);
+        Ray ray = new Ray(pos, rayDirection);
         RaycastHit hit;
         int hits = 0;
 
         while (true)
         {
             Physics.Raycast(ray, out hit, rayLength, layerMask);
-            if (hit.collider == null || hit.collider.gameObject.tag != "MeshSpawner")
+            if (hit.collider == null)
                 break;
             else if (hit.collider != null && hit.collider.gameObject.tag != "MeshSpawner")
             {
@@ -581,7 +581,7 @@ public class Bond : MonoBehaviour
             }
   
             ++hits;
-            ray = new Ray(hit.point + Vector3.right * 0.0001f, Vector3.right);
+            ray = new Ray(hit.point + rayDirection * 0.0001f, rayDirection);
         }
 
 

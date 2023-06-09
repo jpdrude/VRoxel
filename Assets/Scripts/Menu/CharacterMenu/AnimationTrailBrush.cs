@@ -21,9 +21,14 @@ public class AnimationTrailBrush : MonoBehaviour
 
     bool loopBegin = true;
 
+    [SerializeField]
+    bool pause = false;
+
     // Update is called once per frame
     void Update()
     {
+        if (pause) return;
+
         if (loopBegin)
         {
             controlPoints.Clear();
@@ -51,6 +56,12 @@ public class AnimationTrailBrush : MonoBehaviour
 
         timer += Time.deltaTime;
     }
+
+    public void PauseStroke(bool value)
+    {
+        pause = value;
+    }
+
 
     public void ResetStroke()
     {

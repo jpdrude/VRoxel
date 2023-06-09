@@ -74,7 +74,7 @@ public class CustomAnimationPlayer : MonoBehaviour
     public float RotationOffset { get { return rotationOffset; } set { rotationOffset = value; } }
     [SerializeField]
     bool pauseAnimation;
-    public bool PauseAnimationState { get { return pauseAnimation; } set { pauseAnimation = value; } }
+    public bool PauseAnimationState { get { return pauseAnimation; } }
     
     [Space]
     [Header("Trails")]
@@ -179,11 +179,14 @@ public class CustomAnimationPlayer : MonoBehaviour
     [Header("Events")]
     [SerializeField]
     UnityEvent OnLoopBegin = new UnityEvent();
+    [SerializeField]
+    UnityEvent<bool> OnPause = new UnityEvent<bool>();
 
     Dictionary<string, Dictionary<string, AnimationCurve>> animation = null;
     float frameRate = 0;
 
     float timer = 0.1f;
+    public float Timer { get { return timer; } }
     float trailTimer = 0;
 
     float unitFactor = 1;
@@ -208,15 +211,12 @@ public class CustomAnimationPlayer : MonoBehaviour
         fadeTime = _fadeTime;
     }
 
-    public void PauseAnimation()
+    public void PauseAnimation(bool state)
     {
-        pauseAnimation = true;
+        pauseAnimation = state;
+        OnPause.Invoke(state);
     }
 
-    public void ResumeAnimation()
-    {
-        pauseAnimation = false;
-    }
 
     public void SetOffset(Vector3 newPos, float angle)
     {
@@ -232,7 +232,7 @@ public class CustomAnimationPlayer : MonoBehaviour
         pauseAnimation = false;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (animation == null)
         {
@@ -364,5 +364,34 @@ public class CustomAnimationPlayer : MonoBehaviour
         localRot.w = animation[jointName]["localRotation.w"].Evaluate(time);
 
         jointTransform.Rotate(localRot.eulerAngles.x, localRot.eulerAngles.y, localRot.eulerAngles.z);
+    }
+
+    public (Transform rightUpLeg, Transform rightLeg, Transform rightFoot, Transform rightToesBase) GetRightLeg()
+    {
+        (Transform rightUpLeg, Transform rightLeg, Transform rightFoot, Transform rightToesBase) leg;
+
+        leg.rightUpLeg = RightUpLeg;
+        leg.rightLeg = RightLeg;
+        leg.rightFoot = RightFoot;
+        leg.rightToesBase = RightToeBase;
+
+        return leg;
+    }
+
+    public (Transform leftUpLeg, Transform leftLeg, Transform leftFoot, Transform leftToesBase) GetLeftLeg()
+    {
+        (Transform leftUpLeg, Transform leftLeg, Transform leftFoot, Transform leftToesBase) leg;
+
+        leg.leftUpLeg = LeftUpLeg;
+        leg.leftLeg = LeftLeg;
+        leg.leftFoot = LeftFoot;
+        leg.leftToesBase = LeftToeBase;
+
+        return leg;
+    }
+
+    public Transform GetHips()
+    {
+        return Hips;
     }
 }

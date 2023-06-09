@@ -67,7 +67,7 @@ public class CharacterPointerBehaviour : MonoBehaviour
     {
         if (focusCharacter != null && pickupCharacter == null)
         {
-            focusCharacter.PauseAnimation();
+            focusCharacter.PauseAnimation(true);
             pickupCharacter = focusCharacter.gameObject;
             currentLayerMask = layerMaskFloor;
             pickupPosition = pickupCharacter.transform.position;
@@ -90,7 +90,7 @@ public class CharacterPointerBehaviour : MonoBehaviour
         else if (focusPoint == null)
         {
             if (pickupCharacter != null)
-                pickupCharacter.GetComponent<CustomAnimationPlayer>().ResumeAnimation();
+                pickupCharacter.GetComponent<CustomAnimationPlayer>().PauseAnimation(false);
 
             pickupCharacter = null;
             currentLayerMask = layerMaskCharacter;

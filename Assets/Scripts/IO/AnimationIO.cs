@@ -12,12 +12,17 @@ using UnityEngine.Animations;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using Valve.Newtonsoft.Json;
 
 public class AnimationIO : MonoBehaviour
 {
     [SerializeField]
     GameObject _avatar;
     static GameObject avatar;
+
+    [SerializeField]
+    GameObject _wheelchairAvatar;
+    static GameObject wheelchairAvatar;
 
     static CharacterOptions characterOptions;
 
@@ -38,17 +43,20 @@ public class AnimationIO : MonoBehaviour
 
     public static bool constantAnimationTime = false;
     public static int animationFrameRate = 30;
+
+    static WheelchairMovement wheelchairMovement;
          
     private void Start()
     {
         options = _options;
         avatar = _avatar;
+        wheelchairAvatar = _wheelchairAvatar;
 
         editAnimationMenu = _editAnimationMenu;
         editAnimationParent = _editAnimationParent;
     }
 
-    public static void ImportMotionCapture(string path, CharacterOptions _characterOptions)
+    public static void ImportMotionCapture(string path, CharacterOptions _characterOptions, bool wheelchair = false)
     {
         characterOptions = _characterOptions;
 
@@ -62,7 +70,11 @@ public class AnimationIO : MonoBehaviour
         isImporting = true;
 
         importStep = DateTime.Now;
-        AssetLoader.LoadModelFromFile(path, OnMotionCaptureImportFinished, null, OnImportProgress, OnImportError, null, options);
+
+        if (wheelchair)
+            AssetLoader.LoadModelFromFile(path, OnWheelchairMocapImportFinished, null, OnImportProgress, OnImportError, null, options);
+        else
+            AssetLoader.LoadModelFromFile(path, OnMocapImportFinished, null, OnImportProgress, OnImportError, null, options);
 
         //GetFBXStartTimeAsync(path);
     }
@@ -106,7 +118,7 @@ public class AnimationIO : MonoBehaviour
         Debug.Log("Start Time of longest Animation: " + time.ToString());
     }
 
-    static void AddAnimation(AssetLoaderContext loadedAnimationContext)
+    static void AddAnimation(AssetLoaderContext loadedAnimationContext, bool wheelchair = false)
     {
         var loadAnimations = loadedAnimationContext.RootModel.AllAnimations;
         Dictionary<string, Dictionary<string, AnimationCurve>> animation = new Dictionary<string, Dictionary<string, AnimationCurve>>();
@@ -125,25 +137,41 @@ public class AnimationIO : MonoBehaviour
             
         }
 
-        var avatarInstance = Instantiate(avatar);
-        avatarInstance.GetComponent<CharacterModel>().InitializeAvatar(characterOptions.bodyDimensions, CharacterEditor.ColorSets[characterOptions.colorSet]);
-        avatarInstance.GetComponent<CharacterModel>().SetTrails(characterOptions.useBrushStrokes, characterOptions.strokeLength);
-        avatarInstance.GetComponent<CustomAnimationPlayer>().SetAnimation(animation, loadAnimations[0].FrameRate);
-        avatarInstance.GetComponent<CustomAnimationPlayer>().SetTrails(characterOptions.useMotionTrails, characterOptions.trailSteps, characterOptions.trailTime);
-        avatarInstance.GetComponent<CustomAnimationPlayer>().UnitFactor = characterOptions.unitFactor;
-        avatarInstance.name = loadedAnimationContext.RootGameObject.name;
+        GameObject avatarInstance;
 
-        GameObject shortMenu = Instantiate(editAnimationMenu, editAnimationParent);
-        shortMenu.GetComponent<EditAnimationShortMenu>().SetAnimationCharacter(avatarInstance);
+        if (wheelchair)
+        {
+            avatarInstance = Instantiate(wheelchairAvatar);
+            avatarInstance.GetComponent<CustomWheelchairAnimationPlayer>().SetWheelchairCurves(wheelchairMovement);
+        }
+        else
+            avatarInstance = Instantiate(avatar);
 
-        Destroy(loadedAnimationContext.RootGameObject);
+            avatarInstance.GetComponent<CharacterModel>().InitializeAvatar(characterOptions.bodyDimensions, CharacterEditor.ColorSets[characterOptions.colorSet]);
+            avatarInstance.GetComponent<CharacterModel>().SetTrails(characterOptions.useBrushStrokes, characterOptions.strokeLength);
+            avatarInstance.GetComponent<CustomAnimationPlayer>().SetAnimation(animation, loadAnimations[0].FrameRate);
+            avatarInstance.GetComponent<CustomAnimationPlayer>().SetTrails(characterOptions.useMotionTrails, characterOptions.trailSteps, characterOptions.trailTime);
+            avatarInstance.GetComponent<CustomAnimationPlayer>().UnitFactor = characterOptions.unitFactor;
+            avatarInstance.name = loadedAnimationContext.RootGameObject.name;
+
+            GameObject shortMenu = Instantiate(editAnimationMenu, editAnimationParent);
+            shortMenu.GetComponent<EditAnimationShortMenu>().SetAnimationCharacter(avatarInstance);
+
+            Destroy(loadedAnimationContext.RootGameObject);
     }
 
-    static void OnMotionCaptureImportFinished(AssetLoaderContext assetLoaderContext)
+    static void OnMocapImportFinished(AssetLoaderContext assetLoaderContext)
     {
         isImporting = false;
 
         AddAnimation(assetLoaderContext);
+    }
+
+    static void OnWheelchairMocapImportFinished(AssetLoaderContext assetLoaderContext)
+    {
+        isImporting = false;
+
+        AddAnimation(assetLoaderContext, true);
     }
 
     static void OnImportProgress(AssetLoaderContext assetLoaderContext, float progress)
@@ -159,7 +187,120 @@ public class AnimationIO : MonoBehaviour
     static void OnImportError(IContextualizedError contextualizedError)
     {
         MessageSystem.DisplayWarning("Import was interrupted due to an error");
+        Debug.LogError("Import was interrupted due to an error");
+    }
+
+    public static void ImportWheelchairMovement(string path)
+    {
+        using (StreamReader file = File.OpenText(path))
+        {
+            JsonSerializer serializer = new JsonSerializer();
+            wheelchairMovement = (WheelchairMovement)serializer.Deserialize(file, typeof(WheelchairMovement));
+        }
+
+        wheelchairMovement.BuildCurves();
     }
 }
 
 public delegate void GetFBXStartTimeDelegate(string path);
+
+public class WheelchairMovement
+{
+    public int startHours;
+    public int startMinutes;
+    public int startSeconds;
+    public int startMilliseconds;
+
+    public int mvnStartHours;
+    public int mvnStartMinutes;
+    public int mvnStartSeconds;
+    public int mvnStartMilliseconds;
+
+    public float[] keyFrameTimes;
+    public float[] posXValues;
+    public float[] posYValues;
+    public float[] posZValues;
+    public float[] rotXValues;
+    public float[] rotYValues;
+    public float[] rotZValues;
+
+    public AnimationCurve posXCurve;
+    public AnimationCurve posYCurve;
+    public AnimationCurve posZCurve;
+
+    public AnimationCurve rotXCurve;
+    public AnimationCurve rotYCurve;
+    public AnimationCurve rotZCurve;
+
+    public void BuildCurves()
+    {
+        List<Keyframe> posXKeys = new List<Keyframe>();
+        List<Keyframe> posYKeys = new List<Keyframe>();
+        List<Keyframe> posZKeys = new List<Keyframe>();
+
+        List<Keyframe> rotXKeys = new List<Keyframe>();
+        List<Keyframe> rotYKeys = new List<Keyframe>();
+        List<Keyframe> rotZKeys = new List<Keyframe>();
+
+        for (int i = 0; i < keyFrameTimes.Length; ++i)
+        {
+            if (CheckOutlier(posXValues, 1, i, 3))
+                posXKeys.Add(new Keyframe(keyFrameTimes[i], posXValues[i]));
+            if (CheckOutlier(posYValues, 1, i, 3))
+                posYKeys.Add(new Keyframe(keyFrameTimes[i], posYValues[i]));
+            if (CheckOutlier(posZValues, 1, i, 3))
+                posZKeys.Add(new Keyframe(keyFrameTimes[i], posZValues[i]));
+
+            if (CheckOutlier(rotXValues, 5, i, 5, true))
+                rotXKeys.Add(new Keyframe(keyFrameTimes[i], rotXValues[i]));
+            if (CheckOutlier(rotYValues, 5, i, 5, true))
+                rotYKeys.Add(new Keyframe(keyFrameTimes[i], rotYValues[i]));
+            if (CheckOutlier(rotZValues, 5, i, 5, true))
+                rotZKeys.Add(new Keyframe(keyFrameTimes[i], rotZValues[i]));
+        }
+
+        posXCurve = new AnimationCurve(posXKeys.ToArray());
+        posYCurve = new AnimationCurve(posYKeys.ToArray());
+        posZCurve = new AnimationCurve(posZKeys.ToArray());
+
+        rotXCurve = new AnimationCurve(rotXKeys.ToArray());
+        rotYCurve = new AnimationCurve(rotYKeys.ToArray());
+        rotZCurve = new AnimationCurve(rotZKeys.ToArray());
+    }
+
+    bool CheckOutlier(float[] values, float epsilon, int idx, int width, bool rotation = false)
+    {
+        int count = 0;
+        float average = 0;
+
+        for (int i = idx - width; i < idx + width; ++i)
+        {
+            if (i < 0 || i >= values.Length)
+                continue;
+
+            ++count;
+
+            if (!rotation)
+                average += values[i];
+            else
+                average += Mathf.Abs(values[i] - 180);
+        }
+
+        average /= count;
+
+        if (!rotation)
+        {
+            if (Mathf.Abs(values[idx] - average) < epsilon)
+                return true;
+            else
+                return false;
+        }
+        else
+        {
+            if (Mathf.Abs(Mathf.Abs(values[idx] - 180) - average) < epsilon)
+                return true;
+            else
+                return false;
+        }
+    }
+}

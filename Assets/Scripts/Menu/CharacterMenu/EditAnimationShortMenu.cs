@@ -390,7 +390,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void PauseAnimation()
     {
-        animationPlayer.PauseAnimationState = !animationPlayer.PauseAnimationState;
+        animationPlayer.PauseAnimation(!animationPlayer.PauseAnimationState);
     }
 
     void OnCancel()

@@ -112,6 +112,11 @@ public class CharacterEditor : MonoBehaviour
     [SerializeField]
     Slider sliderNeckSize;
 
+    [Space]
+    [Header("Wheelchair Import")]
+    [SerializeField]
+    Button btnImport;
+
     bool customizationActive = false;
 
     float unitFactor = 1;
@@ -211,6 +216,22 @@ public class CharacterEditor : MonoBehaviour
         FileBrowser.ShowLoadDialog(OnImportSuccess, OnCancel, FileBrowser.PickMode.Files, false);
     }
 
+    public void StartWheelchairImportDialog()
+    {
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("FBX", ".fbx"));
+        FileBrowser.SetDefaultFilter(".fbx");
+
+        FileBrowser.ShowLoadDialog(OnWheelchairImportSuccess, OnCancel, FileBrowser.PickMode.Files, false);
+    }
+
+    public void StartWheelchairPositionImportDialog()
+    {
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("JSON", ".json"));
+        FileBrowser.SetDefaultFilter(".json");
+
+        FileBrowser.ShowLoadDialog(OnWheelchairPositionImportSuccess, OnCancel, FileBrowser.PickMode.Files, false);
+    }
+
     public void StartSaveDialog()
     {
         FileBrowser.SetFilters(true, new FileBrowser.Filter("VRoxel Body Dimensions", ".vrxlbody"));
@@ -238,6 +259,26 @@ public class CharacterEditor : MonoBehaviour
     {
         AnimationIO.ImportMotionCapture(args[0], characterOptions);
         Resume.Invoke();
+    }
+
+    void OnWheelchairImportSuccess(string[] args)
+    {
+        AnimationIO.ImportMotionCapture(args[0], characterOptions, true);
+        Resume.Invoke();
+    }
+
+    void OnWheelchairPositionImportSuccess(string[] args)
+    {
+        btnImport.interactable = true;
+
+        try
+        {
+            AnimationIO.ImportWheelchairMovement(args[0]);
+        }
+        catch
+        {
+            btnImport.interactable = false;
+        }
     }
 
     void OnAvatarDimensionLoadSuccess(string[] args)
@@ -279,6 +320,12 @@ public class CharacterEditor : MonoBehaviour
         characterOptions.colorSet = item;
     }
 
+    private void OnEnable()
+    {
+        if (btnImport != null)
+            btnImport.interactable = false;
+    }
+
     public void SetFileUnits(int item)
     {
         switch (item)
@@ -303,6 +350,8 @@ public class CharacterEditor : MonoBehaviour
 
     void SetUnitDropdownFromValue(float value)
     {
+        if (dropdownFileUnits == null) return;
+
         float epsilon = 0.00001f;
 
         if (Mathf.Abs(value - 1) < epsilon)

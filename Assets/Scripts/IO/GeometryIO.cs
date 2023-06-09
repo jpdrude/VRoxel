@@ -275,10 +275,16 @@ public class GeometryIO : MonoBehaviour
         if (importSteps.ContainsKey(assetLoaderContext.Filename))
             importSteps.Remove(assetLoaderContext.Filename);
 
+        assetLoaderContext.RootGameObject.layer = 11;
+
         foreach (MeshRenderer mr in assetLoaderContext.RootGameObject.GetComponentsInChildren<MeshRenderer>())
         {
             if (mr.material == null)
                 mr.material = defaultMaterial;
+
+            var mc = mr.gameObject.AddComponent<MeshCollider>();
+            mc.sharedMesh = mr.gameObject.GetComponent<MeshFilter>().sharedMesh;
+            mr.gameObject.layer = 11;
         }
 
         if (fixGeometryTransform)

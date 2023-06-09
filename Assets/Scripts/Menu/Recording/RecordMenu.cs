@@ -107,6 +107,20 @@ public class RecordMenu : MonoBehaviour
         recorder.PlayRecording(true, true, paths[0]);
     }
 
+    void CaptureScreenshot(string[] paths)
+    {
+        ActivateInput();
+
+        interfacePanel.SetActive(false);
+        targetSpawner.SetActive(false);
+        messagePanel.SetActive(false);
+        graphicsMenu.DeactivateCulling();
+        graphicsMenu.SetAllLOD0();
+        escapeMenu.enabled = false;
+
+        recorder.StartScreenshotCoroutine(paths[0]);
+    }
+
     public void OnExportFinished()
     {
         interfacePanel.SetActive(true);
@@ -128,9 +142,21 @@ public class RecordMenu : MonoBehaviour
         DeactivateInput();
     }
 
+    public void CaptureScreenshotBrowser()
+    {
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("JPG", ".jpg"));
+        FileBrowser.SetDefaultFilter(".jpg");
+
+        FileBrowser.ShowSaveDialog(CaptureScreenshot, OnCancel, FileBrowser.PickMode.Files, false);
+
+        DeactivateInput();
+    }
+
     void OnCancel()
     {
         ActivateInput();
+
+        OnExportFinished();
     }
 
     void DeactivateInput()
@@ -145,4 +171,5 @@ public class RecordMenu : MonoBehaviour
         targetSpawner.GetComponent<TargetSpawner>().enabled = true;
         this.enabled = true;
     }
+
 }
