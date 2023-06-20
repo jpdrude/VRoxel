@@ -37,6 +37,45 @@ public class BlockContainer
         ResetCloudContainer();
     }
 
+    public void MaskAssembly(PositionKey[][] mask)
+    {
+        Dictionary<PositionKey, PositionEntry> maskedDictionary = new Dictionary<PositionKey, PositionEntry>();
+
+        for (int i = 0; i < mask.Length; ++i)
+        {
+            foreach (PositionKey maskKey in mask[i])
+            {
+                if (blockDictionary.ContainsKey(maskKey))
+                {
+                    maskedDictionary.Add(maskKey, blockDictionary[maskKey]);
+                    blockDictionary.Remove(maskKey);
+                }
+            }
+        }
+
+        foreach (PositionEntry entry in blockDictionary.Values)
+        {
+            if (entry.item >= 0)
+            {
+                transformArray[entry.blockType][entry.item] = Matrix4x4.zero;
+                indexStack[entry.blockType].Push(entry.item);
+            }
+            else
+            {
+                cloudTransformArray[entry.blockType][-entry.item] = Matrix4x4.zero;
+                cloudIndexStack[entry.blockType].Push(-entry.item);
+            }
+
+        }
+
+        blockDictionary = maskedDictionary;
+
+        PointCloudIO.RecalculatePointCloud();
+
+        for (int i = 0; i < parts.Length; ++i)
+            GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
+    }
+
     public void BlocksToPointCloud()
     {
         List<Matrix4x4> toCloudTransforms = new List<Matrix4x4>();
@@ -449,6 +488,13 @@ public struct PositionKey
         z = Mathf.RoundToInt(vec.z * 10000);
     }
 
+    public PositionKey(int _x, int _y, int _z)
+    {
+        x = _x;
+        y = _y;
+        z = _z;
+    }
+
     public override bool Equals(object obj)
     {
         if (typeof(PositionKey) != obj.GetType())
@@ -463,5 +509,10 @@ public struct PositionKey
     public override int GetHashCode()
     {
         return HashCode.Combine(x, y, z);
+    }
+
+    public override string ToString()
+    {
+        return "{" + x.ToString() + "; " + y.ToString() + "; " + z.ToString() + "}";
     }
 }

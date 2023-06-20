@@ -14,8 +14,10 @@ public class CharacterPointerBehaviour : MonoBehaviour
     GameObject pickupCharacter = null;
     Vector3 pickupPosition;
     Vector3 pickupHeight = Vector3.zero;
+    Vector3 lastHeight = Vector3.zero;
 
     Vector3 characterPosition;
+    Vector3 focusHeight = Vector3.zero;
     bool setDirection = false;
 
     int layerMaskCharacter = 1 << 10;
@@ -71,12 +73,13 @@ public class CharacterPointerBehaviour : MonoBehaviour
             pickupCharacter = focusCharacter.gameObject;
             currentLayerMask = layerMaskFloor;
             pickupPosition = pickupCharacter.transform.position;
-            pickupHeight.y = pickupPosition.y;
+            pickupHeight.y = pickupPosition.y - lastHeight.y;
         }
         else if (pickupCharacter != null && focusPoint != null && !setDirection)
         {
             setDirection = true;
             characterPosition = (Vector3)focusPoint + pickupHeight;
+            focusHeight.y = ((Vector3)focusPoint).y;
         }
         else if (pickupCharacter != null && focusPoint != null && setDirection)
         {
@@ -86,6 +89,8 @@ public class CharacterPointerBehaviour : MonoBehaviour
             pickupCharacter = null;
             currentLayerMask = layerMaskCharacter;
             setDirection = false;
+
+            lastHeight = focusHeight;
         }
         else if (focusPoint == null)
         {

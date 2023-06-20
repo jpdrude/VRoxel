@@ -13,6 +13,8 @@ public class GraphicsSettingsMenu : MonoBehaviour
     PostProcessLayer[] sceneCameraLayers;
     [SerializeField]
     GPUInstancerManager manager;
+    [SerializeField]
+    Light sun;
 
     [Space]
     [Header("Low Graphics")]
@@ -60,8 +62,73 @@ public class GraphicsSettingsMenu : MonoBehaviour
         }
     }
 
+    public void CustomGraphics(int tier, bool shadow, bool occlusionCulling, float lodBias)
+    {
+        sun.shadows = LightShadows.Soft;
+
+        if (tier < 2)
+        {
+            QualitySettings.SetQualityLevel(2, true);
+            postVolume.profile = postProfileLow;
+            Graphics.activeTier = UnityEngine.Rendering.GraphicsTier.Tier1;
+
+            foreach (PostProcessLayer layer in sceneCameraLayers)
+                layer.antialiasingMode = PostProcessLayer.Antialiasing.FastApproximateAntialiasing;
+        }
+        else if (tier == 2)
+        {
+            QualitySettings.SetQualityLevel(3, true);
+            postVolume.profile = postProfileMedium;
+            Graphics.activeTier = UnityEngine.Rendering.GraphicsTier.Tier2;
+
+            foreach (PostProcessLayer layer in sceneCameraLayers)
+                layer.antialiasingMode = PostProcessLayer.Antialiasing.FastApproximateAntialiasing;
+        }
+        else
+        {
+            QualitySettings.SetQualityLevel(5, true);
+            postVolume.profile = postProfileHigh;
+            Graphics.activeTier = UnityEngine.Rendering.GraphicsTier.Tier3;
+
+            foreach (PostProcessLayer layer in sceneCameraLayers)
+            {
+                if (layer.gameObject.name == "VRCamera")
+                    layer.antialiasingMode = PostProcessLayer.Antialiasing.FastApproximateAntialiasing;
+                else
+                    layer.antialiasingMode = PostProcessLayer.Antialiasing.TemporalAntialiasing;
+            }
+        }
+
+
+        foreach (Bond b in GameManager.AvailableBonds.Values)
+        {
+            foreach (GPUInstancerPrefab p in b.PartPrefabs)
+            {
+                p.prefabPrototype.isShadowCasting = shadow;
+                p.prefabPrototype.isOcclusionCulling = occlusionCulling;
+            }
+        }
+
+        GPUInstancerAPI.SetLODBias(manager, lodBias);
+        currentLODLevel = lodBias;
+    }
+
+    public void HighGraphicsNoShadow()
+    {
+        CustomGraphics(3, false, false, 5);
+        sun.shadows = LightShadows.None;
+    }
+
+    public void GraphicsSuperLow()
+    {
+        CustomGraphics(2, false, true, 0.1f);
+        sun.shadows = LightShadows.None;
+    }
+
     public void GraphicsLow()
     {
+        sun.shadows = LightShadows.None;
+
         QualitySettings.SetQualityLevel(2, true);
         Graphics.activeTier = UnityEngine.Rendering.GraphicsTier.Tier1;
         postVolume.profile = postProfileLow;
@@ -84,6 +151,8 @@ public class GraphicsSettingsMenu : MonoBehaviour
 
     public void GraphicsMedium()
     {
+        sun.shadows = LightShadows.Soft;
+
         QualitySettings.SetQualityLevel(3, true);
         Graphics.activeTier = UnityEngine.Rendering.GraphicsTier.Tier2;
         postVolume.profile = postProfileMedium;
@@ -105,6 +174,7 @@ public class GraphicsSettingsMenu : MonoBehaviour
 
     public void GraphicsHigh()
     {
+        sun.shadows = LightShadows.Soft;
 
         QualitySettings.SetQualityLevel(5, true);
         Graphics.activeTier = UnityEngine.Rendering.GraphicsTier.Tier3;

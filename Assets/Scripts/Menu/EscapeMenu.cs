@@ -20,7 +20,13 @@ public class EscapeMenu : MonoBehaviour
     [SerializeField]
     GameObject fpsController;
     [SerializeField]
+    Camera fpsCamera;
+    [SerializeField]
     GameObject vrController;
+    [SerializeField] 
+    Camera vrControllerCamera;
+    [SerializeField]
+    Camera vrControllerFallbackCamera;
     [SerializeField]
     GameObject startCamera;
 
@@ -165,6 +171,14 @@ public class EscapeMenu : MonoBehaviour
         FileBrowser.SetFilters(true, new FileBrowser.Filter("VRoxel", ".vrxl", ".json"));
         FileBrowser.SetDefaultFilter(".vrxl");
         FileBrowser.ShowLoadDialog(OnLoadAsPointCloudSuccess, OnCancel, FileBrowser.PickMode.Files, true);
+    }
+
+    public void LoadAssemblyMask()
+    {
+        var filter = new FileBrowser.Filter("VRoxel Mask", ".vrxlmask");
+        FileBrowser.SetFilters(false, filter);
+
+        FileBrowser.ShowLoadDialog(OnMaskLoadSuccess, OnCancel, FileBrowser.PickMode.Files, false);
     }
 
     public void Quit()
@@ -386,6 +400,13 @@ public class EscapeMenu : MonoBehaviour
         Resume();
     }
 
+    void OnMaskLoadSuccess(string[] paths)
+    {
+        AssemblyMaskIO.CheckAssemblyWithMask(paths[0]);
+
+        Resume();
+    }
+
     public void SetVRPlayer()
     {
         //UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
@@ -393,6 +414,11 @@ public class EscapeMenu : MonoBehaviour
 
         //Valve.VR.SteamVR_Settings.instance.autoEnableVR = true;
         //ManualXRControl.StartXRCoroutine();
+
+        if (vrControllerCamera.gameObject.activeInHierarchy)
+            GPUInstancer.GPUInstancerAPI.SetCamera(vrControllerCamera);
+        else
+            GPUInstancer.GPUInstancerAPI.SetCamera(vrControllerFallbackCamera);
 
         startCamera.SetActive(false);
         vrController.SetActive(true);
@@ -406,6 +432,8 @@ public class EscapeMenu : MonoBehaviour
     {
         startCamera.SetActive(false);
         fpsController.SetActive(true);
+
+        GPUInstancer.GPUInstancerAPI.SetCamera(fpsCamera);
 
         if (GameManager.Bond == null)
             selectBondPanel.SetActive(true);

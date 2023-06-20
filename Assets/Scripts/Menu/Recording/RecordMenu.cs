@@ -111,7 +111,7 @@ public class RecordMenu : MonoBehaviour
     {
         ActivateInput();
 
-        interfacePanel.SetActive(false);
+        //interfacePanel.SetActive(false);
         targetSpawner.SetActive(false);
         messagePanel.SetActive(false);
         graphicsMenu.DeactivateCulling();

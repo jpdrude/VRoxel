@@ -179,6 +179,6 @@ public class SteamVR_PointCloudSelector : SpawnerActions
     void UpdateSphereScale()
     {
         sphere.transform.localScale = Vector3.one * 2 * radius;
-        transform.localPosition = initialOffset + Vector3.forward * radius;
+        sphere.transform.localPosition = initialOffset + Vector3.forward * radius;
     }
 }
