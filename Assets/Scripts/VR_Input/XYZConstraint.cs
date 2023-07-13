@@ -37,7 +37,7 @@ public class XYZConstraint : MonoBehaviour
     }
 
     // Update is called once per frame
-    void LateUpdate()
+    void Update()
     {
         if (trigger.GetStateDown(SteamVR_Input_Sources.LeftHand))
         {
@@ -55,6 +55,16 @@ public class XYZConstraint : MonoBehaviour
         if (ortho && !(x || y || z))
             CheckDirection();
 
+        CheckConstrain();
+    }
+
+    private void FixedUpdate()
+    {
+        CheckConstrain();
+    }
+
+    void CheckConstrain()
+    {
         if (ortho && x)
             ConstrainToX();
         else if (ortho && y)

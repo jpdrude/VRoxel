@@ -94,7 +94,7 @@ MonoBehaviour:
   ForcePowerOfTwoTextures: 0
   MaxTexturesResolution: 0
   EnableProfiler: 0
-  UseUnityNativeTextureLoader: 0
+  UseUnityNativeTextureLoader: 1
   LoadMaterialsProgressively: 0
   ImportCameras: 0
   ImportLights: 0

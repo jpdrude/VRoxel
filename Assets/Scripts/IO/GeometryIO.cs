@@ -48,6 +48,15 @@ public class GeometryIO : MonoBehaviour
     [SerializeField]
     AssetLoaderOptions _options;
 
+    [Space]
+    [Header("Management")]
+    [SerializeField]
+    Transform _importGeometryParent;
+    [SerializeField]
+    GameObject _menuEntryPrefab;
+    [SerializeField]
+    Transform _menuEntryParent;
+
     static Material defaultMaterial;
 
     static GameObject nativeTeleport;
@@ -71,6 +80,11 @@ public class GeometryIO : MonoBehaviour
     static bool fixBrushTransform = false;
     static bool fixTeleportTransform = false;
 
+    //Management Variables
+    static Transform importGeometryParent;
+    static GameObject menuEntryPrefab = null;
+    static Transform menuEntryParent = null;
+
     private void Start()
     {
         defaultMaterial = _defaultMaterial;
@@ -90,6 +104,10 @@ public class GeometryIO : MonoBehaviour
         buttonMenu = _buttonMenu;
 
         options = _options;
+
+        importGeometryParent = _importGeometryParent;
+        menuEntryPrefab = _menuEntryPrefab;
+        menuEntryParent = _menuEntryParent;
     }
 
     public static void ImportGeometry(string path, bool fixTransform)
@@ -281,10 +299,6 @@ public class GeometryIO : MonoBehaviour
         {
             if (mr.material == null)
                 mr.material = defaultMaterial;
-
-            var mc = mr.gameObject.AddComponent<MeshCollider>();
-            mc.sharedMesh = mr.gameObject.GetComponent<MeshFilter>().sharedMesh;
-            mr.gameObject.layer = 11;
         }
 
         if (fixGeometryTransform)
@@ -293,7 +307,55 @@ public class GeometryIO : MonoBehaviour
             fixGeometryTransform = false;
         }
 
+        CreateGeometryMenuEntries(assetLoaderContext.RootGameObject);
+
         MessageSystem.DisplayMessage("Geometry Imported!");
+    }
+
+    static void CreateGeometryMenuEntries(GameObject root)
+    {
+        for (int i = root.transform.childCount - 1; i >= 0; --i)
+        {
+            GameObject child = root.transform.GetChild(i).gameObject;
+
+            Vector3 center = Vector3.zero;
+            int childMeshCount = 0;
+            GameObject centerObj = new GameObject(child.name);
+            centerObj.layer = 11;
+
+            var itemRoot = centerObj.AddComponent<GeometryItemRoot>();
+            itemRoot.enabled = false;
+
+            foreach (MeshFilter mf in child.GetComponentsInChildren<MeshFilter>())
+            {
+                var col = mf.gameObject.AddComponent<MeshCollider>();
+                col.sharedMesh = mf.sharedMesh;
+
+                Vector3 size = mf.gameObject.GetComponent<MeshRenderer>().bounds.size;
+                if (size.x * size.y * size.z > 5)
+                    centerObj.layer = 2;
+
+                center += mf.gameObject.GetComponent<MeshRenderer>().bounds.center;
+                ++childMeshCount;
+            }
+
+            center /= childMeshCount;
+
+            centerObj.transform.position = center;
+            centerObj.transform.parent = importGeometryParent;
+
+            for (int j = child.transform.childCount - 1; j >= 0; --j)
+            {
+                child.transform.GetChild(j).parent = centerObj.transform;
+            }
+
+            Destroy(child);
+
+            GameObject menuEntryGo = Instantiate(menuEntryPrefab, menuEntryParent);
+            menuEntryGo.GetComponent<EditGeometryMenu>().InitializeModel(centerObj);
+
+            menuEntryParent.GetComponent<RectTransform>().sizeDelta = new Vector2(0, menuEntryParent.transform.childCount * 80);
+        }
     }
 
     static void OnKitBashPaletteImport(AssetLoaderContext assetLoaderContext)

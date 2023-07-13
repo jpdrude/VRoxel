@@ -43,6 +43,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
 
     SteamVR_PointCloudSelector cloudSelector;
     SteamVR_CharacterPointer characterPointer;
+    SteamVR_GeometryPointer geometryPointer;
 
     VRPlacementMode mode = VRPlacementMode.SpawnInSphere;
     public VRPlacementMode Mode
@@ -54,6 +55,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
             enabled = true;
             cloudSelector.Disable();
             characterPointer.Disable();
+            geometryPointer.Disable();
 
             if (mode == VRPlacementMode.SpawnInSphere)
             {
@@ -134,6 +136,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
     {
         cloudSelector = GetComponent<SteamVR_PointCloudSelector>();
         characterPointer = GetComponent<SteamVR_CharacterPointer>();
+        geometryPointer = GetComponent<SteamVR_GeometryPointer>();
         cubeBehaviour = GetComponentInChildren<SpawnCubeBehaviour>(true);
         capsuleBehaviour = GetComponentInChildren<SpawnCapsuleBehavior>(true);
     }

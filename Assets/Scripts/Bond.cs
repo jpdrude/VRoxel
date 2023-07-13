@@ -59,6 +59,8 @@ public class Bond : MonoBehaviour
 
     public string BondName { get { return bondName; } }
 
+    public static MeshBrushLevels meshBrushLevel = MeshBrushLevels.rough;
+
     public void Initialize()
     {
         blocks = new Transform[bondBlocks.Length][];
@@ -539,7 +541,14 @@ public class Bond : MonoBehaviour
                             Transform block = blocks[i][j];
                             Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
 
-                            if (PointInMesh(blockPosition, rayLength, Vector3.right) && PointInMesh(blockPosition, rayLength, Vector3.forward) && PointInMesh(blockPosition, rayLength, Vector3.up))
+                            bool pointInMesh = false;
+
+                            if (meshBrushLevel == MeshBrushLevels.rough)
+                                pointInMesh = PointInMesh(blockPosition, rayLength, Vector3.right);
+                            else
+                                pointInMesh = PointInMesh(blockPosition, rayLength, Vector3.right) && PointInMesh(blockPosition, rayLength, Vector3.forward) && PointInMesh(blockPosition, rayLength, Vector3.up);
+
+                            if (pointInMesh)
                             {
                                 blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one));
                                 Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
@@ -592,6 +601,12 @@ public class Bond : MonoBehaviour
         else
             return false;
     }
+}
+
+public enum MeshBrushLevels
+{
+    rough,
+    fine
 }
 
 [Serializable]

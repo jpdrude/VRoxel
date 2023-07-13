@@ -13,7 +13,8 @@ public class BrowseBrushes : SpawnerActions
     public override void DPadInput(bool _up, bool _down, bool _left, bool _right)
     {
         if (spawner.Mode == VRPlacementMode.SpawnInSphere || spawner.Mode == VRPlacementMode.SpawnInBox ||
-            spawner.Mode == VRPlacementMode.SpawnInCylinder || spawner.Mode == VRPlacementMode.SpawnInBrush)
+            spawner.Mode == VRPlacementMode.SpawnInCylinder || spawner.Mode == VRPlacementMode.SpawnInCapsule ||
+            spawner.Mode == VRPlacementMode.SpawnInBrush)
         {
             if (_left)
             {
@@ -27,7 +28,8 @@ public class BrowseBrushes : SpawnerActions
             }
         }
         else if (spawner.Mode == VRPlacementMode.DeleteFromSphere || spawner.Mode == VRPlacementMode.DeleteFromBox ||
-            spawner.Mode == VRPlacementMode.DeleteFromCylinder || spawner.Mode == VRPlacementMode.DeleteFromBrush)
+            spawner.Mode == VRPlacementMode.DeleteFromCylinder || spawner.Mode == VRPlacementMode.DeleteFromCapsule ||
+            spawner.Mode == VRPlacementMode.DeleteFromBrush)
         {
             if (_left)
             {

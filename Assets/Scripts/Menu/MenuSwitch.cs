@@ -20,7 +20,7 @@ public class MenuSwitch : MonoBehaviour
     [Space]
     [Header("Menu Options")]
     [SerializeField]
-    GameObject icons;
+    List<GameObject> newLoadPanelIcons;
     [SerializeField]
     GameObject reallyNew;
     [SerializeField]
@@ -58,6 +58,13 @@ public class MenuSwitch : MonoBehaviour
     GameObject unlockOrthoSymbol;
 
     [Space]
+    [Header("Brush Quality Options")]
+    [SerializeField]
+    GameObject roughSymbol;
+    [SerializeField]
+    GameObject fineSymbol;
+
+    [Space]
     [Header("Extra Panels")]
     [SerializeField]
     List<GameObject> extraPanels = new List<GameObject>();
@@ -79,6 +86,17 @@ public class MenuSwitch : MonoBehaviour
         Teleport.Player.Listen(PlayerTeleported);
         //platform = PlatformMesh.GeneratePlatformMesh(platformMaterial);
         platform = PlatformMesh.GeneratePlatformMesh(platformMaterial, platformTemplate);
+
+        if (Bond.meshBrushLevel == MeshBrushLevels.rough)
+        {
+            roughSymbol.SetActive(true);
+            fineSymbol.SetActive(false);
+        }
+        else
+        {
+            fineSymbol.SetActive(true);
+            roughSymbol.SetActive(false);
+        }
 
         SetAddButton(0);
         SetRemoveButton(0);
@@ -126,25 +144,33 @@ public class MenuSwitch : MonoBehaviour
 
     void HideExtraPanels()
     {
+        RestoreMenu();
+
         foreach (GameObject panel in extraPanels)
             panel.SetActive(false);
     }
 
     public void ReallyLoad()
     {
-        icons.SetActive(false);
+        foreach (GameObject go in newLoadPanelIcons)
+            go.SetActive(false);
+
         reallyLoad.SetActive(true);
     }
 
     public void ReallyNew()
     {
-        icons.SetActive(false);
+        foreach (GameObject go in newLoadPanelIcons)
+            go.SetActive(false);
+
         reallyNew.SetActive(true);
     }
 
     public void RestoreMenu()
     {
-        icons.SetActive(true);
+        foreach (GameObject go in newLoadPanelIcons)
+            go.SetActive(true);
+
         reallyNew.SetActive(false);
         reallyLoad.SetActive(false);
     }
@@ -234,6 +260,22 @@ public class MenuSwitch : MonoBehaviour
         HideExtraPanels();
 
         _extraPanel.SetActive(newState);
+    }
+
+    public void ToggleBrushQuality()
+    {
+        if (Bond.meshBrushLevel == MeshBrushLevels.rough)
+        {
+            Bond.meshBrushLevel = MeshBrushLevels.fine;
+            roughSymbol.SetActive(false);
+            fineSymbol.SetActive(true);
+        }
+        else
+        {
+            Bond.meshBrushLevel = MeshBrushLevels.rough;
+            roughSymbol.SetActive(true);
+            fineSymbol.SetActive(false);
+        }
     }
 
     public VRMenuItem GetCurrentAdd()

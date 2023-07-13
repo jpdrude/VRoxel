@@ -384,6 +384,9 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void DeleteAnimation()
     {
+
+        transform.parent.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(0, (transform.parent.childCount - 1) * 80);
+
         Destroy(characterObject);
         Destroy(gameObject);
     }

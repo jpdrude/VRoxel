@@ -9,6 +9,8 @@ public class CADMenu : MonoBehaviour
     CADMeshToBricks mesh2Bricks;
     [SerializeField]
     Button btnMesh2Bricks;
+    [SerializeField]
+    Toggle meshBrushFine;
 
     [Space]
     [Header("Colors")]
@@ -19,7 +21,15 @@ public class CADMenu : MonoBehaviour
     [SerializeField]
     Color deleteColor;
 
-    private void Update()
+    private void Start()
+    {
+        if (Bond.meshBrushLevel == MeshBrushLevels.fine)
+            meshBrushFine.isOn = true;
+        else
+            meshBrushFine.isOn = false;
+    }
+
+    private void OnEnable()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
             mesh2Bricks.ScanMesh = false;
@@ -56,5 +66,13 @@ public class CADMenu : MonoBehaviour
             colors.highlightedColor = neutralColor;
             btnMesh2Bricks.colors = colors;
         }
+    }
+
+    public void ToggleMeshBrush(bool value)
+    {
+        if (value == true)
+            Bond.meshBrushLevel = MeshBrushLevels.fine;
+        else
+            Bond.meshBrushLevel = MeshBrushLevels.rough;
     }
 }

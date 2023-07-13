@@ -147,17 +147,19 @@ public class AnimationIO : MonoBehaviour
         else
             avatarInstance = Instantiate(avatar);
 
-            avatarInstance.GetComponent<CharacterModel>().InitializeAvatar(characterOptions.bodyDimensions, CharacterEditor.ColorSets[characterOptions.colorSet]);
-            avatarInstance.GetComponent<CharacterModel>().SetTrails(characterOptions.useBrushStrokes, characterOptions.strokeLength);
-            avatarInstance.GetComponent<CustomAnimationPlayer>().SetAnimation(animation, loadAnimations[0].FrameRate);
-            avatarInstance.GetComponent<CustomAnimationPlayer>().SetTrails(characterOptions.useMotionTrails, characterOptions.trailSteps, characterOptions.trailTime);
-            avatarInstance.GetComponent<CustomAnimationPlayer>().UnitFactor = characterOptions.unitFactor;
-            avatarInstance.name = loadedAnimationContext.RootGameObject.name;
+        avatarInstance.GetComponent<CharacterModel>().InitializeAvatar(characterOptions.bodyDimensions, CharacterEditor.ColorSets[characterOptions.colorSet]);
+        avatarInstance.GetComponent<CharacterModel>().SetTrails(characterOptions.useBrushStrokes, characterOptions.strokeLength);
+        avatarInstance.GetComponent<CustomAnimationPlayer>().SetAnimation(animation, loadAnimations[0].FrameRate);
+        avatarInstance.GetComponent<CustomAnimationPlayer>().SetTrails(characterOptions.useMotionTrails, characterOptions.trailSteps, characterOptions.trailTime);
+        avatarInstance.GetComponent<CustomAnimationPlayer>().UnitFactor = characterOptions.unitFactor;
+        avatarInstance.name = loadedAnimationContext.RootGameObject.name;
 
-            GameObject shortMenu = Instantiate(editAnimationMenu, editAnimationParent);
-            shortMenu.GetComponent<EditAnimationShortMenu>().SetAnimationCharacter(avatarInstance);
+        GameObject shortMenu = Instantiate(editAnimationMenu, editAnimationParent);
+        shortMenu.GetComponent<EditAnimationShortMenu>().SetAnimationCharacter(avatarInstance);
 
-            Destroy(loadedAnimationContext.RootGameObject);
+        editAnimationParent.GetComponent<RectTransform>().sizeDelta = new Vector2(0, editAnimationParent.transform.childCount * 80);
+
+        Destroy(loadedAnimationContext.RootGameObject);
     }
 
     static void OnMocapImportFinished(AssetLoaderContext assetLoaderContext)

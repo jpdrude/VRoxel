@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class SteamVR_CharacterPointer : SpawnerActions
 {
-    [Space]
     [Header("Pointer")]
     [SerializeField]
     GameObject pointer;
@@ -14,6 +13,7 @@ public class SteamVR_CharacterPointer : SpawnerActions
 
     SteamVR_AssemblySpawner assemblySpawner;
     SteamVR_PointCloudSelector cloudSelector;
+    SteamVR_GeometryPointer geometryPointer;
 
     private void Awake()
     {
@@ -21,6 +21,7 @@ public class SteamVR_CharacterPointer : SpawnerActions
 
         assemblySpawner = GetComponent<SteamVR_AssemblySpawner>();
         cloudSelector = GetComponent<SteamVR_PointCloudSelector>();
+        geometryPointer = GetComponent<SteamVR_GeometryPointer>();
     }
 
     public override void Disable()
@@ -31,13 +32,15 @@ public class SteamVR_CharacterPointer : SpawnerActions
 
     public void Enable()
     {
-        Debug.Log("Should enable ANimationPointer");
         assemblySpawner.Disable();
         cloudSelector.Disable();
+        geometryPointer.Disable();
 
         enabled = true;
         pointer.SetActive(true);
     }
+
+
 
     public override void OnTriggerDown()
     {

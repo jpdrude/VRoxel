@@ -30,6 +30,7 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
     SteamVR_AssemblySpawner assemblySpawner;
     SteamVR_CharacterPointer characterPointer;
+    SteamVR_GeometryPointer geometryPointer;
 
     Dictionary<PositionKey, Matrix4x4> toConvertTransforms = new Dictionary<PositionKey, Matrix4x4>();
 
@@ -43,6 +44,7 @@ public class SteamVR_PointCloudSelector : SpawnerActions
             mode = value;
             assemblySpawner.Disable();
             characterPointer.Disable();
+            geometryPointer.Disable();
 
             sphere.SetActive(true);
             UpdateSphereScale();
@@ -58,6 +60,7 @@ public class SteamVR_PointCloudSelector : SpawnerActions
     {
         assemblySpawner = GetComponent<SteamVR_AssemblySpawner>();
         characterPointer = GetComponent<SteamVR_CharacterPointer>();
+        geometryPointer = GetComponent<SteamVR_GeometryPointer>();
         GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, placeholder.prefabPrototype, emptyArray);
         Disable();
     }
