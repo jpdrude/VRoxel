@@ -12,6 +12,8 @@ public class AddSubtractQuickSwitch : SpawnerActions
 
     public override void OnQuickSwitchDown()
     {
+        if (!spawner.enabled) return;
+
         if (spawner.Mode == VRPlacementMode.SpawnInSphere || spawner.Mode == VRPlacementMode.SpawnInBox || spawner.Mode == VRPlacementMode.SpawnInCylinder || spawner.Mode == VRPlacementMode.SpawnInBrush)
         {
             menu.GetCurrentRemove().RemoteInvoke();

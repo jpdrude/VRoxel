@@ -307,7 +307,13 @@ public class GeometryIO : MonoBehaviour
             fixGeometryTransform = false;
         }
 
-        CreateGeometryMenuEntries(assetLoaderContext.RootGameObject);
+        if (assetLoaderContext.RootGameObject.transform.childCount > 0 && assetLoaderContext.RootGameObject.transform.GetChild(0).gameObject.name == "ImportedGeometry")
+        {
+            assetLoaderContext.RootGameObject.transform.Rotate(Vector3.right, -90);
+            CreateGeometryMenuEntries(assetLoaderContext.RootGameObject.transform.GetChild(0).gameObject);
+        }
+        else
+            CreateGeometryMenuEntries(assetLoaderContext.RootGameObject);
 
         MessageSystem.DisplayMessage("Geometry Imported!");
     }
@@ -349,12 +355,17 @@ public class GeometryIO : MonoBehaviour
                 child.transform.GetChild(j).parent = centerObj.transform;
             }
 
+            itemRoot.InitializeRotation();
+
             Destroy(child);
 
             GameObject menuEntryGo = Instantiate(menuEntryPrefab, menuEntryParent);
             menuEntryGo.GetComponent<EditGeometryMenu>().InitializeModel(centerObj);
 
             menuEntryParent.GetComponent<RectTransform>().sizeDelta = new Vector2(0, menuEntryParent.transform.childCount * 80);
+
+            var menuItemReference = centerObj.AddComponent<GeometryMenuItemReference>();
+            menuItemReference.MenuItem = menuEntryGo.GetComponent<EditGeometryMenu>();
         }
     }
 

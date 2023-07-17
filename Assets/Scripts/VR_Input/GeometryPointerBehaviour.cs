@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Valve.VR;
 
 public class GeometryPointerBehaviour : MonoBehaviour
 {
@@ -12,6 +13,9 @@ public class GeometryPointerBehaviour : MonoBehaviour
 
     [SerializeField]
     float rotSpeed = 1;
+
+    [SerializeField]
+    public SteamVR_Action_Boolean trigger;
 
     LineRenderer lr;
     Vector3? focusPoint = null;
@@ -26,6 +30,7 @@ public class GeometryPointerBehaviour : MonoBehaviour
 
     int layerMask = 1 << 11;
 
+    bool copy = false;
 
     private void Start()
     {
@@ -103,16 +108,32 @@ public class GeometryPointerBehaviour : MonoBehaviour
     {
         if (pickupObject == null && focusObject != null)
         {
-            pickupObject = focusObject;
-            pickupPosition = pickupObject.transform.position;
-            pickupRotation = pickupObject.transform.rotation;
+            if (trigger.GetState(SteamVR_Input_Sources.LeftHand))
+            {
+                copy = true;
+                pickupObject = focusObject.GetComponent<GeometryMenuItemReference>().MenuItem.DuplicateModel();
 
-            oldParent = pickupObject.transform.parent;
-            transform.position = pickupObject.transform.position;
+                oldParent = pickupObject.transform.parent;
+                transform.position = focusObject.transform.position;
 
-            pickupObject.transform.parent = transform;
-            pickupRoot = pickupObject.GetComponent<GeometryItemRoot>();
-            pickupRoot.enabled = true;
+                pickupObject.transform.parent = transform;
+                pickupObject.transform.localPosition = Vector3.zero;
+                pickupRoot = pickupObject.GetComponent<GeometryItemRoot>();
+                pickupRoot.enabled = true;
+            }
+            else
+            {
+                pickupObject = focusObject;
+                pickupPosition = pickupObject.transform.position;
+                pickupRotation = pickupObject.transform.rotation;
+
+                oldParent = pickupObject.transform.parent;
+                transform.position = pickupObject.transform.position;
+
+                pickupObject.transform.parent = transform;
+                pickupRoot = pickupObject.GetComponent<GeometryItemRoot>();
+                pickupRoot.enabled = true;
+            }
         }
         else if (pickupObject != null)
         {
@@ -122,6 +143,7 @@ public class GeometryPointerBehaviour : MonoBehaviour
 
     void FinishPickup()
     {
+        copy = false;
         pickupRoot.enabled = false;
         pickupObject.transform.parent = oldParent;
         pickupObject = null;
@@ -169,10 +191,20 @@ public class GeometryPointerBehaviour : MonoBehaviour
     {
         if (pickupObject == null) return;
 
-        pickupObject.transform.parent = null;
-        pickupObject.transform.rotation = pickupRotation;
-        pickupObject.transform.position = pickupPosition;
+        if (copy)
+        {
+            EditGeometryMenu menuItem = pickupObject.GetComponent<GeometryMenuItemReference>().MenuItem;
+            FinishPickup();
 
-        FinishPickup();
+            menuItem.DeleteModel();
+        }
+        else
+        {
+            pickupObject.transform.parent = null;
+            pickupObject.transform.rotation = pickupRotation;
+            pickupObject.transform.position = pickupPosition;
+
+            FinishPickup();
+        }
     }
 }

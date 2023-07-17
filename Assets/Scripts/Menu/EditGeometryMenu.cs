@@ -351,7 +351,7 @@ public class EditGeometryMenu : MonoBehaviour
         }
     }
 
-    public void DuplicateModel()
+    public GameObject DuplicateModel()
     {
         var newModel = Instantiate(model, model.transform.parent);
 
@@ -405,12 +405,17 @@ public class EditGeometryMenu : MonoBehaviour
         Vector3 newPos = transform.parent.GetChild(bestChild).GetComponent<EditGeometryMenu>().Model.transform.position;
         newPos.x = newPos.x + 1;
         newModel.transform.position = newPos;
+        newModel.GetComponent<GeometryItemRoot>().InitializeRotation();
 
         var newMenuEntryGo = Instantiate(gameObject, transform.parent);
         newMenuEntryGo.GetComponent<EditGeometryMenu>().InitializeModel(newModel);
         newMenuEntryGo.transform.SetSiblingIndex(bestChild + 1);
 
         transform.parent.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(0, transform.parent.childCount * 80);
+
+        newModel.GetComponent<GeometryMenuItemReference>().MenuItem = newMenuEntryGo.GetComponent<EditGeometryMenu>();
+
+        return newModel;
     }
 
     public void DeleteModel()

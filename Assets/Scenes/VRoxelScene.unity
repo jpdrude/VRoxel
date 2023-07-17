@@ -15994,7 +15994,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 872178974}
   moveSpeed: 1
-  rotSpeed: 20
+  rotSpeed: 30
+  trigger:
+    actionPath: /actions/LegoPlacement/in/Trigger
+    needsReinit: 0
 --- !u!120 &278079447
 LineRenderer:
   m_ObjectHideFlags: 0

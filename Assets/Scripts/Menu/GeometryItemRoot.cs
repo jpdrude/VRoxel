@@ -6,7 +6,7 @@ public class GeometryItemRoot : MonoBehaviour
 {
     Vector3 rotation;
 
-    private void OnEnable()
+    public void InitializeRotation()
     {
         rotation = transform.rotation.eulerAngles;
     }
