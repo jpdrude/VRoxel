@@ -3417,7 +3417,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 6455585327142635807}
         m_TargetAssemblyTypeName: EditGeometryMenu, Assembly-CSharp
-        m_MethodName: DuplicateModel
+        m_MethodName: DuplicateFromMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

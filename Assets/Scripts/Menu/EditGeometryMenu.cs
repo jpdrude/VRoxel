@@ -351,6 +351,11 @@ public class EditGeometryMenu : MonoBehaviour
         }
     }
 
+    public void DuplicateFromMenu()
+    {
+        GameObject go = DuplicateModel();
+    }
+
     public GameObject DuplicateModel()
     {
         var newModel = Instantiate(model, model.transform.parent);
