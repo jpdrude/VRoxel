@@ -96,15 +96,22 @@ public class PointCloudIO : MonoBehaviour
 
     public static void DisplayPointCloud(string path)
     {
-        ResetPointCloudViewer();
-        ResetRuntimeViewer();
+        try
+        {
+            ResetPointCloudViewer();
+            ResetRuntimeViewer();
 
-        cloudViewer.CallReadPointCloudThreaded(path);
-        useRuntime = false;
-        viewerInitialized = true;
-        lastCloudPath = path;
+            cloudViewer.CallReadPointCloudThreaded(path);
+            useRuntime = false;
+            viewerInitialized = true;
+            lastCloudPath = path;
 
-        cloudViewer.OnLoadingComplete += new PointCloudViewerDX11.OnLoadComplete(OnCloudViewerLoad);
+            cloudViewer.OnLoadingComplete += new PointCloudViewerDX11.OnLoadComplete(OnCloudViewerLoad);
+        }
+        catch
+        {
+            MessageSystem.DisplayWarning("Point cloud couldn't load. Delete *.bin file and retry!");
+        }
     }
 
 

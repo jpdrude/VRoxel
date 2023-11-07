@@ -64,7 +64,10 @@ public class GraphicsSettingsMenu : MonoBehaviour
 
     public void CustomGraphics(int tier, bool shadow, bool occlusionCulling, float lodBias)
     {
-        sun.shadows = LightShadows.Soft;
+        if (shadow)
+            sun.shadows = LightShadows.Soft;
+        else
+            sun.shadows = LightShadows.None;
 
         if (tier < 2)
         {

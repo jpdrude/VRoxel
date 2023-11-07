@@ -23,11 +23,21 @@ public class InsBlaue_SceneManager : MonoBehaviour
     SteamVR_Input_Sources inputSources;
 
     [Space]
+    [Header("File Management")]
+    [SerializeField]
+    string subfolder;
+
+    [SerializeField]
+    string pointCloudName;
+
+    [Space]
     [Header("Scene Data")]
     [SerializeField]
     List<InsBlaueSceneData> sceneData;
     int sceneCounter = 0;
     Stack<Transform> teleportStack;
+
+    bool initialized = false;
 
     // Start is called before the first frame update
     void Start()
@@ -36,9 +46,10 @@ public class InsBlaue_SceneManager : MonoBehaviour
 
         GameManager.Manager.SetBond(GameManager.AvailableBonds["LegoBond_porous"]);
 
-        PointCloudIO.DisplayPointCloud("InsBlaue/Apartment_0.005.xyz.bin");
 
-        ChangeScene();
+        string cloudPath = System.IO.Path.Combine(Application.streamingAssetsPath, subfolder, pointCloudName);
+        Debug.Log(cloudPath);
+        PointCloudIO.DisplayPointCloud(cloudPath);
 
         actionSet.Activate();
     }
@@ -57,7 +68,13 @@ public class InsBlaue_SceneManager : MonoBehaviour
 
         if (change)
         {
-            if (teleportStack.Count == 0)
+            if (!initialized)
+            {
+                ChangeScene();
+                Teleport();
+                initialized = true;
+            }
+            else if (teleportStack.Count == 0)
             {
                 ChangeScene();
                 Teleport();
@@ -69,10 +86,19 @@ public class InsBlaue_SceneManager : MonoBehaviour
 
     void ChangeScene()
     {
+        if (sceneData.Count == 1 && BlockContainer.Container.GetCount() > 0)
+        {
+            sceneData[sceneCounter].teleportPositions.Reverse();
+            teleportStack = new Stack<Transform>(sceneData[sceneCounter].teleportPositions);
+            sceneData[sceneCounter].teleportPositions.Reverse();
+            return;
+        }
+
         if (BlockContainer.Container.GetCount() > 0)
         GameManager.Manager.ClearAssembly();
 
-        AssemblyIO.LoadAssemblyLayout(System.IO.Path.Combine(Application.streamingAssetsPath, "InsBlaue/VRoxelFiles", sceneData[sceneCounter].fileName));
+        //AssemblyIO.LoadIncrementally = true;
+        AssemblyIO.LoadAssemblyLayout(System.IO.Path.Combine(Application.streamingAssetsPath, subfolder, sceneData[sceneCounter].fileName));
 
         sceneData[sceneCounter].teleportPositions.Reverse();
         teleportStack = new Stack<Transform>(sceneData[sceneCounter].teleportPositions);

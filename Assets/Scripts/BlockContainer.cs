@@ -199,6 +199,43 @@ public class BlockContainer
             GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
     }
 
+    public void RecalculateOffset(Vector3 newOffset, Vector3 oldOffset)
+    {
+        Vector3 offset = newOffset - oldOffset;
+
+        for (int i = 0; i < parts.Length; ++i)
+        {
+            for (int j = 0; j < transformArray[i].Length; ++j)
+            {
+                Matrix4x4 matrix = transformArray[i][j];
+                if (matrix == Matrix4x4.zero) continue;
+
+                matrix.m03 += offset.x;
+                matrix.m13 += offset.y;
+                matrix.m23 += offset.z;
+
+                transformArray[i][j] = matrix;
+            }
+
+            GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
+
+            for (int j = 0; j < cloudTransformArray[i].Length; ++j)
+            {
+                Matrix4x4 matrix = cloudTransformArray[i][j];
+                if (matrix == Matrix4x4.zero) continue;
+
+                matrix.m03 += offset.x;
+                matrix.m13 += offset.y;
+                matrix.m23 += offset.z;
+
+                cloudTransformArray[i][j] = matrix;
+            }
+        }
+
+        if (GetCloudCount() > 0)
+            PointCloudIO.RecalculatePointCloud();
+    }
+
     public void ResetCloudContainer()
     {
         cloudTransformArray = new Matrix4x4[parts.Length][];
@@ -222,20 +259,8 @@ public class BlockContainer
         }
     }
 
-    public void AddBlock(Matrix4x4 _transform, int partType, PositionKey? blockDictKey = null)
-    {
-        uint timeStamp = (uint)(GameManager.gameTime * 10);
-
-        if (blockDictKey == null)
-            BlockToArray(_transform, partType, timeStamp);
-        else
-            BlockToArray(_transform, partType, timeStamp, blockDictKey);
-
-        GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[partType].prefabPrototype, transformArray[partType]);
-    }
-
     //Needs Change
-    public void AddBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys = null, uint[][] times = null, bool asPointCloud = false)
+    public void AddBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys = null, uint[][] times = null, bool asPointCloud = false, Vector3? offset = null)
     {
         List<Matrix4x4> toCloudTransforms = new List<Matrix4x4>();
 
@@ -254,11 +279,11 @@ public class BlockContainer
                 {
                     if (!asPointCloud)
                     {
-                        BlockToArray(matrix4x4, i, timeStamp);
+                        BlockToArray(matrix4x4, i, timeStamp, null, false, offset);
                     }
                     else
                     {
-                        BlockToArray(matrix4x4, i, timeStamp, null, true);
+                        BlockToArray(matrix4x4, i, timeStamp, null, true, offset);
                         toCloudTransforms.Add(matrix4x4);
                     }
                 }
@@ -266,11 +291,11 @@ public class BlockContainer
                 {
                     if (!asPointCloud)
                     {
-                        BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j]);
+                        BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j], false, offset);
                     }
                     else
                     {
-                        BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j], true);
+                        BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j], true, offset);
                         toCloudTransforms.Add(matrix4x4);
                     }
                 }
@@ -311,7 +336,7 @@ public class BlockContainer
             GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
     }
 
-    public void RemoveBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys = null)
+    public void RemoveBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys)
     {
         DateTime start = DateTime.Now;
         int counter = 0;
@@ -322,14 +347,7 @@ public class BlockContainer
             {
                 var matrix4x4 = blockTransforms[i][j];
 
-                if (blockDictKeys == null)
-                {
-                    if (BlockFromArray(matrix4x4)) ++counter;
-                }
-                else
-                {
-                    if (BlockFromArray(matrix4x4, blockDictKeys[i][j])) ++counter;
-                }
+                if (BlockFromArray(matrix4x4, blockDictKeys[i][j])) ++counter;
             }
         }
 
@@ -340,7 +358,7 @@ public class BlockContainer
             GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
     }
 
-    bool BlockToArray(Matrix4x4 _transform, int blockType, uint timeStamp, PositionKey? blockKey = null, bool skipGPUInstancer = false)
+    bool BlockToArray(Matrix4x4 _transform, int blockType, uint timeStamp, PositionKey? blockKey = null, bool skipGPUInstancer = false, Vector3? _offset = null)
     {
         PositionKey key;
         if (blockKey == null)
@@ -350,6 +368,15 @@ public class BlockContainer
 
         if (!blockDictionary.ContainsKey(key))
         {
+            if (_offset != null)
+            {
+                Vector3 offset = (Vector3)_offset;
+
+                _transform.m03 += offset.x;
+                _transform.m13 += offset.y;
+                _transform.m23 += offset.z;
+            }
+
             if (!skipGPUInstancer)
             {
                 if (indexStack[blockType].Count == 0)

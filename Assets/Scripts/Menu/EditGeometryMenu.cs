@@ -166,7 +166,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetPosX(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputPosX.text = model.transform.position.x.ToString("F2");
@@ -185,7 +185,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetPosY(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputPosY.text = model.transform.position.y.ToString("F2");
@@ -204,7 +204,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetPosZ(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputPosZ.text = model.transform.position.z.ToString("F2");
@@ -223,7 +223,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetRotX(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputRotX.text = model.transform.rotation.eulerAngles.x.ToString("F0");
@@ -242,7 +242,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetRotY(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputRotY.text = model.transform.rotation.eulerAngles.y.ToString("F0");
@@ -261,7 +261,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetRotZ(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputRotZ.text = model.transform.rotation.eulerAngles.z.ToString("F0");
@@ -280,7 +280,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetScaleX(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputScaleX.text = model.transform.localScale.x.ToString("F2");
@@ -299,7 +299,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetScaleY(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputScaleY.text = model.transform.localScale.y.ToString("F2");
@@ -318,7 +318,7 @@ public class EditGeometryMenu : MonoBehaviour
 
     public void SetScaleZ(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputScaleZ.text = model.transform.localScale.z.ToString("F2");
@@ -431,35 +431,4 @@ public class EditGeometryMenu : MonoBehaviour
         transform.parent.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(0, (transform.parent.childCount - 1) * 80);
     }
 
-    float? ParseStringToFloat(string text)
-    {
-        string engFloatRegex = @"^[-+]?[0-9]*(?:\.[0-9]*)?$";
-        string gerFloatRegex = @"^[-+]?[0-9]*(?:\,[0-9]*)?$";
-
-        Match engMatch = Regex.Match(text, engFloatRegex);
-        Match gerMatch = Regex.Match(text, gerFloatRegex);
-
-        float? result = null;
-
-        if (engMatch.Success)
-        {
-            CultureInfo culture = new CultureInfo("en-US");
-            float number = 0;
-            if (!float.TryParse(engMatch.Value, NumberStyles.Any, culture, out number))
-                result = null;
-            else
-                result = number;
-        }
-        else if (gerMatch.Success)
-        {
-            CultureInfo culture = new CultureInfo("de-DE");
-            float number = 0;
-            if (!float.TryParse(gerMatch.Value, NumberStyles.Any, culture, out number))
-                result = null;
-            else
-                result = number;
-        }
-
-        return result;
-    }
 }

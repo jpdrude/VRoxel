@@ -11,6 +11,7 @@ public class ByteStreamContainer
     public uint[][] times;
     public float timeOffset = 0;
     public float version;
+    public Vector3 offset = new Vector3(0, 0, 0);
 
     public byte[] ToByteArray()
     {
@@ -18,7 +19,8 @@ public class ByteStreamContainer
         for (int i = 0; i < matrices.Length; ++i)
             matricesLength += matrices[i].Length;
 
-        byte[] array = new byte[4 + 1 + bondName.Length + 1 + matrices.Length * 4 + matricesLength * 8 * 4];
+        byte[] array = new byte[4 + 12 + 1 + bondName.Length + 1 + matrices.Length * 4 + matricesLength * 8 * 4];
+        //version (4) + offset (12) + bondNameStrinLength (1) + bondNameCharacters (variable) + ...
 
         byte[] vroxelVersion = BitConverter.GetBytes(version);
         array[0] = vroxelVersion[0];
@@ -26,17 +28,33 @@ public class ByteStreamContainer
         array[2] = vroxelVersion[2];
         array[3] = vroxelVersion[3];
         Debug.Log("VRoxel version: " + version.ToString("F3"));
-        
-        array[4] = (byte)bondName.Length;
+
+        byte[] offsetBytes = BitConverter.GetBytes(offset.x);
+        array[4] = offsetBytes[0];
+        array[5] = offsetBytes[1];
+        array[6] = offsetBytes[2];
+        array[7] = offsetBytes[3];
+        offsetBytes = BitConverter.GetBytes(offset.y);
+        array[8] = offsetBytes[0];
+        array[9] = offsetBytes[1];
+        array[10] = offsetBytes[2];
+        array[11] = offsetBytes[3];
+        offsetBytes = BitConverter.GetBytes(offset.z);
+        array[12] = offsetBytes[0];
+        array[13] = offsetBytes[1];
+        array[14] = offsetBytes[2];
+        array[15] = offsetBytes[3];
+
+        array[16] = (byte)bondName.Length;
 
         for (int i = 0; i < bondName.Length; ++i)
         {
-            array[i + 5] = (byte)bondName[i];
+            array[i + 17] = (byte)bondName[i];
         }
 
-        array[5 + bondName.Length] = (byte)matrices.Length;
+        array[17 + bondName.Length] = (byte)matrices.Length;
 
-        int headerOffset = 5 + bondName.Length + 1;
+        int headerOffset = 17 + bondName.Length + 1;
 
         for (int i = 0; i < matrices.Length; ++ i)
         {
@@ -57,19 +75,19 @@ public class ByteStreamContainer
                 Quaternion rotation = matrices[i][j].GetRotation();
                 uint time = times[i][j];
                 
-                byte[] posX = BitConverter.GetBytes(position.x);
+                byte[] posX = BitConverter.GetBytes(position.x - offset.x);
                 array[headerOffset + j * 8 * 4 + 0] = posX[0];
                 array[headerOffset + j * 8 * 4 + 1] = posX[1];
                 array[headerOffset + j * 8 * 4 + 2] = posX[2];
                 array[headerOffset + j * 8 * 4 + 3] = posX[3];
 
-                byte[] posY = BitConverter.GetBytes(position.y);
+                byte[] posY = BitConverter.GetBytes(position.y - offset.y);
                 array[headerOffset + j * 8 * 4 + 4] = posY[0];
                 array[headerOffset + j * 8 * 4 + 5] = posY[1];
                 array[headerOffset + j * 8 * 4 + 6] = posY[2];
                 array[headerOffset + j * 8 * 4 + 7] = posY[3];
 
-                byte[] posZ = BitConverter.GetBytes(position.z);
+                byte[] posZ = BitConverter.GetBytes(position.z - offset.z);
                 array[headerOffset + j * 8 * 4 + 8] = posZ[0];
                 array[headerOffset + j * 8 * 4 + 9] = posZ[1];
                 array[headerOffset + j * 8 * 4 + 10] = posZ[2];
@@ -112,15 +130,16 @@ public class ByteStreamContainer
         return array;
     }
 
-    public ByteStreamContainer(string _bondName, Matrix4x4[][] _matrices, uint[][] _times, float _version)
+    public ByteStreamContainer(string _bondName, Matrix4x4[][] _matrices, uint[][] _times, float _version, Vector3 _offset)
     {
         bondName = _bondName;
         matrices = _matrices;
         version = _version;
         times = _times;
+        offset = _offset;
     }
 
-    public ByteStreamContainer(string _bondName, List<Matrix4x4>[] _matrices, List<uint>[] _times, float _version)
+    public ByteStreamContainer(string _bondName, List<Matrix4x4>[] _matrices, List<uint>[] _times, float _version, Vector3 _offset)
     {
         bondName = _bondName;
         matrices = new Matrix4x4[_matrices.Length][];
@@ -132,6 +151,7 @@ public class ByteStreamContainer
         }
             
         version = _version;
+        offset = _offset;
     }
 
     public ByteStreamContainer(byte[] array)
@@ -141,8 +161,19 @@ public class ByteStreamContainer
         version = BitConverter.ToSingle(array, 0);
         Debug.Log("VersionNumber: " + version.ToString("F3"));
 
+        offset = Vector3.zero;
         int headerOffset = 4;
+        if (Mathf.RoundToInt(version * 1000) >= 333)
+        {
+            Debug.Log("Offset considered");
 
+            offset.x = BitConverter.ToSingle(array, 4);
+            offset.y = BitConverter.ToSingle(array, 8);
+            offset.z = BitConverter.ToSingle(array, 12);
+
+            headerOffset = 16;
+        }
+            
         StringBuilder _bondName = new StringBuilder();
         for (int i = headerOffset; i < headerOffset + array[headerOffset]; ++i)
         {

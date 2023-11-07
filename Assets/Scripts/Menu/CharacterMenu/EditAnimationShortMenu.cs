@@ -194,7 +194,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetXOffset(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputX.text = offsetX.ToString("F2");
@@ -214,7 +214,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetYOffset(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputY.text = offsetY.ToString("F2");
@@ -233,7 +233,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetZOffset(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputZ.text = offsetZ.ToString("F2");
@@ -253,7 +253,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetRotOffset(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputRot.text = offsetX.ToString("F0");
@@ -271,7 +271,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetAnimationStart(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputStart.text = animationPlayer.AnimationStart.ToString("F1");
@@ -284,7 +284,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetAnimationEnd(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputEnd.text = animationPlayer.AnimationEnd.ToString("F1");
@@ -307,7 +307,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetStrokeLength(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputStrokeLength.text = animationCharacter.StrokeLength.ToString("F1");
@@ -337,7 +337,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetFadeTime(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputFadeTime.text = animationPlayer.FadeTime.ToString("F1");
@@ -355,7 +355,7 @@ public class EditAnimationShortMenu : MonoBehaviour
 
     public void SetSpeed(string textValue)
     {
-        float? value = ParseStringToFloat(textValue);
+        float? value = textValue.ParseStringToFloat();
         if (value == null)
         {
             inputSpeed.text = animationPlayer.Speed.ToString("F2");
@@ -481,38 +481,6 @@ public class EditAnimationShortMenu : MonoBehaviour
             characterSpawner.RemoveCharacterBrush();
         else
             characterSpawner.DisableCharacterBrush();
-    }
-
-    float? ParseStringToFloat(string text)
-    {
-        string engFloatRegex = @"^[-+]?[0-9]*(?:\.[0-9]*)?$";
-        string gerFloatRegex = @"^[-+]?[0-9]*(?:\,[0-9]*)?$";
-
-        Match engMatch = Regex.Match(text, engFloatRegex);
-        Match gerMatch = Regex.Match(text, gerFloatRegex);
-
-        float? result = null;
-
-        if (engMatch.Success)
-        {
-            CultureInfo culture = new CultureInfo("en-US");
-            float number = 0;
-            if (!float.TryParse(engMatch.Value, NumberStyles.Any, culture, out number))
-                result = null;
-            else
-                result = number;
-        }
-        else if (gerMatch.Success)
-        {
-            CultureInfo culture = new CultureInfo("de-DE");
-            float number = 0;
-            if (!float.TryParse(gerMatch.Value, NumberStyles.Any, culture, out number))
-                result = null;
-            else
-                result = number;
-        }
-
-        return result;
     }
 
     private void OnDisable()

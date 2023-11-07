@@ -59,6 +59,7 @@ MonoBehaviour:
   xSpacing: 0.03
   ySpacing: 0.04
   zSpacing: 0.03
+  defaultOffset: {x: 0, y: 0.03, z: 0}
   minExtend: {x: -1, y: 0, z: 0}
   maxExtend: {x: 0, y: 0, z: 1}
 --- !u!1001 &3828315656972480085

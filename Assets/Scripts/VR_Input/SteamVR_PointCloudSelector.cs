@@ -26,7 +26,6 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
     float radius = 0.05f;
     float scaleSpeed = 0.1f;
-    Vector3 initialOffset = new Vector3(0, 0, 0.05f);
 
     SteamVR_AssemblySpawner assemblySpawner;
     SteamVR_CharacterPointer characterPointer;
@@ -84,7 +83,7 @@ public class SteamVR_PointCloudSelector : SpawnerActions
     public override void OnTrigger()
     {
         PositionKey[][] blockDictKeys;
-        GameManager.Bond.GetBlocksInSphere(transform.position, radius, out blockDictKeys);
+        GameManager.Bond.GetBlocksInSphere(sphere.transform.position, radius, out blockDictKeys);
 
         if (mode == VRPlacementMode.BlocksToPointCloud)
         {
@@ -182,6 +181,6 @@ public class SteamVR_PointCloudSelector : SpawnerActions
     void UpdateSphereScale()
     {
         sphere.transform.localScale = Vector3.one * 2 * radius;
-        sphere.transform.localPosition = initialOffset + Vector3.forward * radius;
+        sphere.transform.localPosition = Vector3.forward * radius;
     }
 }

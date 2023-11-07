@@ -182,9 +182,9 @@ public class SteamVR_AssemblySpawner : SpawnerActions
     public override void OnTrigger()
     {
         if (Mode == VRPlacementMode.SpawnInSphere)
-            SpawnBlocksAtPosition(sphere.transform.position, radius);
+            SpawnBlocksInSphere();
         else if (Mode == VRPlacementMode.DeleteFromSphere)
-            RemoveBlocksAtPosition(sphere.transform.position, radius);
+            RemoveBlocksInSphere();
         else if (Mode == VRPlacementMode.SpawnInBox)
             SpawnBlocksInBox();
         else if (Mode == VRPlacementMode.DeleteFromBox)
@@ -404,17 +404,17 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         Mode = (VRPlacementMode)_mode;
     }
 
-    void SpawnBlocksAtPosition(Vector3 pos, float radius)
+    void SpawnBlocksInSphere()
     {
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(pos, radius, out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sphere.transform.position, radius, out blockDictKeys);
         BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
     }
 
-    void RemoveBlocksAtPosition(Vector3 pos, float radius)
+    void RemoveBlocksInSphere()
     {
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(pos, radius, out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sphere.transform.position, radius, out blockDictKeys);
         BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 

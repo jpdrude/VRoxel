@@ -14,11 +14,11 @@ public class AddSubtractQuickSwitch : SpawnerActions
     {
         if (!spawner.enabled) return;
 
-        if (spawner.Mode == VRPlacementMode.SpawnInSphere || spawner.Mode == VRPlacementMode.SpawnInBox || spawner.Mode == VRPlacementMode.SpawnInCylinder || spawner.Mode == VRPlacementMode.SpawnInBrush)
+        if (spawner.Mode == VRPlacementMode.SpawnInSphere || spawner.Mode == VRPlacementMode.SpawnInBox || spawner.Mode == VRPlacementMode.SpawnInCylinder || spawner.Mode == VRPlacementMode.SpawnInCapsule || spawner.Mode == VRPlacementMode.SpawnInBrush)
         {
             menu.GetCurrentRemove().RemoteInvoke();
         }
-        else if (spawner.Mode == VRPlacementMode.DeleteFromSphere || spawner.Mode == VRPlacementMode.DeleteFromBox || spawner.Mode == VRPlacementMode.DeleteFromCylinder || spawner.Mode == VRPlacementMode.DeleteFromBrush)
+        else if (spawner.Mode == VRPlacementMode.DeleteFromSphere || spawner.Mode == VRPlacementMode.DeleteFromBox || spawner.Mode == VRPlacementMode.DeleteFromCylinder || spawner.Mode == VRPlacementMode.DeleteFromCapsule || spawner.Mode == VRPlacementMode.DeleteFromBrush)
         {
             menu.GetCurrentAdd().RemoteInvoke();
         }

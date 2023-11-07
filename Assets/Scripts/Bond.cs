@@ -39,6 +39,11 @@ public class Bond : MonoBehaviour
     float zSpacing;
 
     [Space]
+    [Header("Global Offset")]
+    [SerializeField]
+    Vector3 defaultOffset;
+
+    [Space]
     [Header("Extend")]
     [SerializeField]
     Vector3Int minExtend = new Vector3Int();
@@ -59,6 +64,17 @@ public class Bond : MonoBehaviour
 
     public string BondName { get { return bondName; } }
 
+    Vector3 offset;
+    public Vector3 Offset 
+    { 
+        get { return offset; } 
+        set
+        {
+            BlockContainer.Container.RecalculateOffset(value, offset);
+            offset = value;
+        }
+    }
+
     public static MeshBrushLevels meshBrushLevel = MeshBrushLevels.rough;
 
     public void Initialize()
@@ -67,13 +83,15 @@ public class Bond : MonoBehaviour
 
         for (int i = 0; i < bondBlocks.Length; ++i)
             blocks[i] = bondBlocks[i].blocks;
+
+        offset = defaultOffset;
     }
 
     public Vector3 GetBondBase(Vector3 position)
     {
-        int x = Mathf.FloorToInt(position.x / xSpacing);
-        int y = Mathf.FloorToInt(position.y / ySpacing);
-        int z = Mathf.FloorToInt(position.z / zSpacing);
+        int x = Mathf.FloorToInt((position.x - offset.x) / xSpacing);
+        int y = Mathf.FloorToInt((position.y - offset.y) / ySpacing);
+        int z = Mathf.FloorToInt((position.z - offset.z) / zSpacing);
 
         x /= xSize;
         y /= ySize;
@@ -92,9 +110,9 @@ public class Bond : MonoBehaviour
 
     public Vector3Int GetBondBaseInt(Vector3 position)
     {
-        int x = Mathf.FloorToInt(position.x * 10000) / XIntSpacing;
-        int y = Mathf.FloorToInt(position.y * 10000) / YIntSpacing;
-        int z = Mathf.FloorToInt(position.z * 10000) / ZIntSpacing;
+        int x = Mathf.FloorToInt((position.x - offset.x) * 10000) / XIntSpacing;
+        int y = Mathf.FloorToInt((position.y - offset.y) * 10000) / YIntSpacing;
+        int z = Mathf.FloorToInt((position.z - offset.z) * 10000) / ZIntSpacing;
 
         x /= xSize;
         y /= ySize;
@@ -111,29 +129,10 @@ public class Bond : MonoBehaviour
         return bondBase;
     }
 
-    public Matrix4x4 GetClosestBlock(Vector3 position, out int blockType)
-    {
-        Vector3 bondBase = GetBondBase(position);
-        Vector3 bondPosition = position - bondBase;
-
-        Transform best = blocks[0][0];
-        int bestType = 0;
-
-        for (int i = 0; i < blocks.Length; ++i)
-            for (int j = 0; j < blocks[i].Length; ++j)
-                if (Vector3.Distance(bondPosition, best.position) > Vector3.Distance(bondPosition, blocks[i][j].position))
-                { 
-                    best = blocks[i][j];
-                    bestType = i;
-                }
-
-        blockType = bestType;
-
-        return Matrix4x4.TRS(bondBase + best.localPosition, best.localRotation, Vector3.one);
-    }
-
     public Matrix4x4 GetBlockFromPosition(Vector3 position, int type)
     {
+        position -= offset;
+
         int xInt = Mathf.RoundToInt(position.x * 10000);
         int yInt = Mathf.RoundToInt(position.y * 10000);
         int zInt = Mathf.RoundToInt(position.z * 10000);
@@ -154,7 +153,7 @@ public class Bond : MonoBehaviour
                 fit = t;
         }
 
-        return Matrix4x4.TRS(position, fit.localRotation, fit.localScale);
+        return Matrix4x4.TRS(position + offset, fit.localRotation, fit.localScale);
     }
 
     //Doesn't work yet!
@@ -201,8 +200,14 @@ public class Bond : MonoBehaviour
 
     public Matrix4x4[][] GetBlocksInBox(Vector3 min, Vector3 max, out PositionKey[][] _blockDictsKeys)
     {
+        /*  
+         *  offset is used for representational 
+         *  geometry only.
+         *  Dictionary keys are not offset!
+         */
+
         Vector3Int minInt = GetBondBaseInt(min);
-        Vector3 maxScaled = max * 10000;
+        Vector3 maxScaled = (max - offset) * 10000;
 
         if (maxScaled.x - minInt.x < xSize * XIntSpacing)
             maxScaled.x = minInt.x + xSize * XIntSpacing * 1.1f;
@@ -233,7 +238,7 @@ public class Bond : MonoBehaviour
                         for (int j = 0; j < blocks[i].Length; ++j)
                         {
                             Transform block = blocks[i][j].transform;
-                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
+                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000) + offset;
                             if (blockPosition.x >= min.x && blockPosition.y >= min.y && blockPosition.z >= min.z && blockPosition.x <= max.x && blockPosition.y <= max.y && blockPosition.z <= max.z)
                             {
                                 blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one));
@@ -266,7 +271,7 @@ public class Bond : MonoBehaviour
         int blockCounter = 0;
 
         Vector3Int min = GetBondBaseInt(position - Vector3.one * radius);
-        Vector3 max = (position + Vector3.one * radius) * 10000;
+        Vector3 max = (position - offset + Vector3.one * radius) * 10000;
 
         if (max.x - min.x < xSize * XIntSpacing)
             max.x = min.x + xSize * XIntSpacing * 1.1f;
@@ -293,11 +298,11 @@ public class Bond : MonoBehaviour
                     {
                         for (int j = 0; j < blocks[i].Length; ++j)
                         {
-                            if (Vector3.Distance(blocks[i][j].localPosition + new Vector3Int(x, y, z).Divide(10000), position) < radius)
+                            if (Vector3.Distance(blocks[i][j].localPosition + new Vector3Int(x, y, z).Divide(10000), position - offset) < radius)
                             {
                                 
                                 Transform block = blocks[i][j].transform;
-                                blockTransforms[i].Add(Matrix4x4.TRS(block.localPosition + new Vector3Int(x, y, z).Divide(10000), block.localRotation, Vector3.one));
+                                blockTransforms[i].Add(Matrix4x4.TRS(block.localPosition + new Vector3Int(x, y, z).Divide(10000) + offset, block.localRotation, Vector3.one));
                                 Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * 10000), Mathf.RoundToInt(block.localPosition.y * 10000), Mathf.RoundToInt(block.localPosition.z * 10000));
                                 blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
                                 ++blockCounter;
@@ -353,7 +358,7 @@ public class Bond : MonoBehaviour
         Vector3 max = position + new Vector3(radius, height / 2, radius);
 
         Vector3Int minInt = GetBondBaseInt(min);
-        Vector3 maxScaled = max * 10000;
+        Vector3 maxScaled = (max - offset) * 10000;
 
         if (maxScaled.x - minInt.x < xSize * XIntSpacing)
             maxScaled.x = minInt.x + xSize * XIntSpacing * 1.1f;
@@ -384,7 +389,7 @@ public class Bond : MonoBehaviour
                         for (int j = 0; j < blocks[i].Length; ++j)
                         {
                             Transform block = blocks[i][j];
-                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
+                            Vector3 blockPosition = block.localPosition + offset + new Vector3Int(x, y, z).Divide(10000);
 
                             bool inRadius = Vector3.Distance(new Vector3(position.x, 0, position.z), new Vector3(blockPosition.x, 0, blockPosition.z)) < radius;
 
@@ -427,7 +432,7 @@ public class Bond : MonoBehaviour
         max += Vector3.one * radius;
 
         Vector3Int minInt = GetBondBaseInt(min);
-        Vector3 maxScaled = max * 10000;
+        Vector3 maxScaled = (max - offset) * 10000;
 
         if (maxScaled.x - minInt.x < xSize * XIntSpacing)
             maxScaled.x = minInt.x + xSize * XIntSpacing * 1.1f;
@@ -458,7 +463,7 @@ public class Bond : MonoBehaviour
                         for (int j = 0; j < blocks[i].Length; ++j)
                         {
                             Transform block = blocks[i][j];
-                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
+                            Vector3 blockPosition = block.localPosition + offset + new Vector3Int(x, y, z).Divide(10000);
 
                             bool inCylinder = Vector3.Distance(blockPosition, NearestPointOnLine(positionA, positionB, blockPosition)) < radius;
 
@@ -507,7 +512,7 @@ public class Bond : MonoBehaviour
     public Matrix4x4[][] GetBlocksInMesh(Collider mesh, out PositionKey[][] _blockDictKeys)
     {
         Vector3Int minInt = GetBondBaseInt(mesh.bounds.min);
-        Vector3 maxScaled = mesh.bounds.max * 10000;
+        Vector3 maxScaled = (mesh.bounds.max - offset) * 10000;
         float rayLength = mesh.bounds.max.x - mesh.bounds.min.x + 0.1f;
 
         if (maxScaled.x - minInt.x < xSize * XIntSpacing)
@@ -539,7 +544,7 @@ public class Bond : MonoBehaviour
                         for (int j = 0; j < blocks[i].Length; ++j)
                         {
                             Transform block = blocks[i][j];
-                            Vector3 blockPosition = block.localPosition + new Vector3Int(x, y, z).Divide(10000);
+                            Vector3 blockPosition = block.localPosition + offset + new Vector3Int(x, y, z).Divide(10000);
 
                             bool pointInMesh = false;
 

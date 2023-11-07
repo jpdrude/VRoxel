@@ -14,15 +14,15 @@ public class IncrementalLoader : MonoBehaviour
 
     Stack<IncrementalLoadData> loadStack = null;
 
-    public void SetLoadData(Matrix4x4[][] loadContainer, uint[][] loadTimes)
+    public void SetLoadData(Matrix4x4[][] loadContainer, uint[][] loadTimes, Vector3 offset)
     {
         if (!loadAsLayers)
-            SetLoadByTimeStamp(loadContainer, loadTimes);
+            SetLoadByTimeStamp(loadContainer, loadTimes, offset);
         else
-            SetLoadByLayer(loadContainer, loadTimes);
+            SetLoadByLayer(loadContainer, loadTimes, offset);
     }
 
-    void SetLoadByTimeStamp(Matrix4x4[][] loadContainer, uint[][] loadTimes)
+    void SetLoadByTimeStamp(Matrix4x4[][] loadContainer, uint[][] loadTimes, Vector3 offset)
     {
         Dictionary<uint, List<Matrix4x4>[]> sortContainer = new Dictionary<uint, List<Matrix4x4>[]>();
 
@@ -61,11 +61,11 @@ public class IncrementalLoader : MonoBehaviour
                     times[i][j] = key;
             }
 
-            loadStack.Push(new IncrementalLoadData(matrices, times));
+            loadStack.Push(new IncrementalLoadData(matrices, times, offset));
         }
     }
 
-    void SetLoadByLayer(Matrix4x4[][] loadContainer, uint[][] loadTimes)
+    void SetLoadByLayer(Matrix4x4[][] loadContainer, uint[][] loadTimes, Vector3 offset)
     {
         Dictionary<int, List<IncrementalLoadItem>> sortContainer = new Dictionary<int, List<IncrementalLoadItem>>();
 
@@ -117,7 +117,7 @@ public class IncrementalLoader : MonoBehaviour
                 _times[i] = times[i].ToArray();
             }
 
-            loadStack.Push(new IncrementalLoadData(_matrices, _times));
+            loadStack.Push(new IncrementalLoadData(_matrices, _times, offset));
         }
     }
 
@@ -141,18 +141,20 @@ public class IncrementalLoader : MonoBehaviour
 
         timer = 0;
         IncrementalLoadData data = loadStack.Pop();
-        BlockContainer.Container.AddBlocks(data.transforms, null, data.loadTimes);
+        BlockContainer.Container.AddBlocks(data.transforms, null, data.loadTimes, false, data.offset);
     }
     
     class IncrementalLoadData
     {
         public Matrix4x4[][] transforms;
         public uint[][] loadTimes;
+        public Vector3 offset;
 
-        public IncrementalLoadData(Matrix4x4[][] _transforms, uint[][] _loadTimes)
+        public IncrementalLoadData(Matrix4x4[][] _transforms, uint[][] _loadTimes, Vector3 _offset)
         {
             transforms = _transforms;
             loadTimes = _loadTimes;
+            offset = _offset;
         }
     }
 

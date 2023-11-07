@@ -21,6 +21,12 @@ public class TargetSpawner : MonoBehaviour
     GameObject cylinder;
 
     [SerializeField]
+    GameObject capsule;
+
+    [SerializeField]
+    SpawnCapsuleBehavior capsuleBehavior;
+
+    [SerializeField]
     Camera camera;
 
     [SerializeField]
@@ -45,10 +51,12 @@ public class TargetSpawner : MonoBehaviour
     List<TMP_InputField> inputs;
 
     float radius = 0.15f;
-    Vector3 boxSize = new Vector3(0.1f, 0.1f, 0.1f);
-    float cylinderRadius = 0.05f;
-    float cylinderHeight = 0.1f;
+    Vector3 boxSize = new Vector3(0.3f, 0.3f, 0.3f);
+    float cylinderRadius = 0.15f;
+    float cylinderHeight = 0.3f;
     Vector3 scaleVector = Vector3.zero;
+    float capsuleRadius = 0.15f;
+    float capsuleHeight = 0.3f;
 
     List<GameObject> brushes = new List<GameObject>();
     List<Vector3> brushScales = new List<Vector3>();
@@ -68,35 +76,32 @@ public class TargetSpawner : MonoBehaviour
 
             if (placement == PlacementVolume.Sphere)
             {
+                HideAllBrushes();
                 sphere.SetActive(true);
-                box.SetActive(false);
-                cylinder.SetActive(false);
-                DeactivateAllMeshes();
                 CheckScale(Vector3.zero);
             }
             else if (placement == PlacementVolume.Box)
             {
-                sphere.SetActive(false);
+                HideAllBrushes();
                 box.SetActive(true);
-                cylinder.SetActive(false);
-                DeactivateAllMeshes();
                 CheckScale(Vector3.zero);
             }
             else if (placement == PlacementVolume.Cylinder)
             {
-                sphere.SetActive(false);
-                box.SetActive(false);
+                HideAllBrushes();
                 cylinder.SetActive(true);
-                DeactivateAllMeshes();
+                CheckScale(Vector3.zero);
+            }
+            else if (placement == PlacementVolume.Capsule)
+            {
+                HideAllBrushes();
+                capsule.SetActive(true);
                 CheckScale(Vector3.zero);
             }
             else if (placement == PlacementVolume.Brush)
             {
-                sphere.SetActive(false);
-                box.SetActive(false);
-                cylinder.SetActive(false);
-                DeactivateAllMeshes();
-                brushes[brushIndex].SetActive(true); 
+                HideAllBrushes();
+                brushes[brushIndex].SetActive(true);
             }
         }
     }
@@ -160,6 +165,8 @@ public class TargetSpawner : MonoBehaviour
                 SpawnBlocksInBox();
             else if (Placement == PlacementVolume.Cylinder)
                 SpawnBlocksInCylinder();
+            else if (Placement == PlacementVolume.Capsule)
+                SpawnBlocksInCapsule();
             else if (Placement == PlacementVolume.Brush)
                 SpawnBlocksInBrush();
         }
@@ -171,6 +178,8 @@ public class TargetSpawner : MonoBehaviour
                 RemoveBlocksInBox();
             else if (Placement == PlacementVolume.Cylinder)
                 RemoveBlocksInCylinder();
+            else if (Placement == PlacementVolume.Capsule)
+                RemoveBlocksInCapsule();
             else if (Placement == PlacementVolume.Brush)
                 RemoveBlocksInBrush();
         }
@@ -182,6 +191,7 @@ public class TargetSpawner : MonoBehaviour
         sphere.SetActive(false);
         box.SetActive(false);
         cylinder.SetActive(false);
+        capsule.SetActive(false);
         DeactivateAllMeshes();
     }
 
@@ -204,13 +214,6 @@ public class TargetSpawner : MonoBehaviour
             brushIndex = 0;
 
         Placement = PlacementVolume.Brush;
-    }
-
-    void SpawnBlockAtPosition(Vector3 pos)
-    {
-        int blockType;
-        Matrix4x4 blockTransform = GameManager.Bond.GetClosestBlock(pos, out blockType);
-        BlockContainer.Container.AddBlock(blockTransform, blockType);
     }
 
     void SpawnBlocksAtPosition(Vector3 pos, float radius)
@@ -252,6 +255,20 @@ public class TargetSpawner : MonoBehaviour
     {
         PositionKey[][] blockDictKeys;
         Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCylinder(transform.position, cylinderRadius, cylinderHeight, out blockDictKeys);
+        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
+    }
+
+    void SpawnBlocksInCapsule()
+    {
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(capsuleBehavior.PositionA, capsuleBehavior.PositionB, capsuleBehavior.Radius, out blockDictKeys);
+        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
+    }
+
+    void RemoveBlocksInCapsule()
+    {
+        PositionKey[][] blockDictKeys;
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(capsuleBehavior.PositionA, capsuleBehavior.PositionB, capsuleBehavior.Radius, out blockDictKeys);
         BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
     }
 
@@ -409,6 +426,29 @@ public class TargetSpawner : MonoBehaviour
 
             cylinder.transform.localScale = new Vector3(cylinderRadius * 2, cylinderHeight, cylinderRadius * 2);
         }
+        else if (Placement == PlacementVolume.Capsule)
+        {
+            if (direction.x > epsilon || direction.z > epsilon)
+            {
+                capsuleRadius += Time.deltaTime * scaleSpeed;
+            }
+            else if (direction.x < -epsilon || direction.z < -epsilon)
+            {
+                capsuleRadius -= Time.deltaTime * scaleSpeed;
+                if (capsuleRadius < 0.01f) capsuleRadius = 0.01f;
+            }
+            if (direction.y > epsilon)
+            {
+                capsuleHeight += Time.deltaTime * scaleSpeed;
+            }
+            else if (direction.y < -epsilon)
+            {
+                capsuleHeight -= Time.deltaTime * scaleSpeed;
+                if (capsuleHeight < 0.005f) capsuleHeight = 0.005f;
+            }
+
+            capsuleBehavior.SetScale(capsuleRadius, capsuleHeight);
+        }
         else if (Placement == PlacementVolume.Brush)
         {
             if (direction.x > epsilon || direction.y > epsilon || direction.z > epsilon)
@@ -451,6 +491,7 @@ public class TargetSpawner : MonoBehaviour
         Sphere,
         Box,
         Cylinder,
+        Capsule,
         Brush
     }
 }

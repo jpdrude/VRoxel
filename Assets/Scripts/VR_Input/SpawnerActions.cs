@@ -26,6 +26,7 @@ public class SpawnerActions : MonoBehaviour
     [Space]
     [SerializeField]
     SteamVR_Input_Sources mainInputSource;
+    public SteamVR_Input_Sources MainInputSources { get { return mainInputSource; } set { mainInputSource = value; } }
 
 
     public SteamVR_Action_Boolean Trigger { get { return trigger; } }
