@@ -32,6 +32,9 @@ public class GeometryPointerBehaviour : MonoBehaviour
 
     bool copy = false;
 
+    static SteamVR_Input_Sources secondaryInputSource = SteamVR_Input_Sources.LeftHand;
+    public static SteamVR_Input_Sources SecondaryInputSource { get { return secondaryInputSource; } set { secondaryInputSource = value; } }
+
     private void Start()
     {
         lr = GetComponent<LineRenderer>();
@@ -108,7 +111,7 @@ public class GeometryPointerBehaviour : MonoBehaviour
     {
         if (pickupObject == null && focusObject != null)
         {
-            if (trigger.GetState(SteamVR_Input_Sources.LeftHand))
+            if (trigger.GetState(secondaryInputSource))
             {
                 copy = true;
                 pickupObject = focusObject.GetComponent<GeometryMenuItemReference>().MenuItem.DuplicateModel();

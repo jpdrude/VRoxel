@@ -11,8 +11,8 @@ public class XYZConstraint : MonoBehaviour
 
     static SteamVR_Action_Boolean trigger;
 
-    static SteamVR_Input_Sources inputSource = SteamVR_Input_Sources.LeftHand;
-    public static SteamVR_Input_Sources InputSource { get { return inputSource; } set { inputSource = value; } }
+    static SteamVR_Input_Sources secondaryInputSource = SteamVR_Input_Sources.LeftHand;
+    public static SteamVR_Input_Sources SecondaryInputSource { get { return secondaryInputSource; } set { secondaryInputSource = value; } }
 
     [SerializeField]
     SteamVR_AssemblySpawner spawner;
@@ -42,7 +42,7 @@ public class XYZConstraint : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (trigger.GetStateDown(inputSource))
+        if (trigger.GetStateDown(secondaryInputSource))
         {
             ortho = true;
             savePos = transform.position;
@@ -50,7 +50,7 @@ public class XYZConstraint : MonoBehaviour
             return;
         }
 
-        if (trigger.GetStateUp(inputSource))
+        if (trigger.GetStateUp(secondaryInputSource))
         {
             DeactivateConstraints();
         }

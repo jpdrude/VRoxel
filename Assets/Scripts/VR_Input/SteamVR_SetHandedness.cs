@@ -54,7 +54,7 @@ public class SteamVR_SetHandedness : MonoBehaviour
         quickOptionSwitchRot = quickOptionSwitch.transform.localRotation;
     }
 
-    void SetHandedness(SteamVR_Input_Sources menuInputSource, SteamVR_Input_Sources xyzConstraintInputSource, Transform menuHand, Transform spawnerHand)
+    void SetHandedness(SteamVR_Input_Sources menuInputSource, SteamVR_Input_Sources secondaryInputSource, Transform menuHand, Transform spawnerHand)
     {
         menu.transform.parent = menuHand;
         menu.transform.localRotation = menuRot;
@@ -85,7 +85,8 @@ public class SteamVR_SetHandedness : MonoBehaviour
         foreach (VRMenuItem menuItem in menu.GetComponentsInChildren<VRMenuItem>(true))
             menuItem.InputSource = menuInputSource;
 
-        XYZConstraint.InputSource = xyzConstraintInputSource;
+        XYZConstraint.SecondaryInputSource = secondaryInputSource;
+        GeometryPointerBehaviour.SecondaryInputSource = secondaryInputSource;
     }
 
     public void SetRightHanded()
