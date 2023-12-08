@@ -75,6 +75,13 @@ public class MenuSwitch : MonoBehaviour
     int addIndex = 0;
     int removeIndex = 0;
 
+    [Space]
+    [Header("Undo & Redo")]
+    [SerializeField]
+    VRMenuItem undoButton;
+    [SerializeField]
+    VRMenuItem redoButton;
+
     private void Start()
     {
         activeAggregationTool.SetActive(true);
@@ -102,6 +109,34 @@ public class MenuSwitch : MonoBehaviour
         SetRemoveButton(0);
 
         HideExtraPanels();
+    }
+
+    private void OnEnable()
+    {
+        if (UndoStack.GetUndoStack().Count > 0)
+            SetUndoAvailable();
+        else
+            SetUndoUnavailable();
+
+        if (UndoStack.GetRedoStack().Count > 0)
+            SetRedoAvailable();
+        else
+            SetRedoUnavailable();
+
+        UndoStack.UndoStackAvailable.AddListener(SetUndoAvailable);
+        UndoStack.UndoStackUnavailable.AddListener(SetUndoUnavailable);
+
+        UndoStack.RedoStackAvailable.AddListener(SetRedoAvailable);
+        UndoStack.RedoStackUnavailable.AddListener(SetRedoUnavailable);
+    }
+
+    private void OnDisable()
+    {
+        UndoStack.UndoStackAvailable.RemoveListener(SetUndoAvailable);
+        UndoStack.UndoStackUnavailable.RemoveListener(SetUndoUnavailable);
+
+        UndoStack.RedoStackAvailable.RemoveListener(SetRedoAvailable);
+        UndoStack.RedoStackUnavailable.RemoveListener(SetRedoUnavailable);
     }
 
     void SetAddButton(int index)
@@ -310,5 +345,33 @@ public class MenuSwitch : MonoBehaviour
         SetPlayerHeight();
     } 
 
+    public void Undo()
+    {
+        UndoStack.Undo();
+    }
 
+    public void Redo()
+    {
+        UndoStack.Redo();
+    }
+
+    void SetUndoUnavailable()
+    {
+        undoButton.Interactable = false;
+    }
+
+    void SetUndoAvailable()
+    {
+        undoButton.Interactable = true;
+    }
+
+    void SetRedoUnavailable()
+    {
+        redoButton.Interactable = false;
+    }
+
+    void SetRedoAvailable()
+    {
+        redoButton.Interactable = true;
+    }
 }

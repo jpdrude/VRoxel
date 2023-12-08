@@ -394,4 +394,9 @@ public class CustomAnimationPlayer : MonoBehaviour
     {
         return Hips;
     }
+
+    public (Vector3 posOffset, float rotOffset) GetOffset()
+    {
+        return new(positionOffset, rotationOffset);
+    }
 }

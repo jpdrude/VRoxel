@@ -173,7 +173,7 @@ public class ByteStreamContainer
 
             headerOffset = 16;
         }
-            
+
         StringBuilder _bondName = new StringBuilder();
         for (int i = headerOffset; i < headerOffset + array[headerOffset]; ++i)
         {
@@ -208,6 +208,17 @@ public class ByteStreamContainer
         times = new uint[typeLength][];
         int matricesEnd = headerOffset;
 
+        //Check Load Offset against Current Offset
+        if (Vector3.Distance(offset, GameManager.Bond.Offset) > 0.0000001f)
+        {
+            if (BlockContainer.Container.GetCount() > 1000 && bondName == GameManager.Bond.BondName)
+                offset = GameManager.Bond.Offset;
+            else if (bondName == GameManager.Bond.BondName)
+            {
+                GameManager.Bond.Offset = offset;
+            }
+        }
+
         for (int i = 0; i < typeLength; ++i)
         {
             int increment = 4 * 8;
@@ -229,7 +240,7 @@ public class ByteStreamContainer
                 float posX = BitConverter.ToSingle(array, j + 4 * 0);
                 float posY = BitConverter.ToSingle(array, j + 4 * 1);
                 float posZ = BitConverter.ToSingle(array, j + 4 * 2);
-                Vector3 position = new Vector3(posX, posY, posZ);
+                Vector3 position = new Vector3(posX, posY, posZ) + offset;
 
                 float rotX = BitConverter.ToSingle(array, j + 4 * 3);
                 float rotY = BitConverter.ToSingle(array, j + 4 * 4);

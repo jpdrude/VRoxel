@@ -15,6 +15,13 @@ public class CharacterSpawner : MonoBehaviour
     SphereCollider[] sphereColliders = null;
     CapsuleCollider[] capsuleColliders = null;
 
+    [SerializeField]
+    int historyBatchSize = 25;
+    int strokeCounter = 0;
+
+    DoAddStroke currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+    DoRemoveStroke currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
+
     // Start is called before the first frame update
     void Start()
     {
@@ -24,6 +31,12 @@ public class CharacterSpawner : MonoBehaviour
 
     public void AddCharacterBrush()
     {
+        if (removeBlocks)
+        {
+            UndoStack.Push(currentRemoveStroke);
+            currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
+        }
+
         addBlocks = true;
         removeBlocks = false;
 
@@ -33,6 +46,13 @@ public class CharacterSpawner : MonoBehaviour
 
     public void RemoveCharacterBrush()
     {
+        if (addBlocks)
+        {
+            UndoStack.Push(currentAddStroke);
+            currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+        }
+
+
         removeBlocks = true;
         addBlocks = false;
 
@@ -42,6 +62,17 @@ public class CharacterSpawner : MonoBehaviour
 
     public void DisableCharacterBrush()
     {
+        if (removeBlocks)
+        {
+            UndoStack.Push(currentRemoveStroke);
+            currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
+        }
+        else if (addBlocks)
+        {
+            UndoStack.Push(currentAddStroke);
+            currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+        }
+
         addBlocks = false;
         removeBlocks = false;
         AnimationIO.constantAnimationTime = false;
@@ -63,6 +94,14 @@ public class CharacterSpawner : MonoBehaviour
             {
                 AddRemoveFromCapsule(cc, true);
             }
+
+            ++strokeCounter;
+
+            if (strokeCounter >= historyBatchSize)
+            {
+                UndoStack.Push(currentAddStroke);
+                currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+            }
         }
         else if (removeBlocks)
         {
@@ -75,6 +114,14 @@ public class CharacterSpawner : MonoBehaviour
             foreach (CapsuleCollider cc in capsuleColliders)
             {
                 AddRemoveFromCapsule(cc, false);
+            }
+
+            ++strokeCounter;
+
+            if (strokeCounter >= historyBatchSize)
+            {
+                UndoStack.Push(currentRemoveStroke);
+                currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
             }
         }
     }
@@ -89,9 +136,16 @@ public class CharacterSpawner : MonoBehaviour
         Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sc.transform.position + sc.transform.rotation * sc.center, sc.radius * maxScale, out blockDictKeys);
         
         if (add)
-            BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
+        {
+            bool[][] blockMask = BlockContainer.Container.AddBlocks(blocks, blockDictKeys, null, false, true);
+            currentAddStroke.AppendPartialStroke(blocks, blockDictKeys, blockMask, null, (uint)(GameManager.gameTime * 10));
+        }
         else
-            BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
+        {
+            var blockMaskAndTimes = BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys, true);
+            currentRemoveStroke.AppendPartialStroke(blocks, blockDictKeys, blockMaskAndTimes.blockMask, blockMaskAndTimes.blockTimes);
+        }
+
     }
 
     void AddRemoveFromCapsule(CapsuleCollider cc, bool add)
@@ -105,11 +159,17 @@ public class CharacterSpawner : MonoBehaviour
 
         PositionKey[][] blockDictKeys;
         Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(positionA, positionB, cc.radius, out blockDictKeys);
-        
+
         if (add)
-            BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
+        {
+            bool[][] blockMask = BlockContainer.Container.AddBlocks(blocks, blockDictKeys, null, false, true);
+            currentAddStroke.AppendPartialStroke(blocks, blockDictKeys, blockMask, null, (uint)(GameManager.gameTime * 10));
+        }
         else
-            BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
+        {
+            var blockMaskAndTimes = BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys, true);
+            currentRemoveStroke.AppendPartialStroke(blocks, blockDictKeys, blockMaskAndTimes.blockMask, blockMaskAndTimes.blockTimes);
+        }
     }
 
     private void OnDestroy()

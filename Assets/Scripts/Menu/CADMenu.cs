@@ -21,6 +21,13 @@ public class CADMenu : MonoBehaviour
     [SerializeField]
     Color deleteColor;
 
+    [Space]
+    [Header("Undo/Redo")]
+    [SerializeField]
+    Button undoButton;
+    [SerializeField]
+    Button redoButton;
+
     private void Start()
     {
         if (Bond.meshBrushLevel == MeshBrushLevels.fine)
@@ -33,6 +40,41 @@ public class CADMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
             mesh2Bricks.ScanMesh = false;
+
+        if (UndoStack.GetUndoStack().Count > 0)
+            SetUndoAvailable();
+        else
+            SetUndoUnavailable();
+
+        if (UndoStack.GetRedoStack().Count > 0)
+            SetRedoAvailable();
+        else
+            SetRedoUnavailable();
+
+        UndoStack.UndoStackAvailable.AddListener(SetUndoAvailable);
+        UndoStack.UndoStackUnavailable.AddListener(SetUndoUnavailable);
+
+        UndoStack.RedoStackAvailable.AddListener(SetRedoAvailable);
+        UndoStack.RedoStackUnavailable.AddListener(SetRedoUnavailable);
+    }
+
+    private void OnDisable()
+    {
+        UndoStack.UndoStackAvailable.RemoveListener(SetUndoAvailable);
+        UndoStack.UndoStackUnavailable.RemoveListener(SetUndoUnavailable);
+
+        UndoStack.RedoStackAvailable.RemoveListener(SetRedoAvailable);
+        UndoStack.RedoStackUnavailable.RemoveListener(SetRedoUnavailable);
+    }
+
+    public void Undo()
+    {
+        UndoStack.Undo();
+    }
+
+    public void Redo()
+    {
+        UndoStack.Redo();
     }
 
     public void ChangeCADMode()
@@ -74,5 +116,25 @@ public class CADMenu : MonoBehaviour
             Bond.meshBrushLevel = MeshBrushLevels.fine;
         else
             Bond.meshBrushLevel = MeshBrushLevels.rough;
+    }
+
+    void SetUndoAvailable()
+    {
+        undoButton.interactable = true;
+    }
+
+    void SetUndoUnavailable()
+    {
+        undoButton.interactable = false;
+    }
+
+    void SetRedoAvailable()
+    {
+        redoButton.interactable = true;
+    }
+
+    void SetRedoUnavailable()
+    {
+        redoButton.interactable = false;
     }
 }

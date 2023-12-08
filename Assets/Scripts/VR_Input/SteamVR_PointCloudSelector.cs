@@ -33,6 +33,8 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
     Dictionary<PositionKey, Matrix4x4> toConvertTransforms = new Dictionary<PositionKey, Matrix4x4>();
 
+    DoFromPointCloud currentFromDoAction = new DoFromPointCloud(DoAction.DoType.ToBlocks);
+
     VRPlacementMode mode = VRPlacementMode.BlocksToPointCloud;
     public VRPlacementMode Mode
     {
@@ -87,6 +89,7 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
         if (mode == VRPlacementMode.BlocksToPointCloud)
         {
+            /*
             for (int i = 0; i < blockDictKeys.Length; ++i)
                 foreach (PositionKey key in blockDictKeys[i])
                 {
@@ -97,8 +100,17 @@ public class SteamVR_PointCloudSelector : SpawnerActions
                             toConvertTransforms.Add(key, BlockContainer.Container.TransformArray[entry.blockType][entry.item]);
                     }
                 }
+            */
 
             Dictionary<PositionKey, Matrix4x4> blockTransforms = BlockContainer.Container.HideBlocks(blockDictKeys);
+
+            foreach (KeyValuePair<PositionKey, Matrix4x4> pair in blockTransforms)
+            {
+                if (toConvertTransforms.ContainsKey(pair.Key))
+                    blockTransforms.Remove(pair.Key);
+                else
+                    toConvertTransforms.Add(pair.Key, pair.Value);
+            }
              
             if (placeholderArrayPos == 0)
             {
@@ -118,15 +130,22 @@ public class SteamVR_PointCloudSelector : SpawnerActions
         }
         else
         {
-            BlockContainer.Container.ReinstateBlocks(blockDictKeys);
+            Dictionary<PositionKey, Matrix4x4> transformDict = BlockContainer.Container.ReinstateBlocks(blockDictKeys);
+            
+            if (transformDict.Count > 0)
+                currentFromDoAction.AppendKeys(blockDictKeys, transformDict);
         }
     }
 
     public override void OnTriggerUp()
     {
-        if (Mode == VRPlacementMode.BlocksToPointCloud)
+        if (Mode == VRPlacementMode.BlocksToPointCloud && toConvertTransforms.Count > 0)
         {
-            BlockContainer.Container.BlocksToPointCloud(GetConversionArray(), toConvertTransforms);
+            PositionKey[] conversionArray = GetConversionArray();
+            BlockContainer.Container.BlocksToPointCloud(conversionArray, toConvertTransforms);
+
+            if (conversionArray.Length > 0)
+                UndoStack.Push(new DoToPointCloud(DoAction.DoType.ToPointCloud, conversionArray, toConvertTransforms));
 
             toConvertTransforms = new Dictionary<PositionKey, Matrix4x4>();
 
@@ -136,9 +155,14 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
             GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, placeholder.prefabPrototype, emptyArray);
         }
-        else
+        else if (Mode == VRPlacementMode.PointCloudToBlocks)
         {
             PointCloudIO.RecalculatePointCloud();
+
+            if (currentFromDoAction.Count > 0)
+                UndoStack.Push(currentFromDoAction);
+
+            currentFromDoAction = new DoFromPointCloud(DoAction.DoType.ToBlocks);
         }
     }
 

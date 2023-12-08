@@ -71,11 +71,15 @@ public class CADMeshToBricks : MonoBehaviour
             {
                 BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
                 Debug.Log("Added " + blockCount + " units");
+
+                BlockContainer.Container.FinishStroke(PlacementModeType.Spawn);
             }
             else
             {
                 BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
                 Debug.Log("Removed " + blockCount + " units");
+
+                BlockContainer.Container.FinishStroke(PlacementModeType.Destroy);
             }
 
             Destroy(focusMesh.gameObject);

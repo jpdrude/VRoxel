@@ -18,6 +18,33 @@ public class VRMenuItem : MonoBehaviour
     public UnityEvent Action { get { return action; } }
     [SerializeField]
     UnityEvent actionPressed;
+
+    [SerializeField]
+    bool interactable = true;
+
+    Material originalMat = null;
+    Material disabledMat = null;
+
+
+    public bool Interactable
+    {
+        get { return interactable; }
+        set
+        {
+            if (originalMat == null) SetMaterials();
+
+            interactable = value;
+
+            if (!interactable)
+            {
+                run = true;
+                reverse = true;
+                GetComponentInChildren<MeshRenderer>().material = disabledMat;
+            }
+            else
+                GetComponentInChildren<MeshRenderer>().material = originalMat;
+        }
+    }
     
 
     [Header("Focus Animation Settings")]
@@ -30,8 +57,16 @@ public class VRMenuItem : MonoBehaviour
     bool reverse = false;
     bool focused = false;
 
+    void SetMaterials()
+    {
+        originalMat = GetComponentInChildren<MeshRenderer>(true).material;
+        disabledMat = new Material(originalMat);
+        disabledMat.color *= 0.5f;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
+        if (!interactable) return;
         if (other.gameObject.tag != "MenuSelector") return;
 
         run = true;
@@ -40,6 +75,7 @@ public class VRMenuItem : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (!interactable) return;
         if (other.gameObject.tag != "MenuSelector") return;
 
         run = true;
@@ -48,6 +84,7 @@ public class VRMenuItem : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        if (!interactable) return;
         if (other.gameObject.tag != "MenuSelector") return;
         focused = true;
     }

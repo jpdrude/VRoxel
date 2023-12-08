@@ -45,6 +45,8 @@ public class SteamVR_AssemblySpawner : SpawnerActions
     SteamVR_CharacterPointer characterPointer;
     SteamVR_GeometryPointer geometryPointer;
 
+    PlacementModeType modeType = PlacementModeType.Spawn;
+
     VRPlacementMode mode = VRPlacementMode.SpawnInSphere;
     public VRPlacementMode Mode
     {
@@ -63,6 +65,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 sphere.SetActive(true);
                 sphere.GetComponent<MeshRenderer>().material = spawnMat;
                 UpdateSphereScale();
+                modeType = PlacementModeType.Spawn;
             }
             else if (mode == VRPlacementMode.DeleteFromSphere)
             {
@@ -70,6 +73,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 sphere.SetActive(true);
                 sphere.GetComponent<MeshRenderer>().material = deleteMat;
                 UpdateSphereScale();
+                modeType = PlacementModeType.Destroy;
             }
             else if (mode == VRPlacementMode.SpawnInBox)
             {
@@ -77,6 +81,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 box.SetActive(true);
                 box.GetComponent<MeshRenderer>().material = spawnMat;
                 UpdateBoxScale();
+                modeType = PlacementModeType.Spawn;
             }
             else if (mode == VRPlacementMode.DeleteFromBox)
             {
@@ -84,6 +89,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 box.SetActive(true);
                 box.GetComponent<MeshRenderer>().material = deleteMat;
                 UpdateBoxScale();
+                modeType = PlacementModeType.Destroy;
             }
             else if (mode == VRPlacementMode.SpawnInCylinder)
             {
@@ -91,6 +97,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 cylinder.SetActive(true);
                 cylinder.GetComponent<MeshRenderer>().material = spawnMat;
                 UpdateCylinderScale();
+                modeType = PlacementModeType.Spawn;
             }
             else if (mode == VRPlacementMode.DeleteFromCylinder)
             {
@@ -98,6 +105,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 cylinder.SetActive(true);
                 cylinder.GetComponent<MeshRenderer>().material = deleteMat;
                 UpdateCylinderScale();
+                modeType = PlacementModeType.Destroy;
             }
             else if (mode == VRPlacementMode.SpawnInCapsule)
             {
@@ -106,6 +114,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 foreach(MeshRenderer mr in capsule.GetComponentsInChildren<MeshRenderer>())
                     mr.material = spawnMat;
                 UpdateCapsuleScale();
+                modeType = PlacementModeType.Spawn;
             }
             else if (mode == VRPlacementMode.DeleteFromCapsule)
             {
@@ -114,6 +123,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 foreach(MeshRenderer mr in capsule.GetComponentsInChildren<MeshRenderer>())
                     mr.material = deleteMat;
                 UpdateCapsuleScale();
+                modeType = PlacementModeType.Destroy;
             }
             else if (mode == VRPlacementMode.SpawnInBrush)
             {
@@ -121,6 +131,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 brushes[brushIndex].gameObject.SetActive(true);
                 brushes[brushIndex].GetComponent<MeshRenderer>().material = spawnMat;
                 UpdateBrushScale();
+                modeType = PlacementModeType.Spawn;
             }
             else if (mode == VRPlacementMode.DeleteFromBrush)
             {
@@ -128,6 +139,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
                 brushes[brushIndex].gameObject.SetActive(true);
                 brushes[brushIndex].GetComponent<MeshRenderer>().material = deleteMat;
                 UpdateBrushScale();
+                modeType = PlacementModeType.Destroy;
             }
         }
     }
@@ -201,6 +213,11 @@ public class SteamVR_AssemblySpawner : SpawnerActions
             SpawnBlocksInBrush();
         else if (Mode == VRPlacementMode.DeleteFromBrush)
             RemoveBlocksInBrush();
+    }
+
+    public override void OnTriggerUp()
+    {
+        BlockContainer.Container.FinishStroke(modeType);
     }
 
     public override void DPadInputPressed(bool _up, bool _down, bool _left, bool _right)
@@ -527,4 +544,14 @@ public enum VRPlacementMode
     DeleteFromBrush,
     BlocksToPointCloud,
     PointCloudToBlocks
+}
+
+public enum PlacementModeType
+{
+    Spawn,
+    Destroy,
+    ToPC,
+    FromPC,
+    MoveAnim,
+    MoveGeo
 }

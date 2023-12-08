@@ -146,9 +146,16 @@ public class GeometryPointerBehaviour : MonoBehaviour
 
     void FinishPickup()
     {
+        pickupObject.transform.parent = oldParent;
+
+        if (!copy)
+        {
+            UndoStack.Push(new DoChangeObjectPos(DoAction.DoType.ChangeObjectPos, pickupObject, Matrix4x4.TRS(pickupPosition, pickupRotation, pickupObject.transform.localScale),
+                Matrix4x4.TRS(pickupObject.transform.position, pickupObject.transform.rotation, pickupObject.transform.localScale)));
+        }
+
         copy = false;
         pickupRoot.enabled = false;
-        pickupObject.transform.parent = oldParent;
         pickupObject = null;
         focusObject = null;
         pickupRoot = null;

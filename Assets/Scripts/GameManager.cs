@@ -89,5 +89,6 @@ public class GameManager : MonoBehaviour
     {
         BlockContainer.Container.ResetContainer();
         PointCloudIO.RecalculatePointCloud();
+        UndoStack.Clear();
     }
 }

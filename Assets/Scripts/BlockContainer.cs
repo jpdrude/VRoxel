@@ -27,6 +27,10 @@ public class BlockContainer
 
     bool logAddRemove = false;
 
+    //Record Undo Stack
+    DoAddStroke currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+    DoRemoveStroke currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
+
     public BlockContainer(GPUInstancerPrefabManager _manager, GPUInstancerPrefab[] _parts)
     {
         Container = this;
@@ -34,7 +38,6 @@ public class BlockContainer
         parts = _parts;
 
         ResetContainer();
-        ResetCloudContainer();
     }
 
     public void MaskAssembly(PositionKey[][] mask)
@@ -55,7 +58,7 @@ public class BlockContainer
 
         foreach (PositionEntry entry in blockDictionary.Values)
         {
-            if (entry.item >= 0)
+            if (entry.item > 0)
             {
                 transformArray[entry.blockType][entry.item] = Matrix4x4.zero;
                 indexStack[entry.blockType].Push(entry.item);
@@ -87,9 +90,15 @@ public class BlockContainer
                 Matrix4x4 matrix4x4 = transformArray[i][j];
                 if (matrix4x4 != Matrix4x4.zero)
                 {
+                    var blockDictKey = new PositionKey(matrix4x4);
+                    if (!blockDictionary.ContainsKey(blockDictKey))
+                    {
+                        Debug.Log("Key not in Dictionary");
+                        continue;
+                    }
+
                     toCloudTransforms.Add(matrix4x4);
 
-                    var blockDictKey = new PositionKey(matrix4x4);
                     indexStack[i].Push(blockDictionary[blockDictKey].item);
 
                     if (cloudIndexStack[i].Count <= 0)
@@ -107,6 +116,9 @@ public class BlockContainer
         }
 
         PointCloudIO.ModulesToCloud(toCloudTransforms);
+
+        if (toCloudTransforms.Count > 0)
+        UndoStack.Push(new DoToPointCloud(DoAction.DoType.ToPointCloud, toCloudTransforms));
 
         ResetContainer(true);
     }
@@ -144,15 +156,24 @@ public class BlockContainer
     public Dictionary<PositionKey, Matrix4x4> HideBlocks(PositionKey[][] blockKeys)
     {
         Dictionary<PositionKey, Matrix4x4> blockTransforms = new Dictionary<PositionKey, Matrix4x4>();
+        int skipCounter = 0;
 
         for (int i = 0; i < blockKeys.Length; ++i)
         {
             for (int j = 0; j < blockKeys[i].Length; ++j)
             {
-                if (!blockDictionary.ContainsKey(blockKeys[i][j])) continue;
+                if (!blockDictionary.ContainsKey(blockKeys[i][j]))
+                {
+                    ++skipCounter;
+                    continue;
+                }
 
                 PositionEntry blockIndex = blockDictionary[blockKeys[i][j]];
-                if (blockIndex.item <= 0) continue;
+                if (blockIndex.item <= 0)
+                {
+                    ++skipCounter;
+                    continue;
+                }
 
                 if (transformArray[blockIndex.blockType][blockIndex.item] == Matrix4x4.zero) continue;
 
@@ -191,6 +212,7 @@ public class BlockContainer
             for (int j = batchSize - 1; j >= 0; --j)
             {
                 transformArray[i][j] = Matrix4x4.zero;
+                if (j == 0) continue;
                 indexStack[i].Push(j);
             }
         }
@@ -246,6 +268,7 @@ public class BlockContainer
         {
             cloudTransformArray[i] = new Matrix4x4[batchSize];
 
+
             cloudIndexStack[i] = new Stack<int>();
         }
 
@@ -254,20 +277,27 @@ public class BlockContainer
             for (int j = batchSize - 1; j >= 0; --j)
             {
                 cloudTransformArray[i][j] = Matrix4x4.zero;
+                if (j == 0) continue;
                 cloudIndexStack[i].Push(j);
             }
         }
     }
 
     //Needs Change
-    public void AddBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys = null, uint[][] times = null, bool asPointCloud = false, Vector3? offset = null)
+    public bool[][] AddBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys = null, uint[][] times = null, bool asPointCloud = false, bool skipHistory = false)
     {
         List<Matrix4x4> toCloudTransforms = new List<Matrix4x4>();
 
         uint timeStamp = (uint)(GameManager.gameTime * 10);
 
+        bool[][] blockMask = new bool[blockTransforms.Length][];
+
+        int addcounter = 0;
+
         for (int i = 0; i < blockTransforms.Length; ++i)
         {
+            blockMask[i] = new bool[blockTransforms[i].Length];
+
             for (int j = 0; j < blockTransforms[i].Length; ++j)
             {
                 var matrix4x4 = blockTransforms[i][j];
@@ -279,24 +309,42 @@ public class BlockContainer
                 {
                     if (!asPointCloud)
                     {
-                        BlockToArray(matrix4x4, i, timeStamp, null, false, offset);
+                        if (BlockToArray(matrix4x4, i, timeStamp, null, false))
+                        {
+                            blockMask[i][j] = true;
+                            ++addcounter;
+                        }
                     }
                     else
                     {
-                        BlockToArray(matrix4x4, i, timeStamp, null, true, offset);
-                        toCloudTransforms.Add(matrix4x4);
+                        if (BlockToArray(matrix4x4, i, timeStamp, null, true))
+                        {
+                            blockMask[i][j] = true;
+                            ++addcounter;
+
+                            toCloudTransforms.Add(matrix4x4);
+                        }
                     }
                 }
                 else
                 {
                     if (!asPointCloud)
                     {
-                        BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j], false, offset);
+                        if (BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j], false))
+                        {
+                            blockMask[i][j] = true;
+                            ++addcounter;
+                        }
                     }
                     else
                     {
-                        BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j], true, offset);
-                        toCloudTransforms.Add(matrix4x4);
+                        if (BlockToArray(matrix4x4, i, timeStamp, blockDictKeys[i][j], true))
+                        {
+                            blockMask[i][j] = true;
+                            ++addcounter;
+
+                            toCloudTransforms.Add(matrix4x4);
+                        }
                     }
                 }
             }
@@ -307,10 +355,59 @@ public class BlockContainer
                 GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
         else
             PointCloudIO.ModulesToCloud(toCloudTransforms);
+
+        if (!asPointCloud && !skipHistory && addcounter > 0)
+            currentAddStroke.AppendPartialStroke(blockTransforms, blockDictKeys, blockMask, times, (uint)(GameManager.gameTime * 10));
+
+        return blockMask;
     }
 
-    public void ReinstateBlocks(PositionKey[][] blockDictPositions)
+    public void FinishStroke(PlacementModeType modeType)
     {
+        if (modeType == PlacementModeType.Spawn && currentAddStroke.StrokeLength > 0 && currentRemoveStroke.StrokeLength == 0)
+        {
+            if (currentAddStroke.StrokeLength > 0)
+                UndoStack.Push(currentAddStroke);
+
+            currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+        }
+        else if ( modeType == PlacementModeType.Destroy && currentRemoveStroke.StrokeLength > 0 && currentAddStroke.StrokeLength == 0)
+        {
+            if (currentRemoveStroke.StrokeLength > 0)
+                UndoStack.Push(currentRemoveStroke);
+
+            currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
+        }
+        else
+        {
+            if (currentAddStroke.UpdateTime < currentRemoveStroke.UpdateTime)
+            {
+                if (currentAddStroke.StrokeLength > 0)
+                    UndoStack.Push(currentAddStroke);
+
+                if (currentRemoveStroke.StrokeLength > 0)
+                    UndoStack.Push(currentRemoveStroke);
+            }
+            else
+            {
+                if (currentRemoveStroke.StrokeLength > 0)
+                    UndoStack.Push(currentRemoveStroke);
+
+                if (currentAddStroke.StrokeLength > 0)
+                    UndoStack.Push(currentAddStroke);
+            }
+
+            currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+            currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
+
+            MessageSystem.DisplayWarning("Last Undo Action recording was not finished properly!");
+        }
+    }
+
+    public Dictionary<PositionKey, Matrix4x4> ReinstateBlocks(PositionKey[][] blockDictPositions)
+    {
+        Dictionary<PositionKey, Matrix4x4> transformDict = new Dictionary<PositionKey, Matrix4x4>();
+
         for (int i = 0; i < blockDictPositions.Length; ++i)
         {
             foreach (PositionKey dictKey in blockDictPositions[i])
@@ -325,58 +422,96 @@ public class BlockContainer
                 if (indexStack[entry.blockType].Count < 1) NewBatch(entry.blockType);
 
                 int blockIndex = indexStack[entry.blockType].Pop();
-                transformArray[entry.blockType][blockIndex] = cloudTransformArray[entry.blockType][pcIndex];
+                Matrix4x4 matrix = cloudTransformArray[entry.blockType][pcIndex];
+                transformArray[entry.blockType][blockIndex] = matrix;
                 blockDictionary[dictKey] = new PositionEntry(entry.blockType, blockIndex, entry.time);
                 cloudTransformArray[entry.blockType][pcIndex] = Matrix4x4.zero;
 
+                transformDict.Add(dictKey, matrix);
             }
         }
 
         for (int i = 0; i < parts.Length; ++i)
             GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
+
+        return transformDict;
     }
 
-    public void RemoveBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys)
+    public (bool[][] blockMask, uint[][] blockTimes) RemoveBlocks(Matrix4x4[][] blockTransforms, PositionKey[][] blockDictKeys, bool skipHistory = false)
     {
-        DateTime start = DateTime.Now;
-        int counter = 0;
+        //Undo Stack Entry
+        bool[][] blockMask = new bool[blockTransforms.Length][];
+        uint[][] blockTimes = new uint[blockTransforms.Length][];
+        int deleteCounter = 0;
 
         for (int i = 0; i < blockTransforms.Length; ++i)
         {
+            blockMask[i] = new bool[blockTransforms[i].Length];
+            blockTimes[i] = new uint[blockTransforms[i].Length];
+
             for (int j = 0; j < blockTransforms[i].Length; ++j)
             {
                 var matrix4x4 = blockTransforms[i][j];
 
-                if (BlockFromArray(matrix4x4, blockDictKeys[i][j])) ++counter;
+                if (blockDictionary.ContainsKey(blockDictKeys[i][j]))
+                {
+                    blockMask[i][j] = true;
+                    blockTimes[i][j] = blockDictionary[blockDictKeys[i][j]].time;
+                    ++deleteCounter;
+
+                    BlockFromArray(matrix4x4, blockDictKeys[i][j]);
+                }
             }
         }
 
-        TimeSpan duration = DateTime.Now - start;
-        if (logAddRemove) Debug.Log("Removed " + counter + " blocks of " + blockTransforms.Length + " possible. Took " + duration.TotalMilliseconds.ToString("F1") + " milliseconds");
+        if (!skipHistory && deleteCounter > 0)
+            currentRemoveStroke.AppendPartialStroke(blockTransforms, blockDictKeys, blockMask, blockTimes);
+
 
         for (int i = 0; i < parts.Length; ++i)
             GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
+
+        return (blockMask, blockTimes);
     }
 
-    bool BlockToArray(Matrix4x4 _transform, int blockType, uint timeStamp, PositionKey? blockKey = null, bool skipGPUInstancer = false, Vector3? _offset = null)
+    public void RemoveCloudBlocks(List<PositionKey> keys)
+    {
+        int skipCounter = 0;
+
+        foreach(PositionKey dictKey in keys)
+        {
+            if (!blockDictionary.ContainsKey(dictKey) || blockDictionary[dictKey].item > 0)
+            {
+                ++skipCounter;
+                continue;
+            }
+
+            PositionEntry entry = blockDictionary[dictKey];
+
+            int pcIndex = -entry.item;
+
+            cloudTransformArray[entry.blockType][pcIndex] = Matrix4x4.zero;
+            cloudIndexStack[entry.blockType].Push(pcIndex);
+
+            blockDictionary.Remove(dictKey);
+        }
+
+        if (skipCounter > 0)
+            Debug.LogError("Skipped " + skipCounter + " Parts");
+
+        PointCloudIO.RecalculatePointCloud();
+    }
+
+    bool BlockToArray(Matrix4x4 _transform, int blockType, uint timeStamp, PositionKey? blockKey = null, bool skipGPUInstancer = false)
     {
         PositionKey key;
         if (blockKey == null)
-            key = new PositionKey(_transform.GetPosition());
+            key = new PositionKey(_transform);
         else
             key = (PositionKey)blockKey;
 
         if (!blockDictionary.ContainsKey(key))
         {
-            if (_offset != null)
-            {
-                Vector3 offset = (Vector3)_offset;
-
-                _transform.m03 += offset.x;
-                _transform.m13 += offset.y;
-                _transform.m23 += offset.z;
-            }
-
             if (!skipGPUInstancer)
             {
                 if (indexStack[blockType].Count == 0)
@@ -407,7 +542,7 @@ public class BlockContainer
         
         PositionKey key;
         if (blockKey == null)
-            key = new PositionKey(_transform.GetPosition());
+            key = new PositionKey(_transform);
         else
             key = (PositionKey)blockKey;
 
@@ -432,11 +567,11 @@ public class BlockContainer
 
         Array.Copy(cloudTransformArray[blockType], tempCloudTransformArray, cloudTransformArray[blockType].Length);
 
-        for (int i = cloudTransformArray[blockType].Length + 1; i < tempCloudTransformArray.Length; ++i)
+        for (int i = cloudTransformArray[blockType].Length; i < tempCloudTransformArray.Length; ++i)
         {
+            tempCloudTransformArray[i] = Matrix4x4.zero;
             if (i == 0) continue;
             cloudIndexStack[blockType].Push(i);
-            tempCloudTransformArray[i] = Matrix4x4.zero;
         }
 
         cloudTransformArray[blockType] = tempCloudTransformArray;
@@ -448,10 +583,11 @@ public class BlockContainer
 
         Array.Copy(transformArray[blockType], tempTransformArray, transformArray[blockType].Length);
 
-        for (int i = transformArray[blockType].Length + 1; i < tempTransformArray.Length; ++i)
+        for (int i = transformArray[blockType].Length; i < tempTransformArray.Length; ++i)
         {
-            indexStack[blockType].Push(i);
             tempTransformArray[i] = Matrix4x4.zero;
+            if (i == 0) continue;
+            indexStack[blockType].Push(i);
         }
 
         transformArray[blockType] = tempTransformArray;
@@ -493,13 +629,6 @@ public struct PositionKey
     public int y;
     public int z;
 
-    public PositionKey(Vector3 vec)
-    {
-        x = Mathf.RoundToInt(vec.x * 10000);
-        y = Mathf.RoundToInt(vec.y * 10000);
-        z = Mathf.RoundToInt(vec.z * 10000);
-    }
-
     public PositionKey(Vector3Int vec)
     {
         x = vec.x;
@@ -509,7 +638,7 @@ public struct PositionKey
 
     public PositionKey(Matrix4x4 matrix)
     {
-        Vector3 vec = matrix.GetPosition();
+        Vector3 vec = matrix.GetPosition() - GameManager.Bond.Offset;
         x = Mathf.RoundToInt(vec.x * 10000);
         y = Mathf.RoundToInt(vec.y * 10000);
         z = Mathf.RoundToInt(vec.z * 10000);

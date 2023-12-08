@@ -56,6 +56,7 @@ public class KitBashIO : MonoBehaviour
 
     public static Vector3 Offset { get; set; }
 
+    DoAddStroke addStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
 
     private void Start()
     {
@@ -69,6 +70,9 @@ public class KitBashIO : MonoBehaviour
 
         if (palette.Keys.Count <= 0)
         {
+            UndoStack.Push(addStroke);
+            addStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+
             Distribute = false;
             DestroyKitBashContext();
             return;
@@ -102,7 +106,10 @@ public class KitBashIO : MonoBehaviour
 
         PositionKey[][] blockDictKeys;
         Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInMesh(brushCollider, out blockDictKeys);
-        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
+        BlockContainer.Container.AddBlocks(blocks, blockDictKeys, null, false, true);
+
+
+        addStroke.AppendPartialStroke(blocks, blockDictKeys, null, null, (uint)(GameManager.gameTime * 10));
 
         transforms[key].RemoveAt(0);
     }

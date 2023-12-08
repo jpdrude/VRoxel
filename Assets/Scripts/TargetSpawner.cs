@@ -124,6 +124,7 @@ public class TargetSpawner : MonoBehaviour
         CheckMovement();
         CheckScale(scaleVector);
         CheckSpawn();
+        CheckUndo();
 
         MessageSystem.DisplayPermanentMessage(BlockContainer.Container.GetCount() + " Blocks placed");
     }
@@ -183,7 +184,27 @@ public class TargetSpawner : MonoBehaviour
             else if (Placement == PlacementVolume.Brush)
                 RemoveBlocksInBrush();
         }
-            
+
+        if (Input.GetKeyUp(KeyCode.Return))
+            FinishSpawnAction(PlacementModeType.Spawn);
+        else if (Input.GetKeyUp(KeyCode.Backspace))
+            FinishSpawnAction(PlacementModeType.Destroy);
+    }
+
+    void CheckUndo()
+    {
+        if (Input.GetKey(KeyCode.LeftControl))
+        {
+            if (Input.GetKeyDown(KeyCode.Z))
+                UndoStack.Undo();
+            else if (Input.GetKeyDown(KeyCode.Y))
+                UndoStack.Redo();
+        }
+    }
+
+    void FinishSpawnAction(PlacementModeType type)
+    {
+        BlockContainer.Container.FinishStroke(type);
     }
 
     void HideAllBrushes()

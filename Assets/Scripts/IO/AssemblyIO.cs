@@ -103,13 +103,17 @@ public class AssemblyIO : MonoBehaviour
             if (!loadAsPointCloud)
             {
                 if (!loadIncrementally)
-                    BlockContainer.Container.AddBlocks(loadContainer, null, loadTimes, false, loadOffset);
+                {
+                    BlockContainer.Container.AddBlocks(loadContainer, null, loadTimes, false);
+                    BlockContainer.Container.FinishStroke(PlacementModeType.Spawn);
+                }
                 else
                     incrementalLoader.SetLoadData(loadContainer, loadTimes, loadOffset);
             }
             else
             {
-                BlockContainer.Container.AddBlocks(loadContainer, null, loadTimes, true, loadOffset);
+                bool[][] mask = BlockContainer.Container.AddBlocks(loadContainer, null, loadTimes, true, true);
+                UndoStack.Push(new DoLoadAsPointCloud(DoAction.DoType.LoadAsPointCloud, loadContainer, mask, loadTimes));
             }
 
             GameManager.gameTime += loadTimeOffset;
@@ -154,6 +158,7 @@ public class AssemblyIO : MonoBehaviour
         }
 
         BlockContainer.Container.AddBlocks(outMatrices);
+        BlockContainer.Container.FinishStroke(PlacementModeType.Spawn);
 
         Debug.Log("Referencing Position finished at " + DateTime.Now.ToString("T"));
     }
@@ -399,16 +404,6 @@ public class AssemblyIO : MonoBehaviour
             loadComplete = true;
         }
 
-        if (Vector3.Distance(offset, GameManager.Bond.Offset) > 0.0000001f)
-        {
-            if (BlockContainer.Container.GetCount() > 1000 && loadBond == GameManager.Bond.BondName)
-                loadOffset = GameManager.Bond.Offset;
-            else if (loadBond == GameManager.Bond.BondName)
-            {
-                GameManager.Bond.Offset = offset;
-            }
-        }
-
         Debug.Log("Loading finished at " + DateTime.Now.ToString("T"));
     }
 
@@ -589,6 +584,7 @@ public class AssemblyIO : MonoBehaviour
         BlockContainer.Container.ResetCloudContainer();
         GameManager.Bond = null;
         GameManager.gameTime = 0;
+        UndoStack.Clear();
         //PointCloudIO.RecalculatePointCloud();
     }   
 }

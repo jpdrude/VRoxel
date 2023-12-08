@@ -159,6 +159,8 @@ public class PointCloudIO : MonoBehaviour
 
     public static void ModulesToCloud(List<Matrix4x4> transforms)
     {
+        if (transforms.Count == 0) return;
+
         Vector3[] points = new Vector3[transforms.Count];
         Vector3[] colors = new Vector3[transforms.Count];
 
@@ -226,7 +228,11 @@ public class PointCloudIO : MonoBehaviour
         if (viewerInitialized)
         {
             ResetPointCloudViewer();
-            cloudViewer.CreateWithPoints(points, colors);
+
+            if (points.Length > 0)
+                cloudViewer.CreateWithPoints(points, colors);
+            else
+                viewerInitialized = false;
         }
         else if (useRuntime)
         {

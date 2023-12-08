@@ -14,12 +14,16 @@ public class IncrementalLoader : MonoBehaviour
 
     Stack<IncrementalLoadData> loadStack = null;
 
+    DoAddStroke addAction = new DoAddStroke(DoAction.DoType.AddStrocke);
+
     public void SetLoadData(Matrix4x4[][] loadContainer, uint[][] loadTimes, Vector3 offset)
     {
         if (!loadAsLayers)
             SetLoadByTimeStamp(loadContainer, loadTimes, offset);
         else
             SetLoadByLayer(loadContainer, loadTimes, offset);
+
+        addAction.AppendPartialStroke(loadContainer, null, null, loadTimes, (uint)(GameManager.gameTime * 10));
     }
 
     void SetLoadByTimeStamp(Matrix4x4[][] loadContainer, uint[][] loadTimes, Vector3 offset)
@@ -128,6 +132,9 @@ public class IncrementalLoader : MonoBehaviour
 
         if (loadStack.Count == 0)
         {
+            UndoStack.Push(addAction);
+            addAction = new DoAddStroke(DoAction.DoType.AddStrocke);
+
             loadStack = null;
             timer = 0;
             return;
@@ -141,7 +148,7 @@ public class IncrementalLoader : MonoBehaviour
 
         timer = 0;
         IncrementalLoadData data = loadStack.Pop();
-        BlockContainer.Container.AddBlocks(data.transforms, null, data.loadTimes, false, data.offset);
+        BlockContainer.Container.AddBlocks(data.transforms, null, data.loadTimes, false, true);
     }
     
     class IncrementalLoadData
