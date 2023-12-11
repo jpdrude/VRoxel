@@ -53,7 +53,6 @@ public class SpawnLegoMesoBlocks : MonoBehaviour
     GPUInstancerPrefab partPrefab;
 
 
-    // Start is called before the first frame update
     void Awake()
     {
         camTarget.transform.position = new Vector3(xOffset * extendX * xzSpacing / 2, yOffset * extendY * ySpacing / 2, zOffset * extendZ * xzSpacing / 2);

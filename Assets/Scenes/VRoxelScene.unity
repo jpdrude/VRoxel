@@ -88525,7 +88525,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   test: 0
   faultyPos: []
+  faultyPosIndex: 
   faultyCloudPos: []
+  faultyCloudPosIndex: 
   faultyKeys: []
 --- !u!4 &1410859614
 Transform:
@@ -106936,6 +106938,7 @@ MonoBehaviour:
   loadAtStart: 0
   cloudMaterial: {fileID: 2100000, guid: a194b26621629c6489aa31e07ac9bf8f, type: 2}
   useDX11: 1
+  skipCloudDisplay: 1
   meshMaterial: {fileID: 0}
   instantiateMaterial: 0
   totalMaxPoints: 0

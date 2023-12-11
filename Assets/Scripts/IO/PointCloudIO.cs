@@ -56,19 +56,34 @@ public class PointCloudIO : MonoBehaviour
     static Vector3[] loadedPoints = new Vector3[0];
     static Vector3[] loadedColors = new Vector3[0];
 
+    static PointCloudIO instance;
+    static bool issueRecalculation = false;
+
+
     private void Awake()
     {
         runtimeViewer = _runtimeViewer;
         cloudViewer = _cloudViewer;
         cloudMaterial = defaultMaterial;
         blockColor = _blockColor;
+
+        instance = this;
+    }
+
+    private void Update()
+    {
+        if (issueRecalculation)
+        {
+            issueRecalculation = false;
+            StartCoroutine(DelayedPointCloudRecalculation());
+        }
     }
 
     public static void ImportPointCloud(string path)
     {
         ResetRuntimeViewer();
         ResetPointCloudViewer();
-
+        
         runtimeViewer.CallImporterThreaded(path);
         runtimeViewer.displayPoints = true;
         viewerInitialized = false;
@@ -76,6 +91,11 @@ public class PointCloudIO : MonoBehaviour
         lastCloudPath = path + ".bin";
 
         runtimeViewer.OnLoadingComplete += new RuntimeViewerDX11.OnLoadComplete(OnRuntimeViewerLoad);
+        
+
+        //PointCloud2Binary pc2Bin = new PointCloud2Binary();
+        //pc2Bin.Convert2Binary(path, readRGB, cloudFormat.ToString());
+        //DisplayPointCloud(path + ".bin");
     }
 
     static void ResetRuntimeViewer()
@@ -123,10 +143,10 @@ public class PointCloudIO : MonoBehaviour
         Array.Copy(cloudViewer.points, loadedPoints, loadedPoints.Length);
         Array.Copy(cloudViewer.pointColors, loadedColors, loadedColors.Length);
 
-        Debug.Log("Point Cload loaded. BlockContainer has " + BlockContainer.Container.GetCloudCount() + " blocks to add to cloud");
-        
+        Debug.Log("Point Cload loaded using Viewer. BlockContainer has " + BlockContainer.Container.GetCloudCount() + " blocks to add to cloud");
+
         if (BlockContainer.Container.GetCloudCount() > 0)
-            RecalculatePointCloud();
+            issueRecalculation = true;
         
     }
 
@@ -138,11 +158,11 @@ public class PointCloudIO : MonoBehaviour
         Array.Copy(runtimeViewer.Points, loadedPoints, loadedPoints.Length);
         Array.Copy(runtimeViewer.PointColors, loadedColors, loadedColors.Length);
 
-        Debug.Log("Point Cload loaded. BlockContainer has " + BlockContainer.Container.GetCloudCount() + " blocks to add to cloud");
-        
+        Debug.Log("Point Cload loaded using Runtime. BlockContainer has " + BlockContainer.Container.GetCloudCount() + " blocks to add to cloud");
+
         if (BlockContainer.Container.GetCloudCount() > 0)
-            RecalculatePointCloud();
-        
+            issueRecalculation = true;
+
     }
 
     static void ResetPointCloudViewer()
@@ -195,11 +215,9 @@ public class PointCloudIO : MonoBehaviour
     {
         List<Vector3> cloudPositions = new List<Vector3>();
         Matrix4x4[][] cloudTransformArray = BlockContainer.Container.CloudTransformArray;
-        int cloudLength = 0;
 
         for (int i = 0; i < cloudTransformArray.Length; ++i)
         {
-            cloudLength += cloudTransformArray[i].Length;
             for (int j = 0; j < cloudTransformArray[i].Length; ++j)
             {
                 if (cloudTransformArray[i][j] != Matrix4x4.zero)
@@ -225,9 +243,12 @@ public class PointCloudIO : MonoBehaviour
             colors[loadedLength + i] = _blockColor;
         }
 
+        //Debug.Log("Loaded Cloud Count: " + loadedPoints.Length + ", Point Count: " + cloudPositions.Count + ", new Point Count: " + points.Length);
+        
         if (viewerInitialized)
         {
-            ResetPointCloudViewer();
+            if (points.Length != cloudViewer.points.Length)
+                ResetPointCloudViewer();
 
             if (points.Length > 0)
                 cloudViewer.CreateWithPoints(points, colors);
@@ -237,10 +258,21 @@ public class PointCloudIO : MonoBehaviour
         else if (useRuntime)
         {
             ResetRuntimeViewer();
-            cloudViewer.CreateWithPoints(points, colors);
-        }
-    }
+            useRuntime = false;
 
+            if (points.Length > 0)
+            {
+                cloudViewer.CreateWithPoints(points, colors);
+                viewerInitialized = true;
+            }
+        }
+        else
+        {
+            cloudViewer.CreateWithPoints(points, colors);
+            viewerInitialized = true;
+        }
+        
+    }
 
     public static void RestorePointCloud()
     {
@@ -254,5 +286,12 @@ public class PointCloudIO : MonoBehaviour
         {
             DisplayPointCloud(lastCloudPath);
         }
+    }
+
+    IEnumerator DelayedPointCloudRecalculation()
+    {
+        yield return 0;
+
+        RecalculatePointCloud();
     }
 }

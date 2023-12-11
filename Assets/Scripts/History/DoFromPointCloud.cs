@@ -69,28 +69,28 @@ public class DoFromPointCloud : DoAction
         if (sortedKeys == null)
         {
             sortedKeys = new PositionKey[keys.Length][];
-            for (int i = 0; i < sortedKeys.Length; ++i)
+
+            for (int i = 0; i < keys.Length; ++i)
             {
+                for (int j = keys[i].Count - 1; j >= 0; --j)
+                {
+                    if (!transforms.ContainsKey(keys[i][j]))
+                        keys[i].RemoveAt(j);
+                }
+
                 sortedKeys[i] = keys[i].ToArray();
             }
         }
 
         if (allKeys == null)
         {
-            int totalLength = 0;
+            allKeys = new PositionKey[transforms.Count];
+            int i = 0;
 
-            for (int i = 0; i < keys.Length; ++i)
+            foreach (PositionKey key in transforms.Keys)
             {
-                totalLength += keys[i].Count;
-            }
-
-            allKeys = new PositionKey[totalLength];
-            int startIndex = 0;
-
-            for (int i = 0; i < keys.Length; ++i)
-            {
-                System.Array.Copy(sortedKeys[i], 0, allKeys, startIndex, sortedKeys[i].Length);
-                startIndex += sortedKeys[i].Length;
+                allKeys[i] = key;
+                ++i;
             }
         }
 

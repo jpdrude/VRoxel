@@ -129,25 +129,26 @@ public class BlockContainer
 
         for (int i = 0; i < blockKeys.Length; ++i)
         {
-            if (!blockDictionary.ContainsKey(blockKeys[i])) continue;
+            PositionKey key = blockKeys[i];
 
-            PositionEntry blockIndex = blockDictionary[blockKeys[i]];
-            if (blockIndex.item <= 0) continue;
+            if (!blockDictionary.ContainsKey(key)) continue;
+            if (!blockTransforms.ContainsKey(key)) continue;
 
-            indexStack[blockIndex.blockType].Push(blockIndex.item);
+            PositionEntry blockEntry = blockDictionary[key];
+            if (blockEntry.item <= 0) continue;
 
-            if (cloudIndexStack[blockIndex.blockType].Count <= 0)
-                NewCloudBatch(blockIndex.blockType);
+            indexStack[blockEntry.blockType].Push(blockEntry.item);
 
-            int cloudIndex = cloudIndexStack[blockIndex.blockType].Pop();
+            if (cloudIndexStack[blockEntry.blockType].Count <= 0)
+                NewCloudBatch(blockEntry.blockType);
 
-            cloudTransformArray[blockIndex.blockType][cloudIndex] = blockTransforms[blockKeys[i]];
+            int cloudIndex = cloudIndexStack[blockEntry.blockType].Pop();
 
-            uint timeStamp = blockDictionary[blockKeys[i]].time;
+            cloudTransformArray[blockEntry.blockType][cloudIndex] = blockTransforms[key];
 
-            blockDictionary[blockKeys[i]] = new PositionEntry(blockIndex.blockType, -cloudIndex, timeStamp);
+            blockDictionary[key] = new PositionEntry(blockEntry.blockType, -cloudIndex, blockEntry.time);
 
-            toCloudTransforms.Add(blockTransforms[blockKeys[i]]);
+            toCloudTransforms.Add(blockTransforms[key]);
         }
 
         PointCloudIO.ModulesToCloud(toCloudTransforms);
@@ -267,7 +268,6 @@ public class BlockContainer
         for (int i = 0; i < parts.Length; ++i)
         {
             cloudTransformArray[i] = new Matrix4x4[batchSize];
-
 
             cloudIndexStack[i] = new Stack<int>();
         }
