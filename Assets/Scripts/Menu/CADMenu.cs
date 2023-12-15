@@ -38,9 +38,6 @@ public class CADMenu : MonoBehaviour
 
     private void OnEnable()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-            mesh2Bricks.ScanMesh = false;
-
         if (UndoStack.GetUndoStack().Count > 0)
             SetUndoAvailable();
         else

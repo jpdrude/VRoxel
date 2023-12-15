@@ -112,12 +112,13 @@ public class GeometryIO : MonoBehaviour
 
     public static void ImportGeometry(string path, bool fixTransform)
     {
-        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnMaterialsImport, OnImportProgress, OnGeometryImportError, null, options);
         fixGeometryTransform = fixTransform;
+        AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnMaterialsImport, OnImportProgress, OnGeometryImportError, null, options);
     }
 
-    public static void ImportKitBashPalette(string path)
+    public static void ImportKitBashPalette(string path, bool fixTransform)
     {
+        fixGeometryTransform = fixTransform;
         AssetLoader.LoadModelFromFile(path, OnGeometryImport, OnKitBashPaletteImport, OnImportProgress, OnImportError, null, options);
     }
 

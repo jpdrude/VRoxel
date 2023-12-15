@@ -8,7 +8,7 @@ public class CADMeshToBricks : MonoBehaviour
     public bool ScanMesh { get; set; }
     public bool Remove { get; set; }
 
-    int layerMask = 1 << 11;
+    int layerMask = 1 << 11 | 1 << 2;
 
     MeshCollider focusMesh = null;
 
@@ -23,6 +23,7 @@ public class CADMeshToBricks : MonoBehaviour
     void Update()
     {
         if (!ScanMesh) return;
+        if (EscapeMenu.GamePaused) return;
 
         RaycastHit hit;
 
@@ -82,7 +83,30 @@ public class CADMeshToBricks : MonoBehaviour
                 BlockContainer.Container.FinishStroke(PlacementModeType.Destroy);
             }
 
-            Destroy(focusMesh.gameObject);
+            GeometryMenuItemReference menuReference = null;
+            GameObject parent = focusMesh.transform.parent.gameObject;
+            while (true)
+            {
+                if (parent.GetComponent<GeometryMenuItemReference>() != null)
+                {
+                    menuReference = parent.GetComponent<GeometryMenuItemReference>();
+                    break;
+                }
+
+                if (parent.transform.parent == null)
+                    break;
+
+                parent = parent.transform.parent.gameObject;
+            }
+
+            MeshCollider[] childColliders = parent.GetComponentsInChildren<MeshCollider>();
+
+            if (childColliders.Length <= 1)
+                menuReference.MenuItem.DeleteModel();
+            else
+            {
+                Destroy(focusMesh.gameObject);
+            }
         }
     }
 }

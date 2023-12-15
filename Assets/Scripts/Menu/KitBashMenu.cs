@@ -24,6 +24,7 @@ public class KitBashMenu : MonoBehaviour
         FileBrowser.SetFilters(true, new FileBrowser.Filter("Geometry", ".fbx", ".obj", ".stl"));
         FileBrowser.SetDefaultFilter(".fbx");
         FileBrowser.ShowLoadDialog(OnGeometryImportSuccess, OnCancel, FileBrowser.PickMode.Files);
+        FileBrowser.Instance.SetFixTransformToggle(true);
     }
 
     public void LoadKitBashAssembly()
@@ -65,7 +66,8 @@ public class KitBashMenu : MonoBehaviour
 
     void OnGeometryImportSuccess(string[] paths)
     {
-        GeometryIO.ImportKitBashPalette(paths[0]);
+        KitBashIO.FixTransform = FileBrowser.FixTransform;
+        GeometryIO.ImportKitBashPalette(paths[0], FileBrowser.FixTransform);
     }
 
     void LoadAssemblySuccess(string[] paths)

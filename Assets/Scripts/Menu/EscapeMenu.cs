@@ -71,6 +71,9 @@ public class EscapeMenu : MonoBehaviour
     string pcPath = null;
     bool overrideCache;
 
+    static bool gamePaused = false;
+    public static bool GamePaused { get { return gamePaused; } }
+
     private void Start()
     {
         escapePanel.SetActive(false);
@@ -92,6 +95,8 @@ public class EscapeMenu : MonoBehaviour
 
                 quit.SetActive(true);
                 reallyQuit.SetActive(false);
+
+                gamePaused = true;
             }
             else
             {
@@ -189,6 +194,8 @@ public class EscapeMenu : MonoBehaviour
 
     public void Resume()
     {
+        gamePaused = false;
+
         quit.SetActive(true);
         reallyQuit.SetActive(false);
 

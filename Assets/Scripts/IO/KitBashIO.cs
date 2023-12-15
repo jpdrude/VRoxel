@@ -15,6 +15,8 @@ public class KitBashIO : MonoBehaviour
     [SerializeField]
     Material brushMaterial;
 
+    public static bool FixTransform { get; set; }
+
     static Dictionary<string, GameObject> palette;
     public static Dictionary<string, GameObject> Palette 
     {
@@ -99,8 +101,13 @@ public class KitBashIO : MonoBehaviour
 
         brush.SetActive(true);
         brush.transform.position = transforms[key][0].GetPosition() + Offset;
+
         brush.transform.rotation = transforms[key][0].GetRotation();
+
         brush.transform.localScale = transforms[key][0].GetScale();
+
+        if (FixTransform)
+            brush.transform.RotateAround(Vector3.zero, Vector3.up, 180);
 
         Collider brushCollider = brush.GetComponent<MeshCollider>();
 
