@@ -4,13 +4,22 @@ using UnityEngine;
 using UnityEngine.Events;
 using System;
 using System.IO;
+using UnityEngine.Rendering.PostProcessing;
 
 public class CameraRecorder : MonoBehaviour
 {
+    [Header("Screenshot")]
     [SerializeField]
     int width = 3840;
     [SerializeField]
     int height = 2160;
+
+    [Space]
+    [Header("Video Capture")]
+    [SerializeField]
+    int frameRate = 30;
+    [SerializeField]
+    int videoSuperSize = 1;
 
     [SerializeField]
     bool record = false;
@@ -20,6 +29,8 @@ public class CameraRecorder : MonoBehaviour
     bool play = false;
     public bool Play { get { return play; } }
 
+    bool playbackBegun = false;
+
     bool export = false;
 
     [SerializeField]
@@ -27,6 +38,31 @@ public class CameraRecorder : MonoBehaviour
 
     [SerializeField]
     UnityEvent ExportFinished = new UnityEvent();
+
+    [Space]
+    [Header("Capture Rotation")]
+    [SerializeField]
+    float degrees;
+    [SerializeField]
+    float rotStep = 1;
+    [SerializeField]
+    bool captureRotation;
+    [SerializeField]
+    Transform rotCenter;
+    float rotCounter = 0;
+
+    [Space]
+    [Header("Capture Character")]
+    [SerializeField]
+    bool captureAnimation = false;
+    [SerializeField]
+    CustomAnimationPlayer animationPlayer;
+    [SerializeField]
+    bool spawnBlocksFromCharacter = false;
+    [SerializeField]
+    bool deleteBlocksFromCharacter = false;
+    [SerializeField]
+    float animationLength = 0;
 
     List<string> frameImgs = new List<string>();
 
@@ -42,18 +78,37 @@ public class CameraRecorder : MonoBehaviour
 
     int playbackPosition;
 
+    int exportCounter = 0;
+
     float recordTimer = 1;
 
     int frameCounter;
+
+    PostProcessLayer ppLayer;
+    PostProcessLayer.Antialiasing aaMode = PostProcessLayer.Antialiasing.None;
+    
 
     // Start is called before the first frame update
     void Start()
     {
         controller = GetComponent<CADController>();
+        ppLayer = GetComponent<PostProcessLayer>();
     }
 
     // Update is called once per frame
     void Update()
+    {
+        if (!captureRotation && !captureAnimation)
+            CheckAnimationFrame();
+        else if (captureRotation)
+            CheckRotateAnimationFrame();
+        else if (captureAnimation)
+            CheckCharacterAnimationFrame();
+
+        ++frameCounter;
+    }
+
+    void CheckAnimationFrame()
     {
         if (record)
         {
@@ -68,7 +123,7 @@ public class CameraRecorder : MonoBehaviour
         }
         else if (play)
         {
-            if (smoothCamPositions == null)
+            if (!playbackBegun)
                 PlayRecording();
 
             transform.position = smoothCamPositions[playbackPosition];
@@ -85,9 +140,65 @@ public class CameraRecorder : MonoBehaviour
 
             if (export)
                 SaveFrame();
-        }
 
-        ++frameCounter;
+            ++exportCounter;
+        }
+    }
+
+    void CheckRotateAnimationFrame()
+    {
+        if (play)
+        {
+            if (!playbackBegun)
+                PlayRecording();
+
+            rotCenter.Rotate(Vector3.up * rotStep);
+            rotCounter += rotStep;
+
+            if (rotCounter >= degrees)
+            {
+                playbackPosition = 0;
+                rotCounter = 0;
+
+                if (export)
+                    FinishExport();
+            }
+
+            if (export)
+                SaveFrame();
+
+            ++exportCounter;
+        }
+    }
+
+    void CheckCharacterAnimationFrame()
+    {
+        if (animationPlayer == null) return;
+
+        if (play)
+        {
+            if (!playbackBegun)
+                PlayRecording();
+
+            if (spawnBlocksFromCharacter)
+                animationPlayer.gameObject.GetComponent<CharacterSpawner>().AddCharacterBrush();
+            else if (deleteBlocksFromCharacter)
+                animationPlayer.gameObject.GetComponent<CharacterSpawner>().RemoveCharacterBrush();
+
+            animationLength -= 1f / frameRate;
+
+            if (animationLength < 0)
+            {
+
+                if (export)
+                    FinishExport();
+            }
+
+            if (export)
+                SaveFrame();
+
+            ++exportCounter;
+        }
     }
 
     void FinishExport()
@@ -96,32 +207,64 @@ public class CameraRecorder : MonoBehaviour
         export = false;
         exportPath = null;
         StopPlayback();
-        MessageSystem.DisplayMessage("Captured " + smoothCamPositions.Count + " frames!");
+
+        ppLayer.antialiasingMode = aaMode;
+
+        GetComponent<CADController>().enabled = true;
+
+        try
+        {
+            MessageSystem.DisplayMessage("Captured " + smoothCamPositions.Count + " frames!");
+        }
+        catch
+        {
+            Debug.Log("Captured Animation");
+        }
+
         ExportFinished.Invoke();
     }
 
     void StartExport(string _path)
     {
         AnimationIO.constantAnimationTime = true;
+        AnimationIO.animationFrameRate = frameRate;
         exportPath = _path;
         export = true;
         ClearTempFiles();
 
+        exportCounter = 0;
+
+        aaMode = ppLayer.antialiasingMode;
+        ppLayer.antialiasingMode = PostProcessLayer.Antialiasing.SubpixelMorphologicalAntialiasing;
+
         ClearFilesInDirectory(Path.GetDirectoryName(_path), Path.GetFileNameWithoutExtension(_path) + "*");
+
+        if (captureRotation)
+            GetComponent<CADController>().enabled = false;
+
+        if (captureAnimation)
+        {
+            animationLength = animationPlayer.RestartAnimation();
+
+            if (spawnBlocksFromCharacter)
+                animationPlayer.gameObject.GetComponent<CharacterSpawner>().AddCharacterBrush();
+            else if (deleteBlocksFromCharacter)
+                animationPlayer.gameObject.GetComponent<CharacterSpawner>().RemoveCharacterBrush();
+        }
     }
 
     void SaveFrame()
     {
         string path;
         if (exportPath == null || !Directory.Exists(Path.GetDirectoryName(exportPath)))
-            path = Application.persistentDataPath + "\\frame_" + playbackPosition.ToString("D5") + ".png";
+            path = Application.persistentDataPath + "\\frame_" + exportCounter.ToString("D5") + ".png";
         else
             path = Path.GetDirectoryName(exportPath) + "\\" + Path.GetFileNameWithoutExtension(exportPath) + 
-                "_" + playbackPosition.ToString("D5") + ".png";
+                "_" + exportCounter.ToString("D5") + ".png";
 
 
         frameImgs.Add(path);
-        ScreenCapture.CaptureScreenshot(path);
+        ScreenCapture.CaptureScreenshot(path, videoSuperSize);
     }
 
     public void StartScreenshotCoroutine(string path)
@@ -307,7 +450,9 @@ public class CameraRecorder : MonoBehaviour
 
     public bool PlayRecording(bool fromStart = false, bool _export = false, string _path = null)
     {
-        if (camPositions.Count < 100)
+        playbackBegun = true;
+
+        if (camPositions.Count < 100 && !captureRotation && !captureAnimation)
             return false;
 
         if (fromStart)
@@ -318,13 +463,13 @@ public class CameraRecorder : MonoBehaviour
             StartExport(_path);
         }
 
-        if (smoothCamPositions == null)
+        if (smoothCamPositions == null && camPositions.Count >= 100)
             SmoothenCameraPath();
 
         play = true;
         record = false;
 
-        if (playbackPosition >= smoothCamPositions.Count)
+        if (smoothCamPositions != null && playbackPosition >= smoothCamPositions.Count)
             playbackPosition = 0;
 
         controller.enabled = false;
@@ -336,5 +481,6 @@ public class CameraRecorder : MonoBehaviour
     {
         play = false;
         controller.enabled = true;
+        playbackBegun = false;
     }
 }

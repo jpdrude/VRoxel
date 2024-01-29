@@ -171,6 +171,10 @@ public class CustomAnimationPlayer : MonoBehaviour
             }
         }
     }
+    [SerializeField]
+    bool useDamping = false;
+    [SerializeField]
+    float dampingFactor = 0.5f;
     [Header("Character Model")]
     [SerializeField]
     CharacterModel characterModel;
@@ -202,6 +206,8 @@ public class CustomAnimationPlayer : MonoBehaviour
 
         animationEnd = animation["Hips"]["localRotation.x"].length / frameRate;
         animationStart = 1.0f / frameRate;
+
+        StraightenTangents();
     }
 
     public void SetTrails(bool _trails, int _fadeSteps, float _fadeTime)
@@ -291,6 +297,7 @@ public class CustomAnimationPlayer : MonoBehaviour
 
     public void TransformJoints(float time)
     {
+        
         SetJointTransform(Hips, "Hips", time);
 
         SetJointTransform(RightUpLeg, "RightUpLeg", time);
@@ -320,19 +327,26 @@ public class CustomAnimationPlayer : MonoBehaviour
 
         SetJointTransform(Neck, "Neck", time);
         SetJointTransform(Head, "Head", time);
-
+        
         SetRootTransform(time);
     }
 
     void SetJointTransform(Transform jointTransform, string jointName, float time)
     {
+        
+
         Quaternion localRot = new Quaternion();
         localRot.x = animation[jointName]["localRotation.x"].Evaluate(time);
         localRot.y = animation[jointName]["localRotation.y"].Evaluate(time);
         localRot.z = animation[jointName]["localRotation.z"].Evaluate(time);
         localRot.w = animation[jointName]["localRotation.w"].Evaluate(time);
 
-        jointTransform.localRotation = localRot;
+        localRot.Normalize();
+
+        if (useDamping)
+            jointTransform.localRotation = Quaternion.Slerp(jointTransform.localRotation.normalized, localRot, dampingFactor);
+        else
+            jointTransform.localRotation = localRot;
     }
 
     void SetRootTransform(float time)
@@ -350,9 +364,16 @@ public class CustomAnimationPlayer : MonoBehaviour
         transform.position = rot * (pos + positionOffset);
         transform.rotation = rot;
         */
-        transform.position = (rot * pos) + positionOffset;
-        transform.rotation = rot;
-
+        if (useDamping)
+        {
+            transform.position = Vector3.Lerp(transform.position, (rot * pos) + positionOffset, dampingFactor);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, dampingFactor);
+        }
+        else
+        {
+            transform.position = (rot * pos) + positionOffset;
+            transform.rotation = rot;
+        }
     }
 
     void MoveJointTransform(Transform jointTransform, string jointName, float time)
@@ -398,5 +419,183 @@ public class CustomAnimationPlayer : MonoBehaviour
     public (Vector3 posOffset, float rotOffset) GetOffset()
     {
         return new(positionOffset, rotationOffset);
+    }
+
+    public float RestartAnimation()
+    {
+        timer = animationStart;
+        OnLoopBegin.Invoke();
+
+        return animationEnd - animationStart;
+    }
+
+    List<List<AnimationCurve>> ListCurves()
+    {
+        var animationCurves = new List<List<AnimationCurve>>();
+
+        string[] joints = new string[] {"Hips", "RightUpLeg", "RightLeg", "RightFoot", "RightToeBase", "LeftUpLeg", "LeftLeg", "LeftFoot",
+        "LeftToeBase", "Spine", "Spine1", "Spine2", "Spine3", "LeftShoulder", "LeftArm", "LeftForeArm", "LeftHand", "RightShoulder", "RightArm",
+        "RightForeArm", "RightHand", "Neck", "Head"};
+
+        foreach (string joint in joints)
+        {
+            var jointCurve = new List<AnimationCurve>();
+            jointCurve.Add(animation[joint]["localRotation.x"]);
+            jointCurve.Add(animation[joint]["localRotation.y"]);
+            jointCurve.Add(animation[joint]["localRotation.z"]);
+            jointCurve.Add(animation[joint]["localRotation.w"]);
+
+            animationCurves.Add(jointCurve);
+        }
+
+        return animationCurves;
+    }
+
+    void StraightenTangents()
+    {
+        foreach (string joint in animation.Keys)
+        {
+            foreach (string identifier in animation[joint].Keys)
+            {
+                AnimationCurve curve = animation[joint][identifier];
+
+                Keyframe[] keyframes = curve.keys;
+
+                for (int i = 0; i < keyframes.Length; ++i)
+                {
+                    keyframes[i].inTangent = 0;
+                    keyframes[i].outTangent = 0;
+                }
+
+                curve.keys = keyframes;
+            }
+        }
+    }
+
+    //Doesn't work great and is very slow!
+    void SmoothenAnimationCurves()
+    {
+        foreach (string joint in animation.Keys)
+        {
+            int keyCount = animation[joint]["localRotation.x"].keys.Length;
+            Quaternion[] smoothRot = new Quaternion[keyCount];
+
+            for (int i = 0; i < keyCount; ++i)
+            {
+                float x = animation[joint]["localRotation.x"].keys[i].value;
+                float y = animation[joint]["localRotation.y"].keys[i].value;
+                float z = animation[joint]["localRotation.z"].keys[i].value;
+                float w = animation[joint]["localRotation.w"].keys[i].value;
+
+                smoothRot[i] = new Quaternion(x, y, z, w);
+            }
+
+            smoothRot = ApplySlerpSmoothing(smoothRot, 5);
+
+            Keyframe[] curveX = animation[joint]["localRotation.x"].keys;
+            Keyframe[] curveY = animation[joint]["localRotation.y"].keys;
+            Keyframe[] curveZ = animation[joint]["localRotation.z"].keys;
+            Keyframe[] curveW = animation[joint]["localRotation.w"].keys;
+
+
+            for (int i = 0; i < keyCount; ++i)
+            {
+                curveX[i].value = smoothRot[i].x;
+                curveX[i].inTangent = 0;
+                curveX[i].outTangent = 0;
+
+                curveY[i].value = smoothRot[i].y;
+                curveY[i].inTangent = 0;
+                curveY[i].outTangent = 0;
+
+                curveZ[i].value = smoothRot[i].z;
+                curveZ[i].inTangent = 0;
+                curveZ[i].outTangent = 0;
+
+                curveW[i].value = smoothRot[i].w;
+                curveW[i].inTangent = 0;
+                curveW[i].outTangent = 0;
+            }
+
+            animation[joint]["localRotation.x"].keys = curveX;
+            animation[joint]["localRotation.y"].keys = curveY;
+            animation[joint]["localRotation.z"].keys = curveZ;
+            animation[joint]["localRotation.w"].keys = curveW;
+        }
+    }
+
+    Quaternion[] ApplySlerpSmoothing(Quaternion[] quaternions, int windowSize)
+    {
+        Quaternion[] smoothedQuaternions = new Quaternion[quaternions.Length];
+
+        for (int i = 0; i < quaternions.Length; i++)
+        {
+            int startIndex = Mathf.Max(0, i - windowSize / 2);
+            int endIndex = Mathf.Min(quaternions.Length - 1, i + windowSize / 2);
+
+            Quaternion averageQuaternion = Quaternion.identity;
+
+            for (int j = startIndex; j <= endIndex; j++)
+            {
+                averageQuaternion = Quaternion.Slerp(averageQuaternion, quaternions[j], 1.0f / (endIndex - startIndex + 1));
+            }
+
+            smoothedQuaternions[i] = averageQuaternion;
+        }
+
+        return smoothedQuaternions;
+    }
+
+    //Jolts around sometimes!
+    void SmoothenAnimationCurvesSimple()
+    {
+        foreach (string joint in animation.Keys)
+        {
+            foreach (string identifier in animation[joint].Keys)
+            {
+                AnimationCurve curve = animation[joint][identifier];
+
+                Keyframe[] keyframes = curve.keys;
+                float[] values = new float[keyframes.Length];
+
+                for (int i = 0; i < keyframes.Length; ++i)
+                {
+                    values[i] = keyframes[i].value;
+                }
+
+                values = AverageCurveValues(values, 5);
+
+                for (int i = 0; i < keyframes.Length; ++i)
+                {
+                    keyframes[i].value = values[i];
+                    keyframes[i].inTangent = 0;
+                    keyframes[i].outTangent = 0;
+                }
+
+                curve.keys = keyframes;
+
+            }
+        }
+    }
+
+    float[] AverageCurveValues(float[] values, int windowSize)
+    {
+        float[] smoothedAngles = new float[values.Length];
+
+        for (int i = 0; i < values.Length; i++)
+        {
+            int startIndex = Mathf.Max(0, i - windowSize / 2);
+            int endIndex = Mathf.Min(values.Length - 1, i + windowSize / 2);
+
+            float sum = 0;
+            for (int j = startIndex; j <= endIndex; j++)
+            {
+                sum += values[j];
+            }
+
+            smoothedAngles[i] = sum / (endIndex - startIndex + 1);
+        }
+
+        return smoothedAngles;
     }
 }

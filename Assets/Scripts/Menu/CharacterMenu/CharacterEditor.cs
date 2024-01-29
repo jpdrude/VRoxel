@@ -243,7 +243,7 @@ public class CharacterEditor : MonoBehaviour
     public void StartLoadDialog()
     {
         var filter = new FileBrowser.Filter("VRoxel Body Dimensions", ".vrxlbody", ".json");
-        FileBrowser.SetFilters(false, filter);
+        FileBrowser.SetDefaultFilter(".vrxlbody");
 
         FileBrowser.ShowLoadDialog(OnAvatarDimensionLoadSuccess, OnCancel, FileBrowser.PickMode.Files, true);
     }
