@@ -20,6 +20,10 @@ public class EscapeMenu : MonoBehaviour
     [SerializeField]
     GameObject fpsController;
     [SerializeField]
+    CADController cadController;
+    [SerializeField]
+    TargetSpawner targetSpawner;
+    [SerializeField]
     Camera fpsCamera;
     [SerializeField]
     GameObject vrController;
@@ -71,6 +75,9 @@ public class EscapeMenu : MonoBehaviour
     string pcPath = null;
     bool overrideCache;
 
+    static EscapeMenu instance;
+    public static EscapeMenu Instance { get { return instance; } }
+
     static bool gamePaused = false;
     public static bool GamePaused { get { return gamePaused; } }
 
@@ -78,6 +85,7 @@ public class EscapeMenu : MonoBehaviour
     {
         escapePanel.SetActive(false);
         selectPlatform.SetActive(true);
+        instance = this;
     }
 
     // Update is called once per frame
@@ -92,6 +100,8 @@ public class EscapeMenu : MonoBehaviour
                 escapePanel.SetActive(true);
                 actionSet.Deactivate();
                 cadPanel.SetActive(false);
+                cadController.enabled = false;
+                targetSpawner.enabled = false;
 
                 quit.SetActive(true);
                 reallyQuit.SetActive(false);
@@ -212,6 +222,9 @@ public class EscapeMenu : MonoBehaviour
 
         if (fpsController.activeSelf)
             cadPanel.SetActive(true);
+
+        cadController.enabled = true;
+        targetSpawner.enabled = true;
     }
 
     public void ReallyQuit()
@@ -422,14 +435,13 @@ public class EscapeMenu : MonoBehaviour
         //Valve.VR.SteamVR_Settings.instance.autoEnableVR = true;
         //ManualXRControl.StartXRCoroutine();
 
+        startCamera.SetActive(false);
+        vrController.SetActive(true);
+
         if (vrControllerCamera.gameObject.activeInHierarchy)
             GPUInstancer.GPUInstancerAPI.SetCamera(vrControllerCamera);
         else
             GPUInstancer.GPUInstancerAPI.SetCamera(vrControllerFallbackCamera);
-
-        startCamera.SetActive(false);
-        vrController.SetActive(true);
-
 
         if (GameManager.Bond == null)
             selectBondPanel.SetActive(true);

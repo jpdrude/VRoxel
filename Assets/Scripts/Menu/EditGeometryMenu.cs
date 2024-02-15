@@ -237,6 +237,8 @@ public class EditGeometryMenu : MonoBehaviour
             model.transform.rotation = Quaternion.Euler(rot);
 
             inputRotX.text = rot.x.ToString("F0");
+
+            model.GetComponent<GeometryItemRoot>().InitializeRotation();
         }
     }
 
@@ -256,6 +258,8 @@ public class EditGeometryMenu : MonoBehaviour
             model.transform.rotation = Quaternion.Euler(rot);
 
             inputRotY.text = rot.y.ToString("F0");
+
+            model.GetComponent<GeometryItemRoot>().InitializeRotation();
         }
     }
 
@@ -275,6 +279,8 @@ public class EditGeometryMenu : MonoBehaviour
             model.transform.rotation = Quaternion.Euler(rot);
 
             inputRotZ.text = rot.z.ToString("F0");
+
+            model.GetComponent<GeometryItemRoot>().InitializeRotation();
         }
     }
 

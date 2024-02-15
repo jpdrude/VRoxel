@@ -34,7 +34,29 @@ public class KitBashMenu : MonoBehaviour
         FileBrowser.ShowLoadDialog(LoadAssemblySuccess, OnCancel, FileBrowser.PickMode.Files);
     }
 
+    public void ReExportKitBash()
+    {
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("JSON", ".json"));
+        FileBrowser.SetDefaultFilter(".json");
+        FileBrowser.ShowSaveDialog(ReExportSuccess, OnCancel, FileBrowser.PickMode.Files);
+    }
+
     public void DistributeKitBash()
+    {
+        SetOffset();
+
+        KitBashIO.Distribute = true;
+
+    }
+
+    public void ImportKitBash()
+    {
+        SetOffset();
+
+        KitBashIO.LoadKitBash();
+    }
+
+    void SetOffset()
     {
         float offsetX;
         float offsetY;
@@ -50,8 +72,6 @@ public class KitBashMenu : MonoBehaviour
             offsetZ = 0;
 
         KitBashIO.Offset = new Vector3(offsetX, offsetY, offsetZ);
-        KitBashIO.Distribute = true;
-
     }
 
     void OnCancel()
@@ -74,5 +94,13 @@ public class KitBashMenu : MonoBehaviour
     {
         string path = paths[0];
         KitBashIO.Transforms = SaveContainer.LoadAssembly(path);
+    }
+
+    void ReExportSuccess(string[] paths)
+    {
+        if (Directory.Exists(Path.GetDirectoryName(paths[0])))
+            KitBashIO.ReExportKitBash(paths[0]);
+
+        EscapeMenu.Instance.Resume();
     }
 }

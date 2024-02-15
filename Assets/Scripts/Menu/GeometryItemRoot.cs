@@ -5,6 +5,18 @@ using UnityEngine;
 public class GeometryItemRoot : MonoBehaviour
 {
     Vector3 rotation;
+    bool allowFreeRotation = false;
+    public bool AllowFreeRotation 
+    { 
+        get 
+        { 
+            return allowFreeRotation; 
+        } 
+        set 
+        { 
+            allowFreeRotation = value; 
+        } 
+    }
 
     public void InitializeRotation()
     {
@@ -19,11 +31,15 @@ public class GeometryItemRoot : MonoBehaviour
 
     void LateUpdate()
     {
+        if (allowFreeRotation) return;
+
         transform.rotation = Quaternion.Euler(rotation);
     }
 
     private void FixedUpdate()
     {
+        if (allowFreeRotation) return;
+
         transform.rotation = Quaternion.Euler(rotation);
     }
 }

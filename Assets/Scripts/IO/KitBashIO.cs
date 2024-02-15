@@ -9,8 +9,19 @@ public class KitBashIO : MonoBehaviour
 {
     static KitBashIO instance;
 
+    [Header("Management")]
+    [SerializeField]
+    Transform kitBashParent;
+
+
+    [Space]
+    [Header("Interface Objects")]
     [SerializeField]
     Button btn_Distribute;
+    [SerializeField]
+    Button btn_Import;
+    [SerializeField]
+    Button btn_ReExport;
 
     [SerializeField]
     Material brushMaterial;
@@ -32,6 +43,7 @@ public class KitBashIO : MonoBehaviour
                     return;
 
             instance.btn_Distribute.interactable = true;
+            instance.btn_Import.interactable = true;
         }
     }
     static Dictionary<string, List<Matrix4x4>> transforms;
@@ -49,6 +61,7 @@ public class KitBashIO : MonoBehaviour
                     return;
 
             instance.btn_Distribute.interactable = true;
+            instance.btn_Import.interactable = true;
         }
     }
 
@@ -134,10 +147,54 @@ public class KitBashIO : MonoBehaviour
             palette.Clear();
         }
 
+        instance.btn_Import.interactable = false;
+        instance.btn_Distribute.interactable = false;
+
         /*
         if (paletteAsset != null)
             Destroy(paletteAsset);
         */
+    }
+
+    public static void LoadKitBash()
+    {
+        foreach (string key in palette.Keys)
+        {
+            GameObject paletteObj = palette[key];
+            int counter = 0;
+            string formatter;
+
+            if (transforms[key].Count < 10)
+                formatter = "D1";
+            else if (transforms[key].Count < 100)
+                formatter = "D2";
+            else if (transforms[key].Count < 1000)
+                formatter = "D3";
+            else if (transforms[key].Count < 10000)
+                formatter = "D4";
+            else
+                formatter = "D8";
+
+            GameObject centerObj = new GameObject();
+            centerObj.transform.parent = instance.kitBashParent;
+            centerObj.name = key;
+
+            foreach (Matrix4x4 m in transforms[key])
+            {
+                GameObject go = Instantiate(paletteObj, m.GetPosition() + Offset, m.GetRotation(), centerObj.transform);
+                go.layer = 11;
+                go.SetActive(true);
+                go.name = key + "_" + counter.ToString(formatter);
+
+                var root = go.AddComponent<GeometryItemRoot>();
+                root.InitializeRotation();
+                root.AllowFreeRotation = true;
+                root.enabled = false;
+            }
+        }
+
+        instance.btn_ReExport.interactable = true;
+        DestroyKitBashContext();
     }
 
     public static void SetPalette(GameObject paletteRoot)
@@ -186,6 +243,34 @@ public class KitBashIO : MonoBehaviour
         Debug.Log("Palette Names: " + sb.ToString());
         MessageSystem.DisplayMessage("KitBash Palette Imported!");
     }
+
+    public static void ReExportKitBash(string path)
+    {
+        SaveContainer container = new SaveContainer();
+        
+        for (int i = 0; i < instance.kitBashParent.transform.childCount; ++i)
+        {
+            Transform child = instance.kitBashParent.transform.GetChild(i);
+            string name = child.name;
+
+            List<SaveObject> saveObjects = new List<SaveObject>();
+
+            for (int j = 0; j < child.childCount; ++j)
+            {
+                Transform t = child.GetChild(j);
+                Matrix4x4 matrix = Matrix4x4.identity;
+                matrix.SetTRS(t.position, t.rotation, t.localScale);
+                saveObjects.Add(new SaveObject(matrix));
+            }
+
+            if (container.assembly.ContainsKey(name))
+                container.assembly[name].AddRange(saveObjects);
+            else
+                container.assembly.Add(name, saveObjects);
+        }
+
+        container.SaveAssembly(path);
+    }
 }
 
 public class SaveContainer
@@ -195,6 +280,15 @@ public class SaveContainer
     public SaveContainer()
     {
         assembly = new Dictionary<string, List<SaveObject>>();
+    }
+
+    public void SaveAssembly(string path)
+    {
+        using (StreamWriter file = File.CreateText(path))
+        {
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.Serialize(file, this);
+        }
     }
 
     public static Dictionary<string, List<Matrix4x4>> LoadAssembly(string path)
