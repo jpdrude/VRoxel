@@ -134355,6 +134355,10 @@ PrefabInstance:
       propertyPath: zoomRate
       value: 50
       objectReference: {fileID: 0}
+    - target: {fileID: 2935581938439304309, guid: a0e7ba0cf5c619346a7f2f386e369fc7, type: 3}
+      propertyPath: maxDistance
+      value: 1000
+      objectReference: {fileID: 0}
     - target: {fileID: 3402453322695421206, guid: a0e7ba0cf5c619346a7f2f386e369fc7, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.1

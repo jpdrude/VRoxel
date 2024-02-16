@@ -89,18 +89,31 @@ public class CADController : MonoBehaviour
             target.Translate(transform.up * -Input.GetAxis("Mouse Y") * panSpeed, Space.World);
         }
 
+
         ////////Orbit Position
 
         // affect the desired Zoom distance if we roll the scrollwheel
         desiredDistance -= Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * zoomRate * Mathf.Abs(desiredDistance);
         //clamp the zoom min/max
-        desiredDistance = Mathf.Clamp(desiredDistance, minDistance, maxDistance);
+        //desiredDistance = Mathf.Clamp(desiredDistance, minDistance, maxDistance);
+        
+        
         // For smoothing of the zoom, lerp distance
         currentDistance = Mathf.Lerp(currentDistance, desiredDistance, Time.deltaTime * zoomDampening);
 
-        // calculate position based on the new currentDistance 
-        position = target.position - (rotation * Vector3.forward * currentDistance + targetOffset);
-        transform.position = position;
+        if (currentDistance < 2)
+        {
+            target.position = target.position + (rotation * Vector3.forward * currentDistance + targetOffset);// (rotation * Vector3.forward);
+            currentDistance = Vector3.Distance(target.position, transform.position);
+            desiredDistance = currentDistance;
+        }
+        else
+        {
+            // calculate position based on the new currentDistance 
+            position = target.position - (rotation * Vector3.forward * currentDistance + targetOffset);
+            transform.position = position;
+        }
+
     }
 
     private static float ClampAngle(float angle, float min, float max)
