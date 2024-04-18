@@ -58,20 +58,19 @@ public class KitBashMenu : MonoBehaviour
 
     void SetOffset()
     {
-        float offsetX;
-        float offsetY;
-        float offsetZ;
+        float? offsetX;
+        float? offsetY;
+        float? offsetZ;
 
-        if (!float.TryParse(inputX.text, out offsetX))
-            offsetX = 0;
+        offsetX = inputX.text.ParseStringToFloat();
+        offsetY = inputY.text.ParseStringToFloat();
+        offsetZ = inputZ.text.ParseStringToFloat();
 
-        if (!float.TryParse(inputY.text, out offsetY))
-            offsetY = 0;
+        if (offsetX == null) offsetX = 0;
+        if (offsetY == null) offsetY = 0;
+        if (offsetZ == null) offsetZ = 0;
 
-        if (!float.TryParse(inputZ.text, out offsetZ))
-            offsetZ = 0;
-
-        KitBashIO.Offset = new Vector3(offsetX, offsetY, offsetZ);
+        KitBashIO.Offset = new Vector3((float)offsetX, (float)offsetY, (float)offsetZ);
     }
 
     void OnCancel()
