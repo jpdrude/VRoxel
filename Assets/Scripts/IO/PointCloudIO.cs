@@ -268,8 +268,11 @@ public class PointCloudIO : MonoBehaviour
         }
         else
         {
-            cloudViewer.CreateWithPoints(points, colors);
-            viewerInitialized = true;
+            if (points.Length > 0)
+            {
+                cloudViewer.CreateWithPoints(points, colors);
+                viewerInitialized = true;
+            }
         }
         
     }

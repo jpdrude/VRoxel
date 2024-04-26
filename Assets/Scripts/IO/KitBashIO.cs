@@ -188,7 +188,6 @@ public class KitBashIO : MonoBehaviour
 
                 var root = go.AddComponent<GeometryItemRoot>();
                 root.InitializeRotation();
-                root.AllowFreeRotation = true;
                 root.enabled = false;
             }
         }

@@ -285,6 +285,7 @@ public class MenuSwitch : MonoBehaviour
         }
 
         SpawnMeshBehaviour.AlignToWorld = !SpawnMeshBehaviour.AlignToWorld;
+        GeometryItemRoot.AllowFreeRotation = !GeometryItemRoot.AllowFreeRotation;
         spawner.UpdateBrushScale();
     }
 
@@ -321,6 +322,13 @@ public class MenuSwitch : MonoBehaviour
     public VRMenuItem GetCurrentRemove()
     {
         return RemoveButtons[removeIndex].GetComponent<VRMenuItem>();
+    }
+
+    public void SetPlayerHeight(float height)
+    {
+        playerHeight = height;
+
+        SetPlayerHeight();
     }
 
     void SetPlayerHeight()

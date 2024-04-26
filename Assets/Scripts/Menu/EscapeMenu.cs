@@ -14,6 +14,8 @@ public class EscapeMenu : MonoBehaviour
     GameObject player;
     [SerializeField]
     Valve.VR.SteamVR_ActionSet actionSet;
+    [SerializeField]
+    MenuSwitch vrMenu;
 
     [Space]
     [Header("Platform")]
@@ -144,6 +146,7 @@ public class EscapeMenu : MonoBehaviour
         vrController.SetActive(false);
         fpsController.SetActive(false);
         startCamera.SetActive(true);
+        vrMenu.SetPlayerHeight(0);
 
         UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
         UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.StartSubsystems();

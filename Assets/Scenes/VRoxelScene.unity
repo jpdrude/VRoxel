@@ -18354,7 +18354,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 872178974}
-  moveSpeed: 1
+  moveSpeed: 0.3
   rotSpeed: 30
   trigger:
     actionPath: /actions/LegoPlacement/in/Trigger
@@ -39913,6 +39913,7 @@ MonoBehaviour:
   player: {fileID: 758965450}
   actionSet:
     actionSetPath: /actions/LegoPlacement
+  vrMenu: {fileID: 0}
   fpsController: {fileID: 1367364906}
   cadController: {fileID: 1849531019}
   targetSpawner: {fileID: 1345375871}
@@ -71430,6 +71431,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   groundPlane: {fileID: 1406320977}
+  teleportAreas: {fileID: 1256719788}
   offsetInput: {fileID: 1982832105}
 --- !u!1 &1094410017
 GameObject:

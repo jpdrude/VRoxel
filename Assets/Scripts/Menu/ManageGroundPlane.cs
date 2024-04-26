@@ -7,6 +7,8 @@ public class ManageGroundPlane : MonoBehaviour
 {
     [SerializeField]
     GameObject groundPlane;
+    [SerializeField]
+    GameObject teleportAreas;
 
     [Space]
     [SerializeField]
@@ -25,6 +27,8 @@ public class ManageGroundPlane : MonoBehaviour
             offsetInput.interactable = true;
 
         groundPlane.SetActive(value);
+
+        teleportAreas.SetActive(value);
     }
 
     public void SetPlaneOffset(string input)
@@ -37,6 +41,11 @@ public class ManageGroundPlane : MonoBehaviour
             groundPlanePos.y = (float)offset;
 
             groundPlane.transform.position = groundPlanePos;
+
+            Vector3 teleportPlanePos = teleportAreas.transform.position;
+            teleportPlanePos.y = groundPlanePos.y + 0.001f;
+
+            teleportAreas.transform.position = teleportPlanePos;
         }
     }
 }
