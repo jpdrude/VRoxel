@@ -5,7 +5,7 @@ using UnityEngine;
 public class GeometryItemRoot : MonoBehaviour
 {
     Vector3 rotation;
-    static bool allowFreeRotation = false;
+    static bool allowFreeRotation = true;
     public static bool AllowFreeRotation 
     { 
         get 

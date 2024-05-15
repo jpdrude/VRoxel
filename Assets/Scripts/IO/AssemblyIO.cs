@@ -303,6 +303,12 @@ public class AssemblyIO : MonoBehaviour
         loadDelegate.BeginInvoke(path, null, null);
     }
 
+    public static void LoadAssemblyReference(string path)
+    {
+        LoadAssemblyDelegate loadReferenceDelegate = new LoadAssemblyDelegate(ImportAssemblyReferenceAsync);
+        loadReferenceDelegate.BeginInvoke(path, null, null);
+    }
+
     public static void LoadAssemblyAsPointCloud(string path, bool _remapBond = false)
     {
         remapBond = _remapBond;
@@ -369,6 +375,36 @@ public class AssemblyIO : MonoBehaviour
         Debug.Log("Bond Name: " + bond + ", Matrices: " + loadAmount);
 
         return container.matrices;
+    }
+
+    static void ImportAssemblyReferenceAsync(string path)
+    {
+        string bond;
+        Matrix4x4[][] transforms;
+        uint[][] times;
+        float timeOffset;
+        Vector3 offset = Vector3.zero;
+
+        transforms = LoadByteMatrices(path, out times, out bond, out timeOffset, out offset);
+
+        string fileName = Path.GetFileName(path);
+
+        for (int i = 0; i < transforms.Length; ++i)
+        {
+            for (int j = 0; j < transforms[i].Length; ++j)
+            {
+                Vector3 pos = transforms[i][j].GetPosition() + loadOffset;
+                Quaternion rot = transforms[i][j].GetRotation();
+                Vector3 scale = transforms[i][j].GetScale();
+
+                transforms[i][j] = Matrix4x4.TRS(pos, rot, scale);
+            }
+        }
+
+        lock (lockKey)
+        {
+            ReferenceAssemblyContainer.SetAssemblyReferenceData(bond, transforms, fileName);
+        }
     }
 
     static void LoadAsync(string path)

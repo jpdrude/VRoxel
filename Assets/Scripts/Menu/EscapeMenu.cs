@@ -143,10 +143,12 @@ public class EscapeMenu : MonoBehaviour
 
     public void ChangeController()
     {
+        if (vrMenu.gameObject.activeInHierarchy)
+            vrMenu.SetPlayerHeight(0);
+
         vrController.SetActive(false);
         fpsController.SetActive(false);
         startCamera.SetActive(true);
-        vrMenu.SetPlayerHeight(0);
 
         UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
         UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager.StartSubsystems();
@@ -181,6 +183,14 @@ public class EscapeMenu : MonoBehaviour
 
         FileBrowser.ShowLoadDialog(OnLoadSuccess, OnCancel, FileBrowser.PickMode.Files, true);
         FileBrowser.Instance.SetPointCloudToggle();
+    }
+
+    public void ImportAssemblyReference()
+    {
+        var filter = new FileBrowser.Filter("VRoxel", ".vrxl");
+        FileBrowser.SetFilters(false, filter);
+
+        FileBrowser.ShowLoadDialog(OnAssemblyReferenceImportSuccess, OnCancel, FileBrowser.PickMode.Files, false);
     }
     
     //Not in use any more
@@ -411,6 +421,13 @@ public class EscapeMenu : MonoBehaviour
             else
                 AssemblyIO.LoadAssemblyAsPointCloud(path);
         }
+
+        Resume();
+    }
+
+    void OnAssemblyReferenceImportSuccess(string[] paths)
+    {
+        AssemblyIO.LoadAssemblyReference(paths[0]);
 
         Resume();
     }
