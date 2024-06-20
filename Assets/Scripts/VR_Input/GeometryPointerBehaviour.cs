@@ -114,7 +114,15 @@ public class GeometryPointerBehaviour : MonoBehaviour
             if (trigger.GetState(secondaryInputSource))
             {
                 copy = true;
-                pickupObject = focusObject.GetComponent<GeometryMenuItemReference>().MenuItem.DuplicateModel();
+
+                try
+                {
+                    pickupObject = focusObject.GetComponent<GeometryMenuItemReference>().MenuItem.DuplicateModel();
+                }
+                catch
+                {
+                    pickupObject = DuplicateKitBash();
+                }
 
                 oldParent = pickupObject.transform.parent;
                 transform.position = focusObject.transform.position;
@@ -142,6 +150,12 @@ public class GeometryPointerBehaviour : MonoBehaviour
         {
             FinishPickup();
         }
+    }
+
+    GameObject DuplicateKitBash()
+    {
+        GameObject duplicate = Instantiate(focusObject, focusObject.transform.parent);
+        return duplicate;
     }
 
     void FinishPickup()

@@ -113,14 +113,16 @@ public class KitBashIO : MonoBehaviour
         }
 
         brush.SetActive(true);
-        brush.transform.position = transforms[key][0].GetPosition() + Offset;
+        brush.transform.position = transforms[key][0].GetPosition();
+
+        brush.transform.position += Offset;
 
         brush.transform.rotation = transforms[key][0].GetRotation();
 
         brush.transform.localScale = transforms[key][0].GetScale();
 
-        if (FixTransform)
-            brush.transform.RotateAround(Vector3.zero, Vector3.up, 180);
+        //if (FixTransform)
+            //brush.transform.RotateAround(Vector3.zero, Vector3.up, 180);
 
         Collider brushCollider = brush.GetComponent<MeshCollider>();
 
@@ -158,6 +160,8 @@ public class KitBashIO : MonoBehaviour
 
     public static void LoadKitBash()
     {
+        //GameObject rotationCenter = new GameObject();
+
         foreach (string key in palette.Keys)
         {
             GameObject paletteObj = palette[key];
@@ -181,7 +185,11 @@ public class KitBashIO : MonoBehaviour
 
             foreach (Matrix4x4 m in transforms[key])
             {
-                GameObject go = Instantiate(paletteObj, m.GetPosition() + Offset, m.GetRotation(), centerObj.transform);
+                GameObject go;
+
+                go = Instantiate(paletteObj, m.GetPosition() + Offset, m.GetRotation(), centerObj.transform);
+
+
                 go.layer = 11;
                 go.SetActive(true);
                 go.name = key + "_" + counter.ToString(formatter);
@@ -217,7 +225,15 @@ public class KitBashIO : MonoBehaviour
             _mf.sharedMesh = mf.sharedMesh;
 
             MeshRenderer _mr = go.AddComponent<MeshRenderer>();
-            _mr.material = instance.brushMaterial;
+            Material importMat = mf.GetComponent<MeshRenderer>().sharedMaterial;
+
+            if (importMat == null)
+                _mr.material = instance.brushMaterial;
+            else
+            {
+                _mr.material = importMat;
+                importMat.enableInstancing = true;
+            }
 
 
             MeshCollider _mc = go.AddComponent<MeshCollider>();
@@ -269,6 +285,8 @@ public class KitBashIO : MonoBehaviour
         }
 
         container.SaveAssembly(path);
+
+        MessageSystem.DisplayMessage("KitBash File Exported");
     }
 }
 

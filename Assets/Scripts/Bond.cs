@@ -75,7 +75,7 @@ public class Bond : MonoBehaviour
         }
     }
 
-    public static MeshBrushLevels meshBrushLevel = MeshBrushLevels.rough;
+    public static MeshBrushLevels meshBrushLevel = MeshBrushLevels.fine;
 
     public void Initialize()
     {
