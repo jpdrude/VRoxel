@@ -38,6 +38,16 @@ public class AnimationIO : MonoBehaviour
     Transform _editAnimationParent;
     static Transform editAnimationParent;
 
+    [Space]
+    [Header("Mapping")]
+    [SerializeField]
+    AnimationMapping _xsensMapping;
+    static AnimationMapping xSensMapping;
+
+    [SerializeField]
+    AnimationMapping _rokokoMapping;
+    static AnimationMapping rokokoMapping;
+
     static DateTime importStep;
     static bool isImporting = false;
 
@@ -54,6 +64,9 @@ public class AnimationIO : MonoBehaviour
 
         editAnimationMenu = _editAnimationMenu;
         editAnimationParent = _editAnimationParent;
+
+        xSensMapping = _xsensMapping;
+        rokokoMapping = _rokokoMapping;
     }
 
     public static void ImportMotionCapture(string path, CharacterOptions _characterOptions, bool wheelchair = false)
@@ -118,7 +131,7 @@ public class AnimationIO : MonoBehaviour
         Debug.Log("Start Time of longest Animation: " + time.ToString());
     }
 
-    static void AddAnimation(AssetLoaderContext loadedAnimationContext, bool wheelchair = false)
+    static void AddAnimation(AssetLoaderContext loadedAnimationContext, AnimationMappingEnum mapping, bool wheelchair = false)
     {
         var loadAnimations = loadedAnimationContext.RootModel.AllAnimations;
         Dictionary<string, Dictionary<string, AnimationCurve>> animation = new Dictionary<string, Dictionary<string, AnimationCurve>>();
@@ -126,6 +139,12 @@ public class AnimationIO : MonoBehaviour
         //Debug.Log("****Loaded Curves****");
         foreach (var curves in loadAnimations[0].AnimationCurveBindings)
         {
+            foreach (var c in curves.AnimationCurves)
+            {
+                Debug.Log(c.Property);
+            }
+
+            /*
             //Debug.Log("Model: " + curves.Model.Name);
             Dictionary<string, AnimationCurve> jointCurves = new Dictionary<string, AnimationCurve>();
             foreach (var c in curves.AnimationCurves)
@@ -133,8 +152,24 @@ public class AnimationIO : MonoBehaviour
                 //Debug.Log("    Property: " + c.Property + ", Keyframes: " + c.AnimationCurve.length);
                 jointCurves.Add(c.Property, c.AnimationCurve);
             }
-            animation.Add(curves.Model.Name, jointCurves);
-            
+
+            string jointName;
+
+            switch (mapping)
+            {
+                case AnimationMappingEnum.xSens:
+                    jointName = GetJointMapping(xSensMapping, curves.Model.Name);
+                    if (jointName != null)
+                        animation.Add(jointName, jointCurves);
+                    break;
+                case AnimationMappingEnum.Rokoko:
+                    jointName = GetJointMapping(rokokoMapping, curves.Model.Name);
+                    if (jointName != null)
+                        animation.Add(jointName, jointCurves);
+                    break;
+            }
+            */
+
         }
 
         GameObject avatarInstance;
@@ -162,18 +197,88 @@ public class AnimationIO : MonoBehaviour
         Destroy(loadedAnimationContext.RootGameObject);
     }
 
+    static string GetJointMapping(AnimationMapping mapping, string jointName)
+    {
+        if (jointName == mapping.hips)
+            return "Hips";
+
+        else if (jointName == mapping.rightUpLeg)
+            return "RightUpLeg";
+        else if (jointName == mapping.rightLeg)
+            return "RightLeg";
+        else if (jointName == mapping.rightFoot)
+            return "RightFoot";
+        else if (jointName == mapping.rightToeBase)
+            return "RightToeBase";
+
+        else if (jointName == mapping.leftUpLeg)
+            return "LeftUpLeg";
+        else if (jointName == mapping.leftLeg)
+            return "LeftLeg";
+        else if (jointName == mapping.leftFoot)
+            return "LeftFoot";
+        else if (jointName == mapping.leftToeBase)
+            return "LeftToeBase";
+
+        else if (jointName == mapping.spine)
+            return "Spine";
+        else if (jointName == mapping.spine1)
+            return "Spine1";
+        else if (jointName == mapping.spine2)
+            return "Spine2";
+        else if (jointName == mapping.spine3)
+            return "Spine3";
+
+        else if (jointName == mapping.leftShoulder)
+            return "LeftShoulder";
+        else if (jointName == mapping.leftArm)
+            return "LeftArm";
+        else if (jointName == mapping.leftForeArm)
+            return "LeftForeArm";
+        else if (jointName == mapping.leftHand)
+            return "LeftHand";
+
+        else if (jointName == mapping.rightShoulder)
+            return "RightShoulder";
+        else if (jointName == mapping.rightArm)
+            return "RightArm";
+        else if (jointName == mapping.rightForeArm)
+            return "RightForeArm";
+        else if (jointName == mapping.rightHand)
+            return "RightHand";
+
+        else if (jointName == mapping.neck)
+            return "Neck";
+        else if (jointName == mapping.head)
+            return "Head";
+
+        else
+        {
+            Debug.LogWarning("No Mapping Found! Mapping Name missing is: " + jointName);
+            MessageSystem.DisplayWarning("No Mapping Found! Mapping Name missing is: " + jointName);
+            return null;
+        }
+    }
+    
+
     static void OnMocapImportFinished(AssetLoaderContext assetLoaderContext)
     {
         isImporting = false;
 
-        AddAnimation(assetLoaderContext);
+        if (assetLoaderContext.RootGameObject.transform.Find("LeftThigh") != null)
+            AddAnimation(assetLoaderContext, AnimationMappingEnum.Rokoko);
+        else
+            AddAnimation(assetLoaderContext, AnimationMappingEnum.xSens);
     }
 
     static void OnWheelchairMocapImportFinished(AssetLoaderContext assetLoaderContext)
     {
         isImporting = false;
 
-        AddAnimation(assetLoaderContext, true);
+        if (assetLoaderContext.RootGameObject.transform.Find("LeftThigh") != null)
+            AddAnimation(assetLoaderContext, AnimationMappingEnum.Rokoko, true);
+        else
+            AddAnimation(assetLoaderContext, AnimationMappingEnum.xSens, true);
     }
 
     static void OnImportProgress(AssetLoaderContext assetLoaderContext, float progress)
@@ -189,7 +294,7 @@ public class AnimationIO : MonoBehaviour
     static void OnImportError(IContextualizedError contextualizedError)
     {
         MessageSystem.DisplayWarning("Import was interrupted due to an error");
-        Debug.LogError("Import was interrupted due to an error");
+        Debug.LogError("Import was interrupted due to an error. " + contextualizedError.GetInnerException().Message);
     }
 
     public static void ImportWheelchairMovement(string path)
@@ -202,6 +307,12 @@ public class AnimationIO : MonoBehaviour
 
         wheelchairMovement.BuildCurves();
     }
+}
+
+public enum AnimationMappingEnum
+{
+    xSens,
+    Rokoko
 }
 
 public delegate void GetFBXStartTimeDelegate(string path);

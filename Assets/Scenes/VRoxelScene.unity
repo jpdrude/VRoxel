@@ -86152,6 +86152,54 @@ MonoBehaviour:
   _options: {fileID: 11400000, guid: 40c9172ea01c1ac4e9feb54e7a6178f1, type: 2}
   _editAnimationMenu: {fileID: 1869753562167930279, guid: cf65b4479209e8e4883d27670717a4b9, type: 3}
   _editAnimationParent: {fileID: 2142240602}
+  _xsensMapping:
+    hips: Hips
+    rightUpLeg: RightUpLeg
+    rightLeg: RightLeg
+    rightFoot: RightFoot
+    rightToeBase: RightToeBase
+    leftUpLeg: LeftUpLeg
+    leftLeg: LeftLeg
+    leftFoot: LeftFoot
+    leftToeBase: LeftToeBase
+    spine: Spine
+    spine1: Spine1
+    spine2: Spine2
+    spine3: Spine3
+    leftShoulder: LeftShoulder
+    leftArm: LeftArm
+    leftForeArm: LeftForeArm
+    leftHand: LeftHand
+    rightShoulder: RightShoulder
+    rightArm: RightArm
+    rightForeArm: RightForeArm
+    rightHand: RightHand
+    neck: Neck
+    head: Head
+  _rokokoMapping:
+    hips: Hips
+    rightUpLeg: RightThigh
+    rightLeg: RIghtShin
+    rightFoot: RightFoot
+    rightToeBase: RightToe
+    leftUpLeg: LeftThigh
+    leftLeg: LeftShin
+    leftFoot: LeftFoot
+    leftToeBase: LeftToe
+    spine: Spine1
+    spine1: Spine2
+    spine2: Spine3
+    spine3: Spine4
+    leftShoulder: LeftShoulder
+    leftArm: LeftArm
+    leftForeArm: LeftForeArm
+    leftHand: LeftHand
+    rightShoulder: RightShoulder
+    rightArm: RightArm
+    rightForeArm: RightForeArm
+    rightHand: RightHand
+    neck: Neck
+    head: Head
 --- !u!114 &1262178278
 MonoBehaviour:
   m_ObjectHideFlags: 0
