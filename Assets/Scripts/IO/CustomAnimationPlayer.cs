@@ -187,6 +187,7 @@ public class CustomAnimationPlayer : MonoBehaviour
     UnityEvent<bool> OnPause = new UnityEvent<bool>();
 
     Dictionary<string, Dictionary<string, AnimationCurve>> animation = null;
+    public Dictionary<string, Dictionary<string, AnimationCurve>> Animation { get { return animation; } }
     float frameRate = 0;
 
     float timer = 0.1f;
@@ -313,7 +314,7 @@ public class CustomAnimationPlayer : MonoBehaviour
         SetJointTransform(Spine, "Spine", time);
         SetJointTransform(Spine1, "Spine1", time);
         SetJointTransform(Spine2, "Spine2", time);
-        MoveJointTransform(Spine2, "Spine3", time);
+        RotateJointTransform(Spine2, "Spine3", time);
 
         SetJointTransform(LeftShoulder, "LeftShoulder", time);
         SetJointTransform(LeftArm, "LeftArm", time);
@@ -333,8 +334,6 @@ public class CustomAnimationPlayer : MonoBehaviour
 
     void SetJointTransform(Transform jointTransform, string jointName, float time)
     {
-        
-
         Quaternion localRot = new Quaternion();
         localRot.x = animation[jointName]["localRotation.x"].Evaluate(time);
         localRot.y = animation[jointName]["localRotation.y"].Evaluate(time);
@@ -342,6 +341,9 @@ public class CustomAnimationPlayer : MonoBehaviour
         localRot.w = animation[jointName]["localRotation.w"].Evaluate(time);
 
         localRot.Normalize();
+
+        if (jointName == "Spine")
+            Debug.Log(localRot.eulerAngles.ToString());
 
         if (useDamping)
             jointTransform.localRotation = Quaternion.Slerp(jointTransform.localRotation.normalized, localRot, dampingFactor);
@@ -376,8 +378,10 @@ public class CustomAnimationPlayer : MonoBehaviour
         }
     }
 
-    void MoveJointTransform(Transform jointTransform, string jointName, float time)
+    void RotateJointTransform(Transform jointTransform, string jointName, float time)
     {
+        if (!animation.ContainsKey(jointName)) return;
+
         Quaternion localRot = new Quaternion();
         localRot.x = animation[jointName]["localRotation.x"].Evaluate(time);
         localRot.y = animation[jointName]["localRotation.y"].Evaluate(time);

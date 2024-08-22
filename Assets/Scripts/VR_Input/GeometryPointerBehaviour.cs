@@ -180,17 +180,29 @@ public class GeometryPointerBehaviour : MonoBehaviour
 
     public void DPadLeft()
     {
-        if (pickupRoot != null)
-            pickupRoot.RotateY(-rotSpeed);
+        if (pickupRoot != null && (GeometryItemRoot.GridSnap && !GeometryItemRoot.AllowFreeRotation))
+            pickupRoot.SetRotation(GameManager.Bond.GetPreviousOrientation());
     }
 
     public void DPadRight()
     {
-        if (pickupRoot != null)
+        if (pickupRoot != null && (GeometryItemRoot.GridSnap && !GeometryItemRoot.AllowFreeRotation))
+            pickupRoot.SetRotation(GameManager.Bond.GetNextOrientation());
+    }
+
+    public void DPadLeftPressed()
+    {
+        if (pickupRoot != null && !(GeometryItemRoot.GridSnap && !GeometryItemRoot.AllowFreeRotation))
+            pickupRoot.RotateY(-rotSpeed);
+    }
+
+    public void DPadRightPressed()
+    {
+        if (pickupRoot != null && !(GeometryItemRoot.GridSnap && !GeometryItemRoot.AllowFreeRotation))
             pickupRoot.RotateY(rotSpeed);
     }
 
-    public void DPadDown()
+    public void DPadDownPressed()
     {
         if (pickupObject == null) return;
 
@@ -201,7 +213,7 @@ public class GeometryPointerBehaviour : MonoBehaviour
         transform.localPosition = pos;
     }
 
-    public void DPadUp()
+    public void DPadUpPressed()
     {
         if (pickupObject == null) return;
 

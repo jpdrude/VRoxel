@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 191441253, guid: d113add047833f74ea60d092f1204bf3, type: 3}
+  m_Script: {fileID: 191441253, guid: c4ea2338823602243b0dd1c480afaf56, type: 3}
   m_Name: AssetLoaderOptions
   m_EditorClassIdentifier: 
   UseFileScale: 1
@@ -20,8 +20,9 @@ MonoBehaviour:
   AddAssetUnloader: 1
   ImportMeshes: 1
   LimitBoneWeights: 1
-  ReadEnabled: 1
+  ReadEnabled: 0
   ReadAndWriteEnabled: 0
+  MarkMeshesAsDynamic: 0
   OptimizeMeshes: 1
   GenerateColliders: 0
   ConvexColliders: 0
@@ -31,6 +32,8 @@ MonoBehaviour:
   LODScreenRelativeTransitionHeightBase: 0.75
   KeepQuads: 0
   ImportNormals: 1
+  GenerateNormals: 1
+  GenerateTangents: 1
   SmoothingAngle: 60
   ImportBlendShapeNormals: 0
   CalculateBlendShapeNormals: 0
@@ -47,10 +50,15 @@ MonoBehaviour:
   AlphaMaterialMode: 3
   DoubleSidedMaterials: 0
   TextureMapper: {fileID: 0}
+  TextureMappers: []
   TextureCompressionQuality: 1
   GenerateMipmaps: 1
   FixNormalMaps: 0
   AnimationType: 0
+  SimplifyAnimations: 0
+  PositionThreshold: 0.01
+  RotationThreshold: 0.01
+  ScaleThreshold: 0.01
   AvatarDefinition: 0
   Avatar: {fileID: 0}
   HumanDescription:
@@ -85,6 +93,7 @@ MonoBehaviour:
   MarkTexturesNoLongerReadable: 1
   UseUnityNativeNormalCalculator: 0
   GCHelperCollectionInterval: 20
+  ApplyGammaCurveToMaterialColors: 0
   LoadTexturesAsSRGB: 1
   UserPropertiesMapper: {fileID: 0}
   ApplyTexturesOffsetAndScaling: 1
@@ -100,3 +109,16 @@ MonoBehaviour:
   ImportLights: 0
   DisableObjectsRenaming: 0
   MergeSingleChild: 0
+  SetUnusedTexturePropertiesToNull: 0
+  LoadPointClouds: 0
+  CreateVerticesAsNativeLists: 0
+  CompressMeshes: 0
+  ExtractEmbeddedData: 1
+  EmbeddedDataExtractionPath: 
+  BufferizeFiles: 2
+  ConvertMaterialTextures: 1
+  ConvertMaterialTexturesUsingHalfRes: 1
+  DisableTesselation: 0
+  SearchTexturesRecursively: 1
+  CoroutineMaxStallTime: 0.033333335
+  AddAllBonesToSkinnedMeshRenderers: 0

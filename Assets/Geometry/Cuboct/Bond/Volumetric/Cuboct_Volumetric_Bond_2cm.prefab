@@ -60,6 +60,13 @@ MonoBehaviour:
   defaultOffset: {x: 0, y: 0.01, z: 0}
   minExtend: {x: 0, y: 0, z: 0}
   maxExtend: {x: 0, y: 0, z: 0}
+  orientations:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 90, z: 0}
+  - {x: 0, y: 180, z: 0}
+  - {x: 0, y: 270, z: 0}
+  - {x: 90, y: 0, z: 0}
+  - {x: 270, y: 0, z: 0}
 --- !u!1001 &2660491619590421139
 PrefabInstance:
   m_ObjectHideFlags: 0

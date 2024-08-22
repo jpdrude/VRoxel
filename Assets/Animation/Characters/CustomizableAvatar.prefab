@@ -226,6 +226,7 @@ MonoBehaviour:
   renderer: {fileID: 1039352222949381035}
   animationPlayer: {fileID: 0}
   strokeLength: 5
+  pause: 0
 --- !u!1 &274727725873862019
 GameObject:
   m_ObjectHideFlags: 0
@@ -12843,6 +12844,7 @@ MonoBehaviour:
   renderer: {fileID: 6020313903218098766}
   animationPlayer: {fileID: 0}
   strokeLength: 5
+  pause: 0
 --- !u!1 &2603766350497687223
 GameObject:
   m_ObjectHideFlags: 0
@@ -16387,6 +16389,8 @@ MonoBehaviour:
   animationStart: 0
   animationEnd: 0
   speed: 1
+  useDamping: 0
+  dampingFactor: 0.5
   characterModel: {fileID: 2422182406753593075}
   OnLoopBegin:
     m_PersistentCalls:
@@ -16528,6 +16532,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   removeBlocks: 0
   addBlocks: 0
+  historyBatchSize: 25
 --- !u!1 &3326036699742394346
 GameObject:
   m_ObjectHideFlags: 0
@@ -30298,6 +30303,7 @@ MonoBehaviour:
   renderer: {fileID: 2040294122292590974}
   animationPlayer: {fileID: 0}
   strokeLength: 5
+  pause: 0
 --- !u!1 &5275505615188269438
 GameObject:
   m_ObjectHideFlags: 0
@@ -32327,6 +32333,7 @@ MonoBehaviour:
   renderer: {fileID: 6384401266305544018}
   animationPlayer: {fileID: 0}
   strokeLength: 5
+  pause: 0
 --- !u!1 &6013251227452715322
 GameObject:
   m_ObjectHideFlags: 0
@@ -53032,3 +53039,4 @@ MonoBehaviour:
   renderer: {fileID: 8890124922270524130}
   animationPlayer: {fileID: 0}
   strokeLength: 5
+  pause: 0

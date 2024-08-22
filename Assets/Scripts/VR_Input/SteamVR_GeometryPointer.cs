@@ -47,9 +47,15 @@ public class SteamVR_GeometryPointer : SpawnerActions
 
     public override void DPadInputPressed(bool _up, bool _down, bool _left, bool _right)
     {
-        if (_up) pointerBehaviour.DPadUp();
-        else if (_down) pointerBehaviour.DPadDown();
-        else if (_left) pointerBehaviour.DPadLeft();
+        if (_up) pointerBehaviour.DPadUpPressed();
+        else if (_down) pointerBehaviour.DPadDownPressed();
+        else if (_left) pointerBehaviour.DPadLeftPressed();
+        else if (_right) pointerBehaviour.DPadRightPressed();
+    }
+
+    public override void DPadInput(bool _up, bool _down, bool _left, bool _right)
+    {
+        if (_left) pointerBehaviour.DPadLeft();
         else if (_right) pointerBehaviour.DPadRight();
     }
 

@@ -56,6 +56,10 @@ public class MenuSwitch : MonoBehaviour
     GameObject lockOrthoSymbol;
     [SerializeField]
     GameObject unlockOrthoSymbol;
+    [SerializeField]
+    GameObject gridSnapOnSymbol;
+    [SerializeField]
+    GameObject gridSnapOffSymbol;
 
     [Space]
     [Header("Brush Quality Options")]
@@ -287,6 +291,28 @@ public class MenuSwitch : MonoBehaviour
         SpawnMeshBehaviour.AlignToWorld = !SpawnMeshBehaviour.AlignToWorld;
         GeometryItemRoot.AllowFreeRotation = !GeometryItemRoot.AllowFreeRotation;
         spawner.UpdateBrushScale();
+
+        if (GeometryItemRoot.AllowFreeRotation && GeometryItemRoot.GridSnap)
+            ToggleGridSnap();
+    }
+
+    public void ToggleGridSnap()
+    {
+        if (!GeometryItemRoot.GridSnap)
+        {
+            gridSnapOnSymbol.SetActive(true);
+            gridSnapOffSymbol.SetActive(false);
+        }
+        else
+        {
+            gridSnapOnSymbol.SetActive(false);
+            gridSnapOffSymbol.SetActive(true);
+        }
+
+        GeometryItemRoot.GridSnap = !GeometryItemRoot.GridSnap;
+
+        if (GeometryItemRoot.GridSnap && GeometryItemRoot.AllowFreeRotation)
+            ToggleMeshSpawnerOrtho();
     }
 
     public void ToggleExtraPanel(GameObject _extraPanel)

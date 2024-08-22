@@ -16,6 +16,8 @@ using Valve.Newtonsoft.Json;
 
 public class AnimationIO : MonoBehaviour
 {
+    static int testIndex = 0;
+
     [SerializeField]
     GameObject _avatar;
     static GameObject avatar;
@@ -55,7 +57,77 @@ public class AnimationIO : MonoBehaviour
     public static int animationFrameRate = 30;
 
     static WheelchairMovement wheelchairMovement;
-         
+
+    [Space]
+    [Header("Rokoko Transforms")]
+    [SerializeField]
+    Vector3 _leftUpLegRotation = new Vector3(0, 90, 0);
+    [SerializeField]
+    Vector3 _leftLegRotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _leftFootRotation = new Vector3(90, 90, 0);
+    [SerializeField]
+    Vector3 _leftToeBaseRotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _rightUpLegRotation = new Vector3(0, -90, 0);
+    [SerializeField]
+    Vector3 _rightLegRotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _rightFootRotation = new Vector3(90, -90, 0);
+    [SerializeField]
+    Vector3 _rightToeBaseRotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _spineRotation = new Vector3(0, 0, 180);
+    [SerializeField]
+    Vector3 _spine1Rotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _spine2Rotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _spine3Rotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _leftShoulderRotation = new Vector3(0, 0, 90);
+    [SerializeField]
+    Vector3 _leftArmRotation = new Vector3(0, 90, 0);
+    [SerializeField]
+    Vector3 _leftForeArmRotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _leftHandRotation;
+    [SerializeField]
+    Vector3 _rightShoulderRotation = new Vector3(0, 0, -90);
+    [SerializeField]
+    Vector3 _rightArmRotation = new Vector3(0, -90, 0);
+    [SerializeField]
+    Vector3 _rightForeArmRotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _rightHandRotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _neckRotation = new Vector3(0, 0, 0);
+    [SerializeField]
+    Vector3 _headRotation = new Vector3(0, 0, 0);
+
+    static Vector3 leftUpLegRotation;
+    static Vector3 leftLegRotation;
+    static Vector3 leftFootRotation;
+    static Vector3 leftToeBaseRotation;
+    static Vector3 rightUpLegRotation;
+    static Vector3 rightLegRotation;
+    static Vector3 rightFootRotation;
+    static Vector3 rightToeBaseRotation;
+    static Vector3 spineRotation;
+    static Vector3 spine1Rotation;
+    static Vector3 spine2Rotation;
+    static Vector3 spine3Rotation;
+    static Vector3 leftShoulderRotation;
+    static Vector3 leftArmRotation;
+    static Vector3 leftForeArmRotation;
+    static Vector3 leftHandRotation;
+    static Vector3 rightShoulderRotation;
+    static Vector3 rightArmRotation;
+    static Vector3 rightForeArmRotation;
+    static Vector3 rightHandRotation;
+    static Vector3 neckRotation;
+    static Vector3 headRotation;
+
     private void Start()
     {
         options = _options;
@@ -67,6 +139,31 @@ public class AnimationIO : MonoBehaviour
 
         xSensMapping = _xsensMapping;
         rokokoMapping = _rokokoMapping;
+    }
+
+    private void Update()
+    {
+        leftUpLegRotation = _leftUpLegRotation;
+        leftLegRotation = _leftLegRotation;
+        leftFootRotation = _leftFootRotation;
+        leftToeBaseRotation = _leftToeBaseRotation;
+        rightUpLegRotation = _rightUpLegRotation;
+        rightLegRotation = _rightLegRotation;
+        rightFootRotation = _rightFootRotation;
+        rightToeBaseRotation = _rightToeBaseRotation;
+        spineRotation = _spineRotation;
+        spine1Rotation = _spine1Rotation;
+        spine2Rotation = _spine2Rotation;
+        spine3Rotation = _spine3Rotation;
+        leftShoulderRotation = _leftShoulderRotation;
+        leftArmRotation = _leftArmRotation;
+        leftForeArmRotation = _leftForeArmRotation;
+        leftHandRotation = _leftHandRotation;
+        rightShoulderRotation = _rightShoulderRotation;
+        rightArmRotation = _rightArmRotation;
+        rightForeArmRotation = _rightForeArmRotation;
+        neckRotation = _neckRotation;
+        headRotation = _headRotation;
     }
 
     public static void ImportMotionCapture(string path, CharacterOptions _characterOptions, bool wheelchair = false)
@@ -131,45 +228,178 @@ public class AnimationIO : MonoBehaviour
         Debug.Log("Start Time of longest Animation: " + time.ToString());
     }
 
-    static void AddAnimation(AssetLoaderContext loadedAnimationContext, AnimationMappingEnum mapping, bool wheelchair = false)
+    static void AddAnimation(AssetLoaderContext loadedAnimationContext, bool wheelchair = false)
     {
         var loadAnimations = loadedAnimationContext.RootModel.AllAnimations;
         Dictionary<string, Dictionary<string, AnimationCurve>> animation = new Dictionary<string, Dictionary<string, AnimationCurve>>();
-        
+
         //Debug.Log("****Loaded Curves****");
+        AnimationMappingEnum mapping = AnimationMappingEnum.xSens;
+
         foreach (var curves in loadAnimations[0].AnimationCurveBindings)
         {
-            foreach (var c in curves.AnimationCurves)
-            {
-                Debug.Log(c.Property);
-            }
+            if (curves.Model.Name == "LeftThigh")
+                mapping = AnimationMappingEnum.Rokoko;
+        }
 
+        // Iterate over all the joints
+        foreach (var joint in loadAnimations[0].AnimationCurveBindings)
+        {
             /*
-            //Debug.Log("Model: " + curves.Model.Name);
-            Dictionary<string, AnimationCurve> jointCurves = new Dictionary<string, AnimationCurve>();
+            Debug.Log(curves.Model.Name);
+
             foreach (var c in curves.AnimationCurves)
             {
-                //Debug.Log("    Property: " + c.Property + ", Keyframes: " + c.AnimationCurve.length);
-                jointCurves.Add(c.Property, c.AnimationCurve);
-            }
-
-            string jointName;
-
-            switch (mapping)
-            {
-                case AnimationMappingEnum.xSens:
-                    jointName = GetJointMapping(xSensMapping, curves.Model.Name);
-                    if (jointName != null)
-                        animation.Add(jointName, jointCurves);
-                    break;
-                case AnimationMappingEnum.Rokoko:
-                    jointName = GetJointMapping(rokokoMapping, curves.Model.Name);
-                    if (jointName != null)
-                        animation.Add(jointName, jointCurves);
-                    break;
+                Debug.Log("\t" + c.Property);
             }
             */
+            
+            //Debug.Log("Model: " + curves.Model.Name);
+            Dictionary<string, AnimationCurve> jointCurves = new Dictionary<string, AnimationCurve>();
 
+            if (mapping == AnimationMappingEnum.xSens)
+            {
+                foreach (var c in joint.AnimationCurves)
+                {
+                    jointCurves.Add(c.Property, c.AnimationCurve);
+                }
+
+                string jointName = GetJointMapping(xSensMapping, joint.Model.Name);
+                if (jointName != null)
+                    animation.Add(jointName, jointCurves);
+            }
+            else if (mapping == AnimationMappingEnum.Rokoko)
+            {
+                // Retrieve joint name using mapping
+                string jointName = GetJointMapping(rokokoMapping, joint.Model.Name);
+                if (jointName == null) continue;
+
+                int rotationKeyFrameCount = 0;
+                int positionKeyFrameCount = 0;
+
+                // Preliminary pass to count rotation keyframes
+                foreach (var c in joint.AnimationCurves)
+                {
+                    if (c.Property == "localRotation.x")
+                    {
+                        rotationKeyFrameCount = c.AnimationCurve.length;
+                    }
+                    else if (c.Property == "localPosition.x")
+                    {
+                        positionKeyFrameCount = c.AnimationCurve.length;
+                    }
+                }
+
+                //Debug.Log("RokokoMapping: " + jointName + ", positionKeys: " + positionKeyFrameCount + ", rotationKeys: " + rotationKeyFrameCount); ;
+
+                // Allocate arrays to store positions and their corresponding times
+                Vector3[] positions = new Vector3[positionKeyFrameCount];
+                float[] positionTimes = new float[positionKeyFrameCount];
+
+                // Allocate arrays to store rotations and their corresponding times
+                Quaternion[] rotations = new Quaternion[rotationKeyFrameCount];
+                float[] rotationTimes = new float[rotationKeyFrameCount];
+
+                // Initialize rotation array with identity quaternions
+                for (int i = 0; i < rotationKeyFrameCount; ++i)
+                    rotations[i] = Quaternion.identity;
+
+                // Process each component curve for positions (x, y, z) and rotations (x, y, z, w)
+                foreach (var c in joint.AnimationCurves)
+                {
+                    //Debug.Log("\t" + jointName + "_" + c.Property);
+                    if (c.Property == "localRotation.x")
+                        for (int i = 0; i < rotationKeyFrameCount; ++i)
+                        {
+                            rotationTimes[i] = c.AnimationCurve.keys[i].time;
+                            rotations[i].x = c.AnimationCurve.keys[i].value;
+                        }
+                    else if (c.Property == "localRotation.y")
+                        for (int i = 0; i < rotationKeyFrameCount; ++i)
+                        {
+                            rotations[i].y = c.AnimationCurve.keys[i].value;
+                        }
+                    else if (c.Property == "localRotation.z")
+                        for (int i = 0; i < rotationKeyFrameCount; ++i)
+                        {
+                            rotations[i].z = c.AnimationCurve.keys[i].value;
+                        }
+                    else if (c.Property == "localRotation.w")
+                        for (int i = 0; i < rotationKeyFrameCount; ++i)
+                        {
+                            rotations[i].w = c.AnimationCurve.keys[i].value;
+                        }
+                    else if (c.Property == "localPosition.x")
+                        for (int i = 0; i < positionKeyFrameCount; ++i)
+                        {
+                            positionTimes[i] = c.AnimationCurve.keys[i].time;
+                            positions[i].x = c.AnimationCurve.keys[i].value;
+                        }
+                    else if (c.Property == "localPosition.y")
+                        for (int i = 0; i < positionKeyFrameCount; ++i)
+                        {
+                            positions[i].y = c.AnimationCurve.keys[i].value;
+                        }
+                    else if (c.Property == "localPosition.z")
+                        for (int i = 0; i < positionKeyFrameCount; ++i)
+                        {
+                            positions[i].z = c.AnimationCurve.keys[i].value;
+                        }
+                }
+
+                // Normalize the quaternions to ensure valid rotations
+                for (int i = 0; i < rotationKeyFrameCount; ++i)
+                    rotations[i].Normalize();
+
+                (Vector3[] positions, Quaternion[] rotations) mappedValues = (positions, rotations);
+
+                Debug.Log(jointName + " rotation 1 = " + mappedValues.rotations[0].eulerAngles.ToString("F2"));
+
+                mappedValues = MapRokokoValues(jointName, positions, rotations);
+
+                AnimationCurve positionX = new AnimationCurve();
+                AnimationCurve positionY = new AnimationCurve();
+                AnimationCurve positionZ = new AnimationCurve();
+
+                for (int i = 0; i < positions.Length; ++i)
+                {
+                    positionX.AddKey(positionTimes[i], mappedValues.positions[i].x);
+                    positionY.AddKey(positionTimes[i], mappedValues.positions[i].y);
+                    positionZ.AddKey(positionTimes[i], mappedValues.positions[i].z);
+                }
+
+                AnimationCurve rotationX = new AnimationCurve();
+                AnimationCurve rotationY = new AnimationCurve();
+                AnimationCurve rotationZ = new AnimationCurve();
+                AnimationCurve rotationW = new AnimationCurve();
+
+                for (int i = 0; i < rotations.Length; ++i)
+                {
+                    rotationX.AddKey(rotationTimes[i], mappedValues.rotations[i].x);
+                    rotationY.AddKey(rotationTimes[i], mappedValues.rotations[i].y);
+                    rotationZ.AddKey(rotationTimes[i], mappedValues.rotations[i].z);
+                    rotationW.AddKey(rotationTimes[i], mappedValues.rotations[i].w);
+                }
+
+                if (positionKeyFrameCount > 0)
+                {
+                    jointCurves.Add("localPosition.x", positionX);
+                    jointCurves.Add("localPosition.y", positionY);
+                    jointCurves.Add("localPosition.z", positionZ);
+                }
+
+                if (rotationKeyFrameCount > 0)
+                {
+                    jointCurves.Add("localRotation.x", rotationX);
+                    jointCurves.Add("localRotation.y", rotationY);
+                    jointCurves.Add("localRotation.z", rotationZ);
+                    jointCurves.Add("localRotation.w", rotationW);
+                }
+
+                
+                if (jointName != null)
+                    animation.Add(jointName, jointCurves);
+            }
         }
 
         GameObject avatarInstance;
@@ -195,6 +425,217 @@ public class AnimationIO : MonoBehaviour
         editAnimationParent.GetComponent<RectTransform>().sizeDelta = new Vector2(0, editAnimationParent.transform.childCount * 80);
 
         Destroy(loadedAnimationContext.RootGameObject);
+
+        ++testIndex;
+    }
+
+
+
+    static (Vector3[] positions, Quaternion[] rotations) MapRokokoValues(string jointName, Vector3[] rokokoPositions, Quaternion[] rokokoRotations)
+    {
+        Vector3[] mappedPositions = new Vector3[rokokoPositions.Length];
+        Quaternion[] mappedRotations = new Quaternion[rokokoRotations.Length];
+        Quaternion qXsens = Quaternion.Euler(0, 0, 0);
+        Quaternion qRokoko = Quaternion.Euler(0, 0, 0);
+
+        /*
+        if (jointName == "LeftUpLeg" || jointName == "LeftLeg")
+            qRokoko = Quaternion.Euler(0, 90, 0);
+        else if (jointName == "LeftFoot" || jointName == "LeftToeBase")
+            qRokoko = Quaternion.Euler(90, 90, 0);
+        else if (jointName == "RightUpLeg" || jointName == "RightLeg")
+            qRokoko = Quaternion.Euler(0, -90, 0);
+        else if (jointName == "RightFoot" || jointName == "RightToeBase")
+            qRokoko = Quaternion.Euler(90, -90, 0);
+        else if (jointName == "Spine" || jointName == "Spine1" || jointName == "Spine2" || jointName == "Spine3"
+            || jointName == "Neck" || jointName == "Head")
+            qRokoko = Quaternion.Euler(0, 0, 180);
+        else if (jointName == "LeftShoulder")
+            qRokoko = Quaternion.Euler(0, 0, 90);
+        else if (jointName == "LeftArm" || jointName == "LeftForeArm" || jointName == "LeftHand")
+            qRokoko = Quaternion.Euler(0, 90, 0);
+        else if (jointName == "RightShoulder")
+            qRokoko = Quaternion.Euler(0, 0, -90);
+        else if (jointName == "RightArm" || jointName == "RightForeArm" || jointName == "RightHand")
+            qRokoko = Quaternion.Euler(0, -90, 0);
+        */
+        
+        if (jointName == "LeftUpLeg")
+            qRokoko = Quaternion.Euler(leftUpLegRotation);
+        else if (jointName == "LeftLeg")
+            qRokoko = Quaternion.Euler(leftLegRotation);
+        else if (jointName == "LeftFoot")
+            qRokoko = Quaternion.Euler(leftFootRotation);
+        else if (jointName == "LeftToeBase")
+            qRokoko = Quaternion.Euler(leftToeBaseRotation);
+        else if (jointName == "RightUpLeg")
+            qRokoko = Quaternion.Euler(rightUpLegRotation);
+        else if (jointName == "RightLeg")
+            qRokoko = Quaternion.Euler(rightLegRotation);
+        else if (jointName == "RightFoot")
+            qRokoko = Quaternion.Euler(rightFootRotation);
+        else if (jointName == "RightToeBase")
+            qRokoko = Quaternion.Euler(rightToeBaseRotation);
+        else if (jointName == "Spine")
+            qRokoko = Quaternion.Euler(spineRotation);
+        else if (jointName == "Spine1")
+            qRokoko = Quaternion.Euler(spine1Rotation);
+        else if (jointName == "Spine2")
+            qRokoko = Quaternion.Euler(spine2Rotation);
+        else if (jointName == "Spine3")
+            qRokoko = Quaternion.Euler(spine3Rotation);
+        else if (jointName == "LeftShoulder")
+            qRokoko = Quaternion.Euler(leftShoulderRotation);
+        else if (jointName == "LeftArm")
+            qRokoko = Quaternion.Euler(leftArmRotation);
+        else if (jointName == "LeftForeArm")
+            qRokoko = Quaternion.Euler(leftForeArmRotation);
+        else if (jointName == "LeftHand")
+            qRokoko = Quaternion.Euler(leftHandRotation);
+        else if (jointName == "RightShoulder")
+            qRokoko = Quaternion.Euler(rightShoulderRotation);
+        else if (jointName == "RightArm")
+            qRokoko = Quaternion.Euler(rightArmRotation);
+        else if (jointName == "RightForeArm")
+            qRokoko = Quaternion.Euler(rightForeArmRotation);
+        else if (jointName == "RightHand")
+            qRokoko = Quaternion.Euler(rightHandRotation);
+        else if (jointName == "Neck")
+            qRokoko = Quaternion.Euler(neckRotation);
+        else if (jointName == "Head")
+            qRokoko = Quaternion.Euler(headRotation);
+
+        Quaternion rotationDifference = Quaternion.Inverse(qRokoko);
+
+        for (int i = 0; i < rokokoRotations.Length; ++i)
+        {
+            mappedRotations[i] = rotationDifference * rokokoRotations[i];
+        }
+
+        for (int i = 0; i < rokokoPositions.Length; ++i)
+        {
+            mappedPositions[i] = rotationDifference * rokokoPositions[i];
+        }
+
+        return (mappedPositions, mappedRotations);
+    }
+
+    static (Vector3[] positions, Quaternion[] rotations) MapRokokoValuesMatrix(string jointName, Vector3[] rokokoPositions, Quaternion[] rokokoRotations)
+    {
+        Vector3[] mappedPositions = new Vector3[rokokoPositions.Length];
+        Quaternion[] mappedRotations = new Quaternion[rokokoRotations.Length];
+        Matrix4x4 matrix = Matrix4x4.identity;
+
+
+        if (jointName == "LeftUpLeg")
+        {
+            matrix.m00 = 0;
+            matrix.m02 = -1;
+            matrix.m20 = 1;
+            matrix.m22 = 0;
+        }
+        else if (jointName == "LeftFoot")
+        {
+            matrix.m00 = 0;
+            matrix.m02 = -1;
+            matrix.m10 = 1;
+            matrix.m11 = 0;
+            matrix.m21 = -1;
+            matrix.m22 = 0;
+        }
+        else if (jointName == "RightUpLeg")
+        {
+            matrix.m00 = 0;
+            matrix.m02 = 1;
+            matrix.m20 = -1;
+            matrix.m22 = 0;
+        }
+        else if (jointName == "RightFoot")
+        {
+            matrix.m00 = 0;
+            matrix.m02 = 1;
+            matrix.m10 = -1;
+            matrix.m11 = 0;
+            matrix.m21 = -1;
+            matrix.m22 = 0;
+        }
+        else if (jointName == "Spine")
+        {
+            matrix.m00 = -1;
+            matrix.m11 = -1;
+        }
+        else if (jointName == "LeftShoulder")
+        {
+            matrix.m00 = 0;
+            matrix.m01 = 1;
+            matrix.m10 = -1;
+            matrix.m11 = 0;
+        }
+        else if (jointName == "LeftArm")
+        {
+            matrix.m00 = 0;
+            matrix.m02 = -1;
+            matrix.m20 = 1;
+            matrix.m22 = 0;
+        }
+        else if (jointName == "RightShoulder")
+        {
+            matrix.m00 = 0;
+            matrix.m01 = -1;
+            matrix.m10 = 1;
+            matrix.m11 = 0;
+        }
+        else if (jointName == "RightArm")
+        {
+            matrix.m00 = 0;
+            matrix.m02 = 1;
+            matrix.m20 = -1;
+            matrix.m22 = 0;
+        }
+
+
+        for (int i = 0; i < rokokoRotations.Length; ++i)
+        {
+            mappedRotations[i] = matrix.GetRotation() * rokokoRotations[i];
+        }
+
+        for (int i = 0; i < rokokoPositions.Length; ++i)
+        {
+            mappedPositions[i] = matrix.GetRotation() * rokokoPositions[i];
+        }
+
+        return (mappedPositions, mappedRotations);
+    }
+
+    static Vector3 OrientVector(Vector3 v, Quaternion qA, Quaternion qB)
+    {
+        Quaternion qAInverse = Quaternion.Inverse(qA);
+        Quaternion qTransform = qB * qAInverse;
+
+        return qTransform * v;
+    }
+
+    static Quaternion OrientQuaternion(Quaternion q, Quaternion qA, Quaternion qB)
+    {
+        Quaternion qAInverse = Quaternion.Inverse(qA);
+        Quaternion qTransform = qB * qAInverse;
+
+        Quaternion qTransformInverse = Quaternion.Inverse(qTransform);
+
+        Quaternion qMapped = qTransform * q * qTransformInverse;
+
+        return qMapped;
+    }
+
+    static AnimationCurve FlipCurve(AnimationCurve curve)
+    {
+        AnimationCurve newCurve = new AnimationCurve();
+
+        foreach (var keyFrame in curve.keys)
+        {
+            newCurve.AddKey(keyFrame.time, -keyFrame.value);
+        }
+        return newCurve;
     }
 
     static string GetJointMapping(AnimationMapping mapping, string jointName)
@@ -255,7 +696,7 @@ public class AnimationIO : MonoBehaviour
         else
         {
             Debug.LogWarning("No Mapping Found! Mapping Name missing is: " + jointName);
-            MessageSystem.DisplayWarning("No Mapping Found! Mapping Name missing is: " + jointName);
+            //MessageSystem.DisplayWarning("No Mapping Found! Mapping Name missing is: " + jointName);
             return null;
         }
     }
@@ -265,20 +706,16 @@ public class AnimationIO : MonoBehaviour
     {
         isImporting = false;
 
-        if (assetLoaderContext.RootGameObject.transform.Find("LeftThigh") != null)
-            AddAnimation(assetLoaderContext, AnimationMappingEnum.Rokoko);
-        else
-            AddAnimation(assetLoaderContext, AnimationMappingEnum.xSens);
+        AddAnimation(assetLoaderContext);
+
     }
 
     static void OnWheelchairMocapImportFinished(AssetLoaderContext assetLoaderContext)
     {
         isImporting = false;
 
-        if (assetLoaderContext.RootGameObject.transform.Find("LeftThigh") != null)
-            AddAnimation(assetLoaderContext, AnimationMappingEnum.Rokoko, true);
-        else
-            AddAnimation(assetLoaderContext, AnimationMappingEnum.xSens, true);
+        AddAnimation(assetLoaderContext, true);
+
     }
 
     static void OnImportProgress(AssetLoaderContext assetLoaderContext, float progress)
@@ -294,7 +731,7 @@ public class AnimationIO : MonoBehaviour
     static void OnImportError(IContextualizedError contextualizedError)
     {
         MessageSystem.DisplayWarning("Import was interrupted due to an error");
-        Debug.LogError("Import was interrupted due to an error. " + contextualizedError.GetInnerException().Message);
+        Debug.LogError("Import was interrupted due to an error. " + contextualizedError.GetInnerException().Message + ", " + contextualizedError.GetInnerException().StackTrace);
     }
 
     public static void ImportWheelchairMovement(string path)

@@ -50,6 +50,13 @@ public class Bond : MonoBehaviour
     [SerializeField]
     Vector3Int maxExtend = new Vector3Int();
 
+    [Space]
+    [Header("Align Orientations")]
+    [SerializeField]
+    List<Vector3> orientations;
+
+    int orientationIndex = 0;
+
     int layerMask = 1 << 8;
 
     public float XSpacing { get { return xSpacing; } }
@@ -605,6 +612,35 @@ public class Bond : MonoBehaviour
         }
         else
             return false;
+    }
+
+    public Vector3 GetCurrentOrientation()
+    {
+        if (orientations == null || orientations.Count == 0) return Vector3.zero;
+
+        return orientations[orientationIndex];
+    }
+
+    public Vector3 GetNextOrientation()
+    {
+        if (orientations == null || orientations.Count == 0) return Vector3.zero;
+
+        ++orientationIndex;
+        if (orientationIndex >= orientations.Count)
+            orientationIndex = 0;
+
+        return orientations[orientationIndex];
+    }
+
+    public Vector3 GetPreviousOrientation()
+    {
+        if (orientations == null || orientations.Count == 0) return Vector3.zero;
+
+        --orientationIndex;
+        if (orientationIndex < 0)
+            orientationIndex = orientations.Count - 1;
+
+        return orientations[orientationIndex];
     }
 }
 
