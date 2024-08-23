@@ -292,7 +292,8 @@ public class AssemblyIO : MonoBehaviour
         lock (lockKey)
         {
             currentSaveTargets.Remove(path);
-            message = "File Saved!";
+            if (!Path.GetFileName(path).Contains("autosave"))
+                message = "File Saved!";
         }
     }
 
