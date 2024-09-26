@@ -342,8 +342,6 @@ public class CustomAnimationPlayer : MonoBehaviour
 
         localRot.Normalize();
 
-        if (jointName == "Spine")
-            Debug.Log(localRot.eulerAngles.ToString());
 
         if (useDamping)
             jointTransform.localRotation = Quaternion.Slerp(jointTransform.localRotation.normalized, localRot, dampingFactor);

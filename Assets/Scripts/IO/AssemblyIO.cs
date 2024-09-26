@@ -99,6 +99,8 @@ public class AssemblyIO : MonoBehaviour
                     return;
                 }
             }
+            else
+                GameManager.Bond.Offset = loadOffset;
 
             if (!loadAsPointCloud)
             {

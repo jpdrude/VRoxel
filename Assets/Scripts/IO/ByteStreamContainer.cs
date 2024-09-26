@@ -213,10 +213,6 @@ public class ByteStreamContainer
         {
             if (BlockContainer.Container.GetCount() > 1000 && bondName == GameManager.Bond.BondName)
                 offset = GameManager.Bond.Offset;
-            else if (bondName == GameManager.Bond.BondName)
-            {
-                GameManager.Bond.Offset = offset;
-            }
         }
 
         for (int i = 0; i < typeLength; ++i)

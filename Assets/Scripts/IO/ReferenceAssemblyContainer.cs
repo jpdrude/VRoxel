@@ -70,6 +70,7 @@ public class ReferenceAssemblyContainer : MonoBehaviour
         loadFileName = null;
     }
 
+
     static void RecalculateTransforms()
     {
         foreach (string key in prefabList.Keys)

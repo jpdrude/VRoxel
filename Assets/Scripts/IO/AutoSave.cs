@@ -91,7 +91,7 @@ public class AutoSave : MonoBehaviour
                 foreach (string file in files)
                 {
                     if (!file.Contains("autosave"))
-                        return;
+                        continue;
 
                     FileInfo pathInfo = new FileInfo(path);
                     FileInfo current = new FileInfo(file);
@@ -99,8 +99,6 @@ public class AutoSave : MonoBehaviour
                     if (current.LastWriteTime < pathInfo.LastWriteTime)
                         path = file;
                 }
-
-                Debug.Log("Saving oldest file. Oldest file is: " + Path.GetFileName(path));
             }
         }
 
