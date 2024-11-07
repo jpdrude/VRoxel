@@ -1,0 +1,452 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2207064918621498339
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5246331638357377795}
+  - component: {fileID: 4041612083941306900}
+  m_Layer: 0
+  m_Name: TenOfDiamondsDecahedronHoneycomb
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5246331638357377795
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2207064918621498339}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 9073394911888196455}
+  - {fileID: 8571526539890669691}
+  - {fileID: 6983311142415288766}
+  - {fileID: 825468246343695744}
+  - {fileID: 4905963210719900123}
+  - {fileID: 4105237819059824313}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4041612083941306900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2207064918621498339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2c7597527bc29438d92463be6a9621, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bondName: TenOfDiamondsDecahedronHoneycomb
+  partPrefabs:
+  - {fileID: 4637162591971979517, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+  bondBlocks:
+  - blocks:
+    - {fileID: 9073394911888196455}
+    - {fileID: 8571526539890669691}
+    - {fileID: 6983311142415288766}
+    - {fileID: 825468246343695744}
+    - {fileID: 4905963210719900123}
+    - {fileID: 4105237819059824313}
+  xSize: 4
+  ySize: 4
+  zSize: 4
+  xSpacing: 0.025
+  ySpacing: 0.025
+  zSpacing: 0.025
+  defaultOffset: {x: 0, y: 0.025, z: 0}
+  minExtend: {x: 0, y: 0, z: 0}
+  maxExtend: {x: 0, y: 0, z: 0}
+  orientations:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 90, z: 0}
+  - {x: 0, y: 180, z: 0}
+  - {x: 0, y: 270, z: 0}
+  - {x: 90, y: 0, z: 0}
+  - {x: 180, y: 0, z: 0}
+  - {x: 270, y: 0, z: 0}
+--- !u!1001 &876929161824698497
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 5246331638357377795}
+    m_Modifications:
+    - target: {fileID: 5822798422755199980, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_Name
+      value: TenOfDiamondsDecahedron (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5000001
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.5000001
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.49999985
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.49999994
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 90
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+--- !u!4 &6983311142415288766 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+  m_PrefabInstance: {fileID: 876929161824698497}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1236768647605652056
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 5246331638357377795}
+    m_Modifications:
+    - target: {fileID: 5822798422755199980, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_Name
+      value: TenOfDiamondsDecahedron
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+--- !u!4 &9073394911888196455 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+  m_PrefabInstance: {fileID: 1236768647605652056}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1888947680660091204
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 5246331638357377795}
+    m_Modifications:
+    - target: {fileID: 5822798422755199980, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_Name
+      value: TenOfDiamondsDecahedron (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+--- !u!4 &8571526539890669691 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+  m_PrefabInstance: {fileID: 1888947680660091204}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &2943020568096995556
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 5246331638357377795}
+    m_Modifications:
+    - target: {fileID: 5822798422755199980, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_Name
+      value: TenOfDiamondsDecahedron (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.075
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.000000042146915
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.70710677
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.0000001490116
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -180
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -90
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+--- !u!4 &4905963210719900123 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+  m_PrefabInstance: {fileID: 2943020568096995556}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &6069288907915243398
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 5246331638357377795}
+    m_Modifications:
+    - target: {fileID: 5822798422755199980, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_Name
+      value: TenOfDiamondsDecahedron (5)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_RootOrder
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.075
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.00000046193597
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.000000014901248
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.0000002801268
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -180
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+--- !u!4 &4105237819059824313 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+  m_PrefabInstance: {fileID: 6069288907915243398}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &7473276003828167871
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 5246331638357377795}
+    m_Modifications:
+    - target: {fileID: 5822798422755199980, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_Name
+      value: TenOfDiamondsDecahedron (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.025
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.000000059604645
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.000000059604645
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -180
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+--- !u!4 &825468246343695744 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7837052874794125631, guid: 0f213f546a4c4284ea6b323cfb9a205f, type: 3}
+  m_PrefabInstance: {fileID: 7473276003828167871}
+  m_PrefabAsset: {fileID: 0}

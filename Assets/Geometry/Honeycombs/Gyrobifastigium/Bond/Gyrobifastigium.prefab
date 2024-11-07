@@ -1,0 +1,347 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5070476245613577223
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3679188200496729831}
+  - component: {fileID: 8744688216837301847}
+  m_Layer: 0
+  m_Name: Gyrobifastigium
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3679188200496729831
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5070476245613577223}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3558930048550287094}
+  - {fileID: 6597661634588813501}
+  - {fileID: 390181670187612659}
+  - {fileID: 2212672374307373670}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8744688216837301847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5070476245613577223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2c7597527bc29438d92463be6a9621, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bondName: GyrobifastigiumHoneycomb
+  partPrefabs:
+  - {fileID: 6229074364574712085, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+  bondBlocks:
+  - blocks:
+    - {fileID: 3558930048550287094}
+    - {fileID: 6597661634588813501}
+    - {fileID: 390181670187612659}
+    - {fileID: 2212672374307373670}
+  xSize: 2
+  ySize: 4
+  zSize: 2
+  xSpacing: 0.029
+  ySpacing: 0.05
+  zSpacing: 0.029
+  defaultOffset: {x: 0, y: 0, z: 0}
+  minExtend: {x: 0, y: 0, z: 0}
+  maxExtend: {x: 0, y: 0, z: 0}
+  orientations:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 90, z: 0}
+  - {x: 0, y: 180, z: 0}
+  - {x: 0, y: 270, z: 0}
+  - {x: 90, y: 0, z: 0}
+  - {x: 270, y: 0, z: 0}
+  - {x: -120, y: 0, z: 0}
+  - {x: -120, y: 180, z: 0}
+  - {x: -60, y: 90, z: 0}
+  - {x: -60, y: -90, z: 0}
+  - {x: -60, y: -90, z: 180}
+  - {x: -60, y: -270, z: 180}
+  - {x: -60, y: 180, z: 0}
+  - {x: -60, y: 0, z: 0}
+--- !u!1001 &25764135907008825
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 3679188200496729831}
+    m_Modifications:
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.029
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 2513861627628904844, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_Name
+      value: Gyrobifastigium (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 2513861627628904844, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+--- !u!4 &2212672374307373670 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+  m_PrefabInstance: {fileID: 25764135907008825}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1983063487359834796
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 3679188200496729831}
+    m_Modifications:
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.029
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.029
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2513861627628904844, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_Name
+      value: Gyrobifastigium (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 2513861627628904844, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+--- !u!4 &390181670187612659 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+  m_PrefabInstance: {fileID: 1983063487359834796}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &3426299855382402473
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 3679188200496729831}
+    m_Modifications:
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2513861627628904844, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_Name
+      value: Gyrobifastigium
+      objectReference: {fileID: 0}
+    - target: {fileID: 2513861627628904844, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+--- !u!4 &3558930048550287094 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+  m_PrefabInstance: {fileID: 3426299855382402473}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &4999259304883407842
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 3679188200496729831}
+    m_Modifications:
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.029
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 2513861627628904844, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_Name
+      value: Gyrobifastigium (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 2513861627628904844, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+--- !u!4 &6597661634588813501 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2229129624494269279, guid: d94bde751edcdbe47a0248a3d15062c8, type: 3}
+  m_PrefabInstance: {fileID: 4999259304883407842}
+  m_PrefabAsset: {fileID: 0}
