@@ -49,6 +49,9 @@ public class TrailBehaviour : MonoBehaviour
         foreach (Renderer renderer in body)
             renderer.material.color = Color.Lerp(startCol, endCol, timer / lifeTime);
 
-        timer += Time.deltaTime;
+        if (!AnimationIO.constantAnimationTime)
+            timer += Time.deltaTime;
+        else
+            timer += 1f / AnimationIO.animationFrameRate;
     }
 }

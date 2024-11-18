@@ -62,6 +62,8 @@ public class CharacterSpawner : MonoBehaviour
 
     public void DisableCharacterBrush()
     {
+        if (!removeBlocks && !addBlocks) return;
+
         if (removeBlocks)
         {
             UndoStack.Push(currentRemoveStroke);

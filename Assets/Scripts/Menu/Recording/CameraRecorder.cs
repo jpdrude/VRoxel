@@ -98,12 +98,12 @@ public class CameraRecorder : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!captureRotation && !captureAnimation)
+        if (!captureRotation)
             CheckAnimationFrame();
         else if (captureRotation)
             CheckRotateAnimationFrame();
-        else if (captureAnimation)
-            CheckCharacterAnimationFrame();
+        //else if (captureAnimation)
+            //CheckCharacterAnimationFrame();
 
         ++frameCounter;
     }
@@ -140,6 +140,7 @@ public class CameraRecorder : MonoBehaviour
 
             if (export)
                 SaveFrame();
+
 
             ++exportCounter;
         }

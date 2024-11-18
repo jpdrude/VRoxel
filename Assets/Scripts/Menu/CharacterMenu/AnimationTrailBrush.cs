@@ -54,7 +54,10 @@ public class AnimationTrailBrush : MonoBehaviour
         renderer.positionCount = controlPoints.Count;
         renderer.SetPositions(controlPoints.ToArray());
 
-        timer += Time.deltaTime;
+        if (!AnimationIO.constantAnimationTime)
+            timer += Time.deltaTime;
+        else
+            timer += 1f / AnimationIO.animationFrameRate;
     }
 
     public void PauseStroke(bool value)

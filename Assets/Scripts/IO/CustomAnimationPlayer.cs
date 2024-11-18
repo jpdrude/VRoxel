@@ -264,7 +264,7 @@ public class CustomAnimationPlayer : MonoBehaviour
         else
         {
             timer += 1f / AnimationIO.animationFrameRate * speed;
-            trailTimer += 1f / AnimationIO.animationFrameRate;
+            trailTimer += 1f / AnimationIO.animationFrameRate;            
         }
 
         if (timer > animationEnd)

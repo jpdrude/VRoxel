@@ -254,8 +254,10 @@ public class ByteStreamContainer
                 else
                     times[i][matrixCounter] = startTime;
 
-                //Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
-                Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, new Vector3(-1, 1, -1));
+                Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+                
+                //This long used to be the implementation, I don't know why:
+                //Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, new Vector3(-1, 1, -1));
 
                 matrices[i][matrixCounter] = matrix;
                 ++matrixCounter;
