@@ -51,6 +51,7 @@ MonoBehaviour:
   bondBlocks:
   - blocks:
     - {fileID: 6288576852837437104}
+  scale: 1
   xSize: 1
   ySize: 1
   zSize: 1

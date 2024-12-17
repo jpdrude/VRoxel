@@ -638,10 +638,11 @@ public struct PositionKey
 
     public PositionKey(Matrix4x4 matrix)
     {
+        int res = GameManager.Bond.ContainerRes;
         Vector3 vec = matrix.GetPosition() - GameManager.Bond.Offset;
-        x = Mathf.RoundToInt(vec.x * 10000);
-        y = Mathf.RoundToInt(vec.y * 10000);
-        z = Mathf.RoundToInt(vec.z * 10000);
+        x = Mathf.RoundToInt(vec.x * res);
+        y = Mathf.RoundToInt(vec.y * res);
+        z = Mathf.RoundToInt(vec.z * res);
     }
 
     public PositionKey(int _x, int _y, int _z)

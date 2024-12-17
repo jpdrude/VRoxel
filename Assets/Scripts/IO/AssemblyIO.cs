@@ -20,6 +20,7 @@ public class AssemblyIO : MonoBehaviour
     static float loadTimeOffset = 0;
     static string loadBond = null;
     static Vector3 loadOffset = new Vector3(0, 0, 0);
+    static float loadScale = 1;
     public static string LoadBond { get { return loadBond; } }
 
     static List<string> currentSaveTargets = new List<string>();
@@ -64,13 +65,14 @@ public class AssemblyIO : MonoBehaviour
             }
 
 
-            if (loadBond != GameManager.Bond.BondName)
+            if (loadBond != GameManager.Bond.BondName || Mathf.Abs(loadScale - GameManager.Bond.Scale) > 0.0001f)
             {
                 if (BlockContainer.Container.GetCount() < 1000)
                 {
                     if (GameManager.AvailableBonds.ContainsKey(loadBond))
                     {
                         GameManager.Manager.SetBond(GameManager.AvailableBonds[loadBond]);
+                        GameManager.Bond.Scale = loadScale;
                         GameManager.Bond.Offset = loadOffset;
                         Debug.Log("Bond set to " + loadBond);
                     }
@@ -89,18 +91,31 @@ public class AssemblyIO : MonoBehaviour
                 {
                     MessageSystem.DisplayWarning("File could not be loaded, because of incompatible Bond");
                     MessageSystem.DisplayWarning("Session Bond: " + GameManager.Bond.BondName + ", File Bond: " + loadBond);
-                    loadBond = null;
-                    loadContainer = null;
-                    loadTimes = null;
-                    loadTimeOffset = 0;
-                    loadAsPointCloud = false;
-                    loadOffset = Vector3.zero;
+                    
+                    Debug.LogError("File could not be loaded, because of incompatible Bond");
+                    Debug.LogError("Session Bond: " + GameManager.Bond.BondName + ", File Bond: " + loadBond);
+                    
+                    ClearLoadData();
 
                     return;
                 }
             }
-            else
+            else if (Mathf.Abs(loadScale - GameManager.Bond.Scale) < 0.0001f)
+            {
                 GameManager.Bond.Offset = loadOffset;
+            }
+            else
+            {
+                MessageSystem.DisplayWarning("File could not be loaded, because of incompatible Bond Scale");
+                MessageSystem.DisplayWarning("Session Scale: " + GameManager.Bond.Scale + ", File Scale: " + loadScale);
+
+                Debug.LogError("File could not be loaded, because of incompatible Bond Scale");
+                Debug.LogError("Session Scale: " + GameManager.Bond.Scale + ", File Scale: " + loadScale);
+
+                ClearLoadData();
+
+                return;
+            }
 
             if (!loadAsPointCloud)
             {
@@ -120,12 +135,9 @@ public class AssemblyIO : MonoBehaviour
 
             GameManager.gameTime += loadTimeOffset;
 
-            loadContainer = null;
-            loadBond = null;
-            loadTimes = null;
-            loadTimeOffset = 0;
-            loadAsPointCloud = false;
-            loadOffset = Vector3.zero;
+
+
+            ClearLoadData();
         }
 
         if (message != null)
@@ -233,7 +245,7 @@ public class AssemblyIO : MonoBehaviour
             SaveAssemblyDelegate saveDelegate = new SaveAssemblyDelegate(SaveAsync);
             Debug.Log("Version String: " + Application.version);
             Debug.Log("Parsed Version String: " + float.Parse(Application.version, System.Globalization.CultureInfo.InvariantCulture.NumberFormat).ToString("F3"));
-            saveDelegate.BeginInvoke(path, GameManager.Bond.BondName, tempBlockTransforms, tempBlockTimeStamps, float.Parse(Application.version, System.Globalization.CultureInfo.InvariantCulture.NumberFormat), GameManager.Bond.Offset, null, null);
+            saveDelegate.BeginInvoke(path, GameManager.Bond.BondName, tempBlockTransforms, tempBlockTimeStamps, float.Parse(Application.version, System.Globalization.CultureInfo.InvariantCulture.NumberFormat), GameManager.Bond.Offset, GameManager.Bond.Scale, null, null);
         }
     }
 
@@ -252,6 +264,7 @@ public class AssemblyIO : MonoBehaviour
         loadAsPointCloud = false;
         remapBond = false;
         loadOffset = Vector3.zero;
+        loadScale = 1;
     }
 
     static void ExportAsync(string path, JsonMatrixContainer container)
@@ -272,7 +285,7 @@ public class AssemblyIO : MonoBehaviour
         }
     }
 
-    static void SaveAsync(string path, string bondName, List<Matrix4x4>[] transforms, List<uint>[] timeStamps, float version, Vector3 offset)
+    static void SaveAsync(string path, string bondName, List<Matrix4x4>[] transforms, List<uint>[] timeStamps, float version, Vector3 offset, float scale)
     {
         Debug.Log("Start saving at " + DateTime.Now.ToString("T"));
 
@@ -280,7 +293,7 @@ public class AssemblyIO : MonoBehaviour
         {
             using (FileStream stream = new FileStream(path, FileMode.Create))
             {
-                ByteStreamContainer container = new ByteStreamContainer(bondName, transforms, timeStamps, version, offset);
+                ByteStreamContainer container = new ByteStreamContainer(bondName, transforms, timeStamps, version, offset, scale);
                 stream.Write(container.ToByteArray());
             }
         }
@@ -341,7 +354,7 @@ public class AssemblyIO : MonoBehaviour
         return transforms;
     }
 
-    static Matrix4x4[][] LoadByteMatrices(string path, out uint[][] times, out string bond, out float timeOffset, out Vector3 offset)
+    static Matrix4x4[][] LoadByteMatrices(string path, out uint[][] times, out string bond, out float timeOffset, out Vector3 offset, out float scale)
     {
         Debug.Log("Loading started at " + DateTime.Now.ToString("T"));
         byte[] loadBytes = File.ReadAllBytes(path);
@@ -360,6 +373,7 @@ public class AssemblyIO : MonoBehaviour
             timeOffset = 0;
             times = null;
             offset = Vector3.zero;
+            scale = 1;
             return null;
         }
 
@@ -370,6 +384,8 @@ public class AssemblyIO : MonoBehaviour
         timeOffset = container.timeOffset;
 
         offset = container.offset;
+
+        scale = container.scale;
 
         int loadAmount = 0;
         for (int i = 0; i < container.matrices.Length; ++i)
@@ -387,8 +403,9 @@ public class AssemblyIO : MonoBehaviour
         uint[][] times;
         float timeOffset;
         Vector3 offset = Vector3.zero;
+        float scale;
 
-        transforms = LoadByteMatrices(path, out times, out bond, out timeOffset, out offset);
+        transforms = LoadByteMatrices(path, out times, out bond, out timeOffset, out offset, out scale);
 
         string fileName = Path.GetFileName(path);
 
@@ -398,9 +415,9 @@ public class AssemblyIO : MonoBehaviour
             {
                 Vector3 pos = transforms[i][j].GetPosition() + loadOffset;
                 Quaternion rot = transforms[i][j].GetRotation();
-                Vector3 scale = transforms[i][j].GetScale();
+                Vector3 _scale = transforms[i][j].GetScale();
 
-                transforms[i][j] = Matrix4x4.TRS(pos, rot, scale);
+                transforms[i][j] = Matrix4x4.TRS(pos, rot, _scale);
             }
         }
 
@@ -417,11 +434,12 @@ public class AssemblyIO : MonoBehaviour
         uint[][] times;
         float timeOffset;
         Vector3 offset = Vector3.zero;
+        float scale = 1;
 
         if (Path.GetExtension(path).ToLower() == ".json")
             transforms = LoadJsonMatrices(path, out times, out bond, out timeOffset);
         else
-            transforms = LoadByteMatrices(path, out times, out bond, out timeOffset, out offset);
+            transforms = LoadByteMatrices(path, out times, out bond, out timeOffset, out offset, out scale);
 
         Debug.Log("Transforms received! Bond: " + bond);
 
@@ -439,6 +457,7 @@ public class AssemblyIO : MonoBehaviour
             loadTimes = times;
             loadTimeOffset = timeOffset;
             loadOffset = offset;
+            loadScale = scale;
 
             loadComplete = true;
         }
@@ -629,7 +648,7 @@ public class AssemblyIO : MonoBehaviour
 }
 
 public delegate void ExportAssemblyDelegate(string path, JsonMatrixContainer container);
-public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4>[] matrices, List<uint>[] timeStamps, float version, Vector3 offset);
+public delegate void SaveAssemblyDelegate(string path, string bondName, List<Matrix4x4>[] matrices, List<uint>[] timeStamps, float version, Vector3 offset, float scale);
 public delegate void LoadAssemblyDelegate(string path);
 
 public class JsonMatrixContainer

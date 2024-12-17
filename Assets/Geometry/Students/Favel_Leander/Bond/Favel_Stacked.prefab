@@ -67,6 +67,7 @@ MonoBehaviour:
   - blocks:
     - {fileID: 8962230058361639802}
     - {fileID: 1941410536405187525}
+  scale: 1
   xSize: 2
   ySize: 1
   zSize: 4

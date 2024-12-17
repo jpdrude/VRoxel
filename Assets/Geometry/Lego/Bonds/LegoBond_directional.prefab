@@ -61,6 +61,7 @@ MonoBehaviour:
     - {fileID: 6589452780068710730}
     - {fileID: 9183901774365292938}
     - {fileID: 1592960144240283062}
+  scale: 1
   xSize: 6
   ySize: 2
   zSize: 4

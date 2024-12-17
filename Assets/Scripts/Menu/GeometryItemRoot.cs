@@ -68,9 +68,9 @@ public class GeometryItemRoot : MonoBehaviour
             transform.rotation = Quaternion.Euler(rotation);
         if (gridSnap && !allowFreeRotation)
         {
-            xSpacing = GameManager.Bond.XSpacing;
-            ySpacing = GameManager.Bond.YSpacing;
-            zSpacing = GameManager.Bond.ZSpacing;
+            xSpacing = GameManager.Bond.XSpacing * GameManager.Bond.Scale;
+            ySpacing = GameManager.Bond.YSpacing * GameManager.Bond.Scale;
+            zSpacing = GameManager.Bond.ZSpacing * GameManager.Bond.Scale;
 
             Vector3 newPos = new Vector3();
             newPos.x = Mathf.Round(transform.parent.position.x / xSpacing) * xSpacing;
