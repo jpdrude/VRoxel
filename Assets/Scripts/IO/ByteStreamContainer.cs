@@ -86,8 +86,15 @@ public class ByteStreamContainer
         {
             for (int j = 0; j < matrices[i].Length; ++j)
             {
+                //Normalize Matrix to make sure rotation remains accurate
+                Matrix4x4 normalizedMatrix = matrices[i][j];
+                normalizedMatrix.SetColumn(0, normalizedMatrix.GetColumn(0) / scale);
+                normalizedMatrix.SetColumn(1, normalizedMatrix.GetColumn(1) / scale);
+                normalizedMatrix.SetColumn(2, normalizedMatrix.GetColumn(2) / scale);
+
                 Vector3 position = matrices[i][j].GetPosition();
-                Quaternion rotation = matrices[i][j].GetRotation().normalized;
+                Quaternion rotation = normalizedMatrix.GetRotation();
+                rotation.Normalize();
                 uint time = times[i][j];
                 
                 byte[] posX = BitConverter.GetBytes(position.x - offset.x);
@@ -273,6 +280,7 @@ public class ByteStreamContainer
                 float rotZ = BitConverter.ToSingle(array, j + 4 * 5);
                 float rotW = BitConverter.ToSingle(array, j + 4 * 6);
                 Quaternion rotation = new Quaternion(rotX, rotY, rotZ, rotW);
+                rotation.Normalize();
 
                 if (version >= 0.28f)
                 {
