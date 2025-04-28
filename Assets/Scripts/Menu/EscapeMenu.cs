@@ -74,6 +74,8 @@ public class EscapeMenu : MonoBehaviour
 
     bool menuActive = false;
 
+    string[] cloudResolutionText = new string[6] { "Resolution: 0.5cm", "Resolution: 1cm", "Resolution: 2cm", "Resolution: 3cm", "Resolution: 4cm", "Resolution: 5cm" };
+
     string pcPath = null;
     bool overrideCache;
 
@@ -329,29 +331,8 @@ public class EscapeMenu : MonoBehaviour
     {
         int index = Mathf.RoundToInt(idx);
 
-        switch (index)
-        {
-            case 0:
-                PointCloudIO.CloudMaterial = pcMat[0];
-                pcResolution.text = "Resolution: 1cm";
-                break;
-            case 1:
-                PointCloudIO.CloudMaterial = pcMat[1];
-                pcResolution.text = "Resolution: 2cm";
-                break;
-            case 2:
-                PointCloudIO.CloudMaterial = pcMat[2];
-                pcResolution.text = "Resolution: 3cm";
-                break;
-            case 3:
-                PointCloudIO.CloudMaterial = pcMat[3];
-                pcResolution.text = "Resolution: 4cm";
-                break;
-            case 4:
-                PointCloudIO.CloudMaterial = pcMat[4];
-                pcResolution.text = "Resolution: 5cm";
-                break;
-        }
+        PointCloudIO.CloudMaterial = pcMat[index];
+        pcResolution.text = cloudResolutionText[index];
     }
 
     public void SetPointCloudPath()

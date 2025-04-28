@@ -140,6 +140,30 @@ public class Bond : MonoBehaviour
         zIntSpacing = Mathf.RoundToInt(scaledZSpacing * containerRes);
     }
 
+    public void SetBondBlocks(Transform[] transforms)
+    {
+        PartTypeArray[] bb = new PartTypeArray[partPrefabs.Length];
+
+        for (int i = 0; i < partPrefabs.Length; ++i)
+        {
+            List<Transform> prefabTransforms = new List<Transform>();
+            foreach (Transform t in transforms)
+            {
+                if (t.gameObject.GetComponent<GPUInstancerPrefab>().prefabPrototype.name == PartPrefabs[i].prefabPrototype.name)
+                    prefabTransforms.Add(t);
+            }
+
+            bb[i] = new PartTypeArray { blocks = prefabTransforms.ToArray() };
+        }
+
+        bondBlocks = bb;
+    }
+
+    public void SetOrientations(List<Vector3> _orientations)
+    {
+        orientations = _orientations;
+    }
+
     public Vector3 GetBondBase(Vector3 position)
     {
         int x = Mathf.FloorToInt((position.x - (offset.x * scale)) / scaledXSpacing);

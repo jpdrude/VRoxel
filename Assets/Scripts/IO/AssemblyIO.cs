@@ -409,6 +409,7 @@ public class AssemblyIO : MonoBehaviour
 
         string fileName = Path.GetFileName(path);
 
+        /*
         for (int i = 0; i < transforms.Length; ++i)
         {
             for (int j = 0; j < transforms[i].Length; ++j)
@@ -420,6 +421,7 @@ public class AssemblyIO : MonoBehaviour
                 transforms[i][j] = Matrix4x4.TRS(pos, rot, _scale);
             }
         }
+        */
 
         lock (lockKey)
         {

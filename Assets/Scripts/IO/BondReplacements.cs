@@ -18,7 +18,11 @@ public class BondReplacements
         {"Ella_6cm", "inter(b)lock_6cm_black"},
         {"Ella_6cm_white", "inter(b)lock_6cm_white"},
         {"Ella_18cm", "inter(b)lock_18cm_black"},
-        {"Ella_18cm_white", "inter(b)lock_18cm_white"}
+        {"Ella_18cm_white", "inter(b)lock_18cm_white"},
+        {"Akro_Bond04", "Akro_BondBasic" },
+        {"Akro_Bond01", "Akro_BondBrutalist" },
+        {"Akro_Bond02", "Akro_BondReef" },
+        {"Akro_Bond03", "Akro_BondElephant" }
     };
 
     public static bool CheckBondReplacement(ref string loadBond)
