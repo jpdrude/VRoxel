@@ -1085,7 +1085,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8685537
 Transform:
   m_ObjectHideFlags: 0
@@ -41205,6 +41205,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1189063053}
     m_Modifications:
+    - target: {fileID: 934033524841186916, guid: 1029f8ebeb38a044d8e464e270aefde2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 1306d7e7af9c2734881f4e2f1835cf12, type: 2}
     - target: {fileID: 4585694928661531242, guid: 1029f8ebeb38a044d8e464e270aefde2, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -90303,7 +90307,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &790478842
 Transform:
   m_ObjectHideFlags: 0
@@ -136301,7 +136305,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1189063053
 Transform:
   m_ObjectHideFlags: 0
@@ -153274,6 +153278,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1189063053}
     m_Modifications:
+    - target: {fileID: 1914065747382849734, guid: c642cd3954e38f046a1a494d520d0da6, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 1306d7e7af9c2734881f4e2f1835cf12, type: 2}
     - target: {fileID: 4770471641591854827, guid: c642cd3954e38f046a1a494d520d0da6, type: 3}
       propertyPath: m_Name
       value: Akro2
@@ -225101,6 +225109,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1189063053}
     m_Modifications:
+    - target: {fileID: 1089562424737581557, guid: c097317ce9aa98e4482824fa98162341, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 1306d7e7af9c2734881f4e2f1835cf12, type: 2}
     - target: {fileID: 2999668114307403457, guid: c097317ce9aa98e4482824fa98162341, type: 3}
       propertyPath: m_Name
       value: Akro3

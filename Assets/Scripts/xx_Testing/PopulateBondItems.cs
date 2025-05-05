@@ -23,6 +23,9 @@ public class PopulateBondItems : MonoBehaviour
     bool roundTo;
 
     [SerializeField]
+    bool replacePrefabs;
+
+    [SerializeField]
     int roundDepth = 5;
 
     [SerializeField]
@@ -34,6 +37,9 @@ public class PopulateBondItems : MonoBehaviour
     // Start is called before the first frame update
     void Update()
     {
+        if (bond == null)
+            bond = GetComponent<Bond>();
+
         if (populate)
         {
             populate = false;
@@ -99,6 +105,27 @@ public class PopulateBondItems : MonoBehaviour
                 pos.z = (float)System.Math.Round(pos.z, roundDepth);
 
                 go.transform.position = pos;
+            }
+        }
+
+        if (replacePrefabs)
+        {
+            replacePrefabs = false;
+
+            for (int i = 0; i < bond.BondBlocks.Length; ++i)
+            {
+                for (int j = 0; j < bond.BondBlocks[i].blocks.Length; ++j)
+                {
+                    #if UNITY_EDITOR
+                    GameObject go = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(bond.PartPrefabs[i].gameObject, transform); ;
+                    go.transform.localPosition = bond.BondBlocks[i].blocks[j].localPosition;
+                    go.transform.localRotation = bond.BondBlocks[i].blocks[j].localRotation;
+                    go.name = go.name + "_" + j;
+
+                    Destroy(bond.BondBlocks[i].blocks[j].gameObject);
+                    bond.BondBlocks[i].blocks[j] = go.transform;
+                    #endif
+                }
             }
         }
     }

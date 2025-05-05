@@ -17,6 +17,7 @@ public class Bond : MonoBehaviour
     
     [SerializeField]
     PartTypeArray[] bondBlocks;
+    public PartTypeArray[] BondBlocks { get { return bondBlocks; } }
 
     Transform[][] blocks;
 
