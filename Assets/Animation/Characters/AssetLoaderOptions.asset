@@ -20,7 +20,7 @@ MonoBehaviour:
   AddAssetUnloader: 1
   ImportMeshes: 1
   LimitBoneWeights: 1
-  ReadEnabled: 0
+  ReadEnabled: 1
   ReadAndWriteEnabled: 0
   MarkMeshesAsDynamic: 0
   OptimizeMeshes: 1

@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using GPUInstancer;
 
+using Unity.Jobs;
+using Unity.Burst;
+using Unity.Mathematics;
+using Unity.Collections;
+
 using System;
 
 public class Bond : MonoBehaviour
@@ -605,6 +610,23 @@ public class Bond : MonoBehaviour
         List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
         List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
 
+        Mesh m = ((MeshCollider)mesh).sharedMesh;
+        Vector3[] vertices = m.vertices;
+        int[] triangles = m.triangles;
+
+        Matrix4x4 localToWorld = mesh.gameObject.transform.localToWorldMatrix;
+        NativeArray<Vector3> worldVertices = new NativeArray<Vector3>(vertices.Length, Allocator.TempJob);
+        for (int i = 0; i < vertices.Length; ++i)
+            worldVertices[i] = localToWorld.MultiplyPoint3x4(vertices[i]);
+
+
+        NativeArray<int> triangleArray = new NativeArray<int>(triangles, Allocator.TempJob);
+
+        List<Vector3> checkPoints = new List<Vector3>();
+        List<Transform> checkBlocks = new List<Transform>();
+        List<Vector3Int> checkIntPos = new List<Vector3Int>();
+        List<int> checkPresetIndex = new List<int>();
+
         for (int i = 0; i < blockTransforms.Length; ++i)
         {
             blockTransforms[i] = new List<Matrix4x4>();
@@ -624,23 +646,65 @@ public class Bond : MonoBehaviour
                             Transform block = blocks[i][j];
                             Vector3 blockPosition = block.localPosition * scale + offset + new Vector3Int(x, y, z).Divide(containerRes);
 
-                            bool pointInMesh = false;
-
-                            if (meshBrushLevel == MeshBrushLevels.rough)
-                                pointInMesh = PointInMesh(blockPosition, rayLength, Vector3.right);
-                            else
-                                pointInMesh = PointInMesh(blockPosition, rayLength, Vector3.right) && PointInMesh(blockPosition, rayLength, Vector3.forward) && PointInMesh(blockPosition, rayLength, Vector3.up);
-
-                            if (pointInMesh)
+                            //Run Jobs based custom check
+                            if (meshBrushLevel == MeshBrushLevels.fine)
                             {
-                                blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one * scale));
-                                Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * scale * containerRes), Mathf.RoundToInt(block.localPosition.y * scale * containerRes), Mathf.RoundToInt(block.localPosition.z * scale * containerRes));
-                                blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
+                                checkPoints.Add(blockPosition);
+                                checkBlocks.Add(block);
+                                checkIntPos.Add(new Vector3Int(x, y, z));
+                                checkPresetIndex.Add(i);
+                            }
+                            else // Run old check
+                            {
+                                bool pointInMesh = PointInMesh(blockPosition, rayLength, Vector3.right);
+
+                                if (pointInMesh)
+                                {
+                                    blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, block.localRotation, Vector3.one * scale));
+                                    Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * scale * containerRes), Mathf.RoundToInt(block.localPosition.y * scale * containerRes), Mathf.RoundToInt(block.localPosition.z * scale * containerRes));
+                                    blockDictKeys[i].Add(new PositionKey(localIntPosition + new Vector3Int(x, y, z)));
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+
+        if (meshBrushLevel == MeshBrushLevels.fine)
+        {
+            //Create Arrays for Checks and Results
+            NativeArray<Vector3> pointArray = new NativeArray<Vector3>(checkPoints.ToArray(), Allocator.TempJob);
+            NativeArray<bool> resultArray = new NativeArray<bool>(checkPoints.Count, Allocator.TempJob);
+
+            //Create and run Job
+            PointInMeshJob job = new PointInMeshJob
+            {
+                testPoints = pointArray,
+                worldVertices = worldVertices,
+                triangles = triangleArray,
+                isInside = resultArray
+            };
+
+            JobHandle handle = job.Schedule(checkPoints.Count, 64);
+            handle.Complete();
+
+            //Set Results
+            for (int i = 0; i < checkPoints.Count; i++)
+            {
+                if (resultArray[i])
+                {
+                    blockTransforms[checkPresetIndex[i]].Add(Matrix4x4.TRS(checkPoints[i], checkBlocks[i].localRotation, Vector3.one * scale));
+                    Vector3Int localIntPosition = new Vector3Int(Mathf.RoundToInt(checkBlocks[i].localPosition.x * scale * containerRes), Mathf.RoundToInt(checkBlocks[i].localPosition.y * scale * containerRes), Mathf.RoundToInt(checkBlocks[i].localPosition.z * scale * containerRes));
+                    blockDictKeys[checkPresetIndex[i]].Add(new PositionKey(localIntPosition + checkIntPos[i]));
+                }
+            }
+
+            // Cleanup
+            pointArray.Dispose();
+            resultArray.Dispose();
+            worldVertices.Dispose();
+            triangleArray.Dispose();
         }
 
         Matrix4x4[][] _blockTransforms = new Matrix4x4[blocks.Length][];
@@ -685,6 +749,60 @@ public class Bond : MonoBehaviour
             return false;
     }
 
+    [BurstCompile]
+    public struct PointInMeshJob : IJobParallelFor
+    {
+        [ReadOnly] public NativeArray<Vector3> testPoints;
+        [ReadOnly] public NativeArray<Vector3> worldVertices;
+        [ReadOnly] public NativeArray<int> triangles;
+
+        [WriteOnly] public NativeArray<bool> isInside;
+
+        public void Execute(int index)
+        {
+            Vector3 point = testPoints[index];
+            Vector3 rayDir = Vector3.right; // Constant direction to avoid branching
+            int hitCount = 0;
+
+            for (int i = 0; i < triangles.Length; i += 3)
+            {
+                Vector3 v0 = worldVertices[triangles[i]];
+                Vector3 v1 = worldVertices[triangles[i + 1]];
+                Vector3 v2 = worldVertices[triangles[i + 2]];
+
+                if (RayIntersectsTriangle(point, rayDir, v0, v1, v2))
+                {
+                    hitCount++;
+                }
+            }
+
+            isInside[index] = (hitCount % 2 == 1); // Odd number of hits = inside
+        }
+
+        private static bool RayIntersectsTriangle(Vector3 orig, Vector3 dir, Vector3 v0, Vector3 v1, Vector3 v2)
+        {
+            const float EPSILON = 1e-8f;
+            Vector3 edge1 = v1 - v0;
+            Vector3 edge2 = v2 - v0;
+            Vector3 h = Vector3.Cross(dir, edge2);
+            float a = Vector3.Dot(edge1, h);
+
+            if (math.abs(a) < EPSILON) return false;
+
+            float f = 1.0f / a;
+            Vector3 s = orig - v0;
+            float u = f * Vector3.Dot(s, h);
+            if (u < 0.0f || u > 1.0f) return false;
+
+            Vector3 q = Vector3.Cross(s, edge1);
+            float v = f * Vector3.Dot(dir, q);
+            if (v < 0.0f || u + v > 1.0f) return false;
+
+            float t = f * Vector3.Dot(edge2, q);
+            return t > EPSILON;
+        }
+    }
+    
     public Vector3 GetCurrentOrientation()
     {
         if (orientations == null || orientations.Count == 0) return Vector3.zero;
