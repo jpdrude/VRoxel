@@ -103,7 +103,9 @@ public class GeometryIO : MonoBehaviour
         removeMaterial = _removeMaterial;
         buttonMenu = _buttonMenu;
 
-        options = _options;
+        //options = _options;
+
+        options = AssetLoader.CreateDefaultLoaderOptions();
 
         importGeometryParent = _importGeometryParent;
         menuEntryPrefab = _menuEntryPrefab;

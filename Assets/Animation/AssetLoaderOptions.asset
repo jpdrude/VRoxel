@@ -27,7 +27,7 @@ MonoBehaviour:
   GenerateColliders: 0
   ConvexColliders: 0
   ImportBlendShapes: 1
-  ImportColors: 1
+  ImportColors: 0
   IndexFormat: 1
   LODScreenRelativeTransitionHeightBase: 0.75
   KeepQuads: 0
@@ -103,7 +103,7 @@ MonoBehaviour:
   ForcePowerOfTwoTextures: 0
   MaxTexturesResolution: 0
   EnableProfiler: 0
-  UseUnityNativeTextureLoader: 0
+  UseUnityNativeTextureLoader: 1
   LoadMaterialsProgressively: 0
   ImportCameras: 0
   ImportLights: 0
