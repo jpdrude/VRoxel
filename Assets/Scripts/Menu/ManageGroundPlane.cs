@@ -19,16 +19,24 @@ public class ManageGroundPlane : MonoBehaviour
         offsetInput.text = groundPlane.transform.position.y.ToString("F1");
     }
 
-    public void SetOffset(bool value)
+    public void SetTeleport(bool value)
     {
-        if (!value)
+        teleportAreas.SetActive(value);
+
+        if (!groundPlane.activeSelf && !teleportAreas.activeSelf)
             offsetInput.interactable = false;
         else
             offsetInput.interactable = true;
+    }
 
+    public void SetPlaneVisibility(bool value)
+    {
         groundPlane.SetActive(value);
 
-        teleportAreas.SetActive(value);
+        if (!groundPlane.activeSelf && !teleportAreas.activeSelf)
+            offsetInput.interactable = false;
+        else
+            offsetInput.interactable = true;
     }
 
     public void SetPlaneOffset(string input)

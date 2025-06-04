@@ -302,6 +302,18 @@ public class GeometryIO : MonoBehaviour
         {
             if (mr.material == null)
                 mr.material = defaultMaterial;
+
+            //Disable Shadows for Emission materials
+            try
+            {
+                Color emission = mr.material.GetColor("_EmissionColor");
+                if ((emission.a + emission.g + emission.b) > 0.5f)
+                    mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            catch
+            {
+                //No Emission Color
+            }
         }
 
         if (fixGeometryTransform)

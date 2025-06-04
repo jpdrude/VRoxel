@@ -74,7 +74,7 @@ public class EscapeMenu : MonoBehaviour
 
     bool menuActive = false;
 
-    string[] cloudResolutionText = new string[6] { "Resolution: 0.5cm", "Resolution: 1cm", "Resolution: 2cm", "Resolution: 3cm", "Resolution: 4cm", "Resolution: 5cm" };
+    string[] cloudResolutionText = new string[7] {"Resolution: 1 px", "Resolution: 0.5cm", "Resolution: 1cm", "Resolution: 2cm", "Resolution: 3cm", "Resolution: 4cm", "Resolution: 5cm" };
 
     string pcPath = null;
     bool overrideCache;

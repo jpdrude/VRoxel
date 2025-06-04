@@ -74,7 +74,17 @@ public class LoadWithBond : MonoBehaviour
         {"Akro_BondChaotic_Wood", new List<string>(){ "Akro_BondChaotic_Lenticular", "Akro_BondChaotic_White", "Akro_BondChaotic", "Akro_BondChaotic_Grey" } },
         {"Akro_BondElephant_Wood", new List<string>(){ "Akro_BondElephant_Lenticular", "Akro_BondElephant_White", "Akro_BondElephant", "Akro_BondElephant_Grey" } },
         {"Akro_BondReef_Wood", new List<string>(){ "Akro_BondReef_Lenticular", "Akro_BondReef_White", "Akro_BondReef", "Akro_BondReef_Grey" } },
-        {"Akro_BondTree_Wood", new List<string>(){ "Akro_BondTree_Lenticular", "Akro_BondTree_White", "Akro_BondTree", "Akro_BondTree_Grey" } }
+        {"Akro_BondTree_Wood", new List<string>(){ "Akro_BondTree_Lenticular", "Akro_BondTree_White", "Akro_BondTree", "Akro_BondTree_Grey" } },
+
+        {"minibrix_01", new List<string>(){ "minibrix_brick_01" } },
+        {"minibrix_02", new List<string>(){ "minibrix_brick_02" } },
+        {"Minibrix_Bond03", new List<string>(){ "Minibrix_brick_Bond03" } },
+        {"Minibrix_BondCircle", new List<string>(){ "Minibrix_brick_BondCircle" } },
+
+        {"minibrix_brick_01", new List<string>(){ "minibrix_01" } },
+        {"minibrix_brick_02", new List<string>(){ "minibrix_02" } },
+        {"Minibrix_brick_Bond03", new List<string>(){ "Minibrix_Bond03" } },
+        {"Minibrix_brick_BondCircle", new List<string>(){ "Minibrix_BondCircle" } }
     };
 
     public void SelectLoadFile()

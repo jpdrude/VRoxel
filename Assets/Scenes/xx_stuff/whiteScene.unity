@@ -72546,6 +72546,18 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1701180601}
     m_Modifications:
+    - target: {fileID: 926185088634837032, guid: 2f4cc335181c20b4aa4899a829e60598, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 87a4c285bdb950149b5cf402c5876da3, type: 2}
+    - target: {fileID: 1358766807293960807, guid: 2f4cc335181c20b4aa4899a829e60598, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 87a4c285bdb950149b5cf402c5876da3, type: 2}
+    - target: {fileID: 1526899337685856660, guid: 2f4cc335181c20b4aa4899a829e60598, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 87a4c285bdb950149b5cf402c5876da3, type: 2}
     - target: {fileID: 3877374601942050255, guid: 2f4cc335181c20b4aa4899a829e60598, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -90241,7 +90253,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &790478842
 Transform:
   m_ObjectHideFlags: 0
@@ -199323,7 +199335,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1701180601
 Transform:
   m_ObjectHideFlags: 0
@@ -219937,10 +219949,22 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1701180601}
     m_Modifications:
+    - target: {fileID: 2095398155401919135, guid: 983da43352ef59e409c099a2b809d6bf, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 87a4c285bdb950149b5cf402c5876da3, type: 2}
+    - target: {fileID: 5107361111300602005, guid: 983da43352ef59e409c099a2b809d6bf, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 87a4c285bdb950149b5cf402c5876da3, type: 2}
     - target: {fileID: 6647124465133952525, guid: 983da43352ef59e409c099a2b809d6bf, type: 3}
       propertyPath: m_Name
       value: minibrix_bracing
       objectReference: {fileID: 0}
+    - target: {fileID: 6675539239854333066, guid: 983da43352ef59e409c099a2b809d6bf, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 87a4c285bdb950149b5cf402c5876da3, type: 2}
     - target: {fileID: 8091737805757644657, guid: 983da43352ef59e409c099a2b809d6bf, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -234756,7 +234780,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2015684670
 Transform:
   m_ObjectHideFlags: 0

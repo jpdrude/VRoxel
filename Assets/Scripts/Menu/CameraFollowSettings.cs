@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using GPUInstancer;
 
 public class CameraFollowSettings : MonoBehaviour
 {
@@ -20,6 +21,11 @@ public class CameraFollowSettings : MonoBehaviour
     [SerializeField]
     Text rotDampingLabel;
 
+    [Space]
+    [Header("GPU Instancing")]
+    [SerializeField]
+    List<GPUInstancerPrefabManager> manager;
+
     private void Start()
     {
         cam = followCam.GetComponent<Camera>();
@@ -29,6 +35,22 @@ public class CameraFollowSettings : MonoBehaviour
     public void SetEnabled(bool state)
     {
         followCam.SetActive(state);
+    }
+
+    public void SetFustrum(bool state)
+    {
+        foreach (var m in manager)
+        {
+            m.isFrustumCulling = state;
+        }
+    }
+
+    public void SetOcclusion(bool state)
+    {
+        foreach (var m in manager)
+        {
+            m.isOcclusionCulling = state;
+        }
     }
 
     public void SetFOV(float fov)
