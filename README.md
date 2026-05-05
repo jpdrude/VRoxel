@@ -1,6 +1,7 @@
 # VRoxel
 
 A VR application for block-based 3D assembly and geometry editing, built with Unity 2021.3 LTS for HTC Vive (SteamVR/OpenVR).
+Further info at https://drude.io/en-vroxel
 
 Users compose spatial assemblies from discrete block types in VR, save and load them in the `.vrxl` format, import external meshes and point clouds, and animate characters within the scene. The project is research software developed at [your institution].
 
