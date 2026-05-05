@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"C:\\\\Users\\\\jpdrude\\\\OneDrive\\\\Dateien\\\\01_Forschung\\\\03_VRoxel\\\\VRoxel\" ls-files Assets/GPUInstancer Assets/TriLib Assets/Xsens Assets/PointCloudTools Assets/Plugins/SimpleFileBrowser Assets/UnityFBXExporter Assets/OutlineEffect Assets/SteamVR --error-unmatch)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\jpdrude\\\\OneDrive\\\\Dateien\\\\01_Forschung\\\\03_VRoxel\\\\VRoxel\\\\Assets\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)"
+    ]
+  }
+}
