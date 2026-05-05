@@ -128,7 +128,6 @@ public class Bond : MonoBehaviour
     public void Initialize()
     {
         containerRes = (int)Math.Pow(10, containerResolutionDepth);
-        Debug.Log("Container Resolution: " + containerRes);
 
         blocks = new Transform[bondBlocks.Length][];
 
@@ -236,6 +235,9 @@ public class Bond : MonoBehaviour
                 fit = t;
         }
 
+        if (fit == null)
+            return Matrix4x4.TRS(position + offset, Quaternion.identity, Vector3.one * scale);
+
         return Matrix4x4.TRS(position + offset, fit.localRotation, Vector3.one * scale);
     }
 
@@ -277,6 +279,9 @@ public class Bond : MonoBehaviour
         zInt *= zBondSize;
 
         position = new Vector3(xInt / (float)containerRes, yInt / (float)containerRes, zInt / (float)containerRes);
+
+        if (fit == null)
+            return Matrix4x4.TRS(position, Quaternion.identity, Vector3.one * scale);
 
         return Matrix4x4.TRS(position, fit.localRotation, Vector3.one * scale);
     }
@@ -731,11 +736,7 @@ public class Bond : MonoBehaviour
             Physics.Raycast(ray, out hit, rayLength, layerMask);
             if (hit.collider == null)
                 break;
-            else if (hit.collider != null && hit.collider.gameObject.tag != "MeshSpawner")
-            {
-                Debug.Log("Found stray collider, name: " + hit.collider.gameObject.name);
-            }
-  
+
             ++hits;
             ray = new Ray(hit.point + rayDirection * 0.0001f, rayDirection);
         }

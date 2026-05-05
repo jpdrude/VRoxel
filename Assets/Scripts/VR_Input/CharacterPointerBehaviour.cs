@@ -83,12 +83,13 @@ public class CharacterPointerBehaviour : MonoBehaviour
         }
         else if (pickupCharacter != null && focusPoint != null && setDirection)
         {
-            var oldOffset = pickupCharacter.GetComponent<CustomAnimationPlayer>().GetOffset();
+            var player = pickupCharacter.GetComponent<CustomAnimationPlayer>();
+            var oldOffset = player.GetOffset();
 
             float angle = pickupCharacter.transform.rotation.eulerAngles.y;
-            pickupCharacter.GetComponent<CustomAnimationPlayer>().SetOffset(characterPosition, angle);
+            player.SetOffset(characterPosition, angle);
 
-            UndoStack.Push(new DoChangeAnimationPos(DoAction.DoType.ChangeAnimationPos, pickupCharacter.GetComponent<CustomAnimationPlayer>(), oldOffset.posOffset, characterPosition, oldOffset.rotOffset, angle));
+            UndoStack.Push(new DoChangeAnimationPos(DoAction.DoType.ChangeAnimationPos, player, oldOffset.posOffset, characterPosition, oldOffset.rotOffset, angle));
 
             pickupCharacter = null;
             currentLayerMask = layerMaskCharacter;

@@ -59,10 +59,7 @@ public class AssemblyIO : MonoBehaviour
         if (loadContainer != null)
         {
             if (remapBond)
-            {
-                Debug.Log("Aborted Loading for Remapping!");
                 return;
-            }
 
 
             if (loadBond != GameManager.Bond.BondName || Mathf.Abs(loadScale - GameManager.Bond.Scale) > 0.0001f)
@@ -74,7 +71,6 @@ public class AssemblyIO : MonoBehaviour
                         GameManager.Manager.SetBond(GameManager.AvailableBonds[loadBond]);
                         GameManager.Bond.Scale = loadScale;
                         GameManager.Bond.Offset = loadOffset;
-                        Debug.Log("Bond set to " + loadBond);
                     }
                     else
                     {
@@ -83,8 +79,6 @@ public class AssemblyIO : MonoBehaviour
                             Debug.LogError("File could not be loaded, because of unknown Bond");
                             MessageSystem.DisplayWarning("File could not be loaded, because of unknown Bond");
                         }
-                        else
-                            Debug.Log("Old bond name found and switched to new version");
                     }
                 }
                 else

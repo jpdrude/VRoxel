@@ -101,7 +101,7 @@ public class CADMeshToBricks : MonoBehaviour
 
             MeshCollider[] childColliders = parent.GetComponentsInChildren<MeshCollider>();
 
-            if (childColliders.Length <= 1)
+            if (childColliders.Length <= 1 && menuReference != null)
                 menuReference.MenuItem.DeleteModel();
             else
             {

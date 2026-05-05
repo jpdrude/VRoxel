@@ -94,7 +94,6 @@ public class GameManager : MonoBehaviour
         Bond = b;
 
         Bond.Scale = bsm.Scale;
-        Debug.Log("Set Bond Scale To: " + Bond.Scale.ToString("F2") + ", " + bsm.Scale.ToString("F2"));
 
         container = new BlockContainer(GPUIPrefabManager, _bond.PartPrefabs);
 

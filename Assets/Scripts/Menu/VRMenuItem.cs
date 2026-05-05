@@ -59,7 +59,9 @@ public class VRMenuItem : MonoBehaviour
 
     void SetMaterials()
     {
-        originalMat = GetComponentInChildren<MeshRenderer>(true).material;
+        var renderer = GetComponentInChildren<MeshRenderer>(true);
+        if (renderer == null) return;
+        originalMat = renderer.material;
         disabledMat = new Material(originalMat);
         disabledMat.color *= 0.5f;
     }

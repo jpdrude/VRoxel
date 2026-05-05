@@ -62,7 +62,7 @@ public class TargetSpawner : MonoBehaviour
     List<Vector3> brushScales = new List<Vector3>();
     int brushIndex;
 
-    float epsilon = 0.000001f;
+    const float epsilon = 0.000001f;
 
     bool interfaceVisible = true;
 

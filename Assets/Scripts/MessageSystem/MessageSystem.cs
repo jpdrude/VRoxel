@@ -41,7 +41,8 @@ public class MessageSystem : MonoBehaviour
         warningCol = warningColor;
 
         permanent = permanentMessage;
-        permanent.Initialize(displayTime, fadeOutTime);
+        if (permanent != null)
+            permanent.Initialize(displayTime, fadeOutTime);
 
         if (permanentVRMessage != null)
         {

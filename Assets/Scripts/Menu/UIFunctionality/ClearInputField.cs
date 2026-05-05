@@ -9,6 +9,7 @@ public class ClearInputField : MonoBehaviour
     public void ClearInput()
     {
         TMP_InputField inputfield = GetComponent<TMP_InputField>();
+        if (inputfield == null) return;
 
         inputfield.Select();
         inputfield.text = "";

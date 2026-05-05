@@ -17,13 +17,14 @@ public class SmoothFollow : MonoBehaviour
 
     void OnEnable()
     {
+        if (target == null) return;
         transform.position = target.position;
         transform.rotation = target.rotation;
     }
 
-    // Update is called once per frame
     void Update()
     {
+        if (target == null) return;
         transform.position = Vector3.Lerp(transform.position, target.position, posDamping);
         transform.rotation = Quaternion.Lerp(transform.rotation, target.rotation, rotDamping);
     }

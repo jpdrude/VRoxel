@@ -163,7 +163,6 @@ public class MenuSwitch : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.tag != "MenuTrigger") return;
-        Debug.Log("Should switch to selection mode");
         if (activeAggregationTool != null)
             activeAggregationTool.SetActive(false);
 
@@ -173,7 +172,6 @@ public class MenuSwitch : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         if (other.gameObject.tag != "MenuTrigger") return;
-        Debug.Log("Should switch to placement mode");
         if (activeAggregationTool != null)
             activeAggregationTool.SetActive(true);
 
