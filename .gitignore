@@ -55,6 +55,20 @@ sysinfo.txt
 *.apk
 *.unitypackage
 
+# Paid / proprietary Asset Store plugins — cannot be redistributed publicly.
+# Purchase and import these yourself before opening the project in Unity.
+# See README.md for details.
+Assets/GPUInstancer/
+Assets/GPUInstancer.meta
+Assets/TriLib/
+Assets/TriLib.meta
+Assets/Xsens/
+Assets/Xsens.meta
+Assets/PointCloudTools/
+Assets/PointCloudTools.meta
+Assets/Plugins/GameDevWare.Serialization/
+Assets/Plugins/GameDevWare.Serialization.meta
+
 # Crashlytics generated file
 crashlytics-build.properties
 
