@@ -6,6 +6,11 @@ using System.Globalization;
 
 public static class ExtensionMethods
 {
+    private static readonly Regex EngFloatRegex = new Regex(@"^[-+]?[0-9]*(?:\.[0-9]*)?$");
+    private static readonly Regex GerFloatRegex = new Regex(@"^[-+]?[0-9]*(?:\,[0-9]*)?$");
+    private static readonly CultureInfo EnCulture = new CultureInfo("en-US");
+    private static readonly CultureInfo DeCulture = new CultureInfo("de-DE");
+
     public static Vector3 Divide(this Vector3Int vec, float div)
     {
         return new Vector3(vec.x / div, vec.y / div, vec.z / div);
@@ -13,28 +18,23 @@ public static class ExtensionMethods
 
     public static float? ParseStringToFloat(this string text)
     {
-        string engFloatRegex = @"^[-+]?[0-9]*(?:\.[0-9]*)?$";
-        string gerFloatRegex = @"^[-+]?[0-9]*(?:\,[0-9]*)?$";
-
-        Match engMatch = Regex.Match(text, engFloatRegex);
-        Match gerMatch = Regex.Match(text, gerFloatRegex);
+        Match engMatch = EngFloatRegex.Match(text);
+        Match gerMatch = GerFloatRegex.Match(text);
 
         float? result = null;
 
         if (engMatch.Success)
         {
-            CultureInfo culture = new CultureInfo("en-US");
             float number = 0;
-            if (!float.TryParse(engMatch.Value, NumberStyles.Any, culture, out number))
+            if (!float.TryParse(engMatch.Value, NumberStyles.Any, EnCulture, out number))
                 result = null;
             else
                 result = number;
         }
         else if (gerMatch.Success)
         {
-            CultureInfo culture = new CultureInfo("de-DE");
             float number = 0;
-            if (!float.TryParse(gerMatch.Value, NumberStyles.Any, culture, out number))
+            if (!float.TryParse(gerMatch.Value, NumberStyles.Any, DeCulture, out number))
                 result = null;
             else
                 result = number;

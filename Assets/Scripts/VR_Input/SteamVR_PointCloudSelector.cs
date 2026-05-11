@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -106,9 +107,7 @@ public class SteamVR_PointCloudSelector : SpawnerActions
 
             foreach (KeyValuePair<PositionKey, Matrix4x4> pair in blockTransforms)
             {
-                if (toConvertTransforms.ContainsKey(pair.Key))
-                    blockTransforms.Remove(pair.Key);
-                else
+                if (!toConvertTransforms.ContainsKey(pair.Key))
                     toConvertTransforms.Add(pair.Key, pair.Value);
             }
              
@@ -147,10 +146,9 @@ public class SteamVR_PointCloudSelector : SpawnerActions
             if (conversionArray.Length > 0)
                 UndoStack.Push(new DoToPointCloud(DoAction.DoType.ToPointCloud, conversionArray, toConvertTransforms));
 
-            toConvertTransforms = new Dictionary<PositionKey, Matrix4x4>();
+            toConvertTransforms.Clear();
 
-            placeholderArray = new Matrix4x4[100000];
-
+            Array.Clear(placeholderArray, 0, placeholderArrayPos);
             placeholderArrayPos = 0;
 
             GPUInstancerAPI.InitializeWithMatrix4x4Array(manager, placeholder.prefabPrototype, emptyArray);

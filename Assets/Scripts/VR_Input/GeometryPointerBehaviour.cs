@@ -31,6 +31,7 @@ public class GeometryPointerBehaviour : MonoBehaviour
     int layerMask = 1 << 11;
 
     bool copy = false;
+    Collider _lastHitCollider = null;
 
     static SteamVR_Input_Sources secondaryInputSource = SteamVR_Input_Sources.LeftHand;
     public static SteamVR_Input_Sources SecondaryInputSource { get { return secondaryInputSource; } set { secondaryInputSource = value; } }
@@ -49,7 +50,11 @@ public class GeometryPointerBehaviour : MonoBehaviour
             lr.enabled = true;
             if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, layerMask))
             {
-                focusObject = FindRootObject(hit.collider.gameObject);
+                if (hit.collider != _lastHitCollider)
+                {
+                    _lastHitCollider = hit.collider;
+                    focusObject = FindRootObject(hit.collider.gameObject);
+                }
 
                 if (focusObject != null)
                 {
@@ -58,6 +63,7 @@ public class GeometryPointerBehaviour : MonoBehaviour
             }
             else
             {
+                _lastHitCollider = null;
                 focusObject = null;
                 focusPoint = null;
                 target.SetActive(false);
@@ -174,6 +180,7 @@ public class GeometryPointerBehaviour : MonoBehaviour
         focusObject = null;
         pickupRoot = null;
         oldParent = null;
+        _lastHitCollider = null;
 
         transform.localPosition = Vector3.zero;
     }

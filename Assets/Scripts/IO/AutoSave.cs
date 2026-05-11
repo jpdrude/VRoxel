@@ -30,77 +30,59 @@ public class AutoSave : MonoBehaviour
         if (BlockContainer.Container.GetCount() < 10)
             return;
 
-        string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\VRoxel";
+        string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\VRoxel";
 
-
-        if (!Directory.Exists(path))
-            Directory.CreateDirectory(path);
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
 
         string[] files = null;
 
         try
         {
-            // Get all files in the directory
-            files = Directory.GetFiles(path);
-
+            files = Directory.GetFiles(dir);
         }
         catch (Exception e)
         {
             Debug.LogError("An error occurred in the AutoSave System: " + e.Message);
         }
 
-        if (files == null || files.Length == 0)
-            path += "\\autosave01.vrxl";
-        else
-        {
-            bool save01 = false;
-            bool save02 = false;
-            bool save03 = false;
-            bool save04 = false;
-            bool save05 = false;
+        string[] slotNames = { "autosave01.vrxl", "autosave02.vrxl", "autosave03.vrxl", "autosave04.vrxl", "autosave05.vrxl" };
+        string[] slotPaths = new string[5];
+        DateTime[] slotTimes = new DateTime[5];
 
+        if (files != null)
+        {
             foreach (string file in files)
             {
-                if (Path.GetFileName(file) == "autosave01.vrxl")
-                    save01 = true;
-                else if (Path.GetFileName(file) == "autosave02.vrxl")
-                    save02 = true;
-                else if (Path.GetFileName(file) == "autosave03.vrxl")
-                    save03 = true;
-                else if (Path.GetFileName(file) == "autosave04.vrxl")
-                    save04 = true;
-                else if (Path.GetFileName(file) == "autosave05.vrxl")
-                    save05 = true;
-            }
-
-            if (!save01)
-                path += "\\autosave01.vrxl";
-            else if (!save02)
-                path += "\\autosave02.vrxl";
-            else if (!save03)
-                path += "\\autosave03.vrxl";
-            else if (!save04)
-                path += "\\autosave04.vrxl";
-            else if (!save05)
-                path += "\\autosave05.vrxl";
-            else
-            {
-                path = files[0];
-
-                foreach (string file in files)
-                {
-                    if (!file.Contains("autosave"))
-                        continue;
-
-                    FileInfo pathInfo = new FileInfo(path);
-                    FileInfo current = new FileInfo(file);
-
-                    if (current.LastWriteTime < pathInfo.LastWriteTime)
-                        path = file;
-                }
+                int idx = Array.IndexOf(slotNames, Path.GetFileName(file));
+                if (idx < 0) continue;
+                slotPaths[idx] = file;
+                slotTimes[idx] = new FileInfo(file).LastWriteTime;
             }
         }
 
-        AssemblyIO.SaveAssemblyLayout(path, true);
+        string savePath = null;
+
+        for (int i = 0; i < slotPaths.Length; ++i)
+        {
+            if (slotPaths[i] == null)
+            {
+                savePath = dir + "\\" + slotNames[i];
+                break;
+            }
+        }
+
+        if (savePath == null)
+        {
+            int oldestIdx = 0;
+            for (int i = 1; i < slotTimes.Length; ++i)
+            {
+                if (slotTimes[i] < slotTimes[oldestIdx])
+                    oldestIdx = i;
+            }
+            savePath = slotPaths[oldestIdx];
+        }
+
+        AssemblyIO.SaveAssemblyLayout(savePath, true);
     }
 }

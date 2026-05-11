@@ -24,6 +24,7 @@ public class CharacterPointerBehaviour : MonoBehaviour
     int layerMaskFloor = 1 << 3 | 1 << 6;
 
     int currentLayerMask;
+    Collider _lastHitCollider = null;
 
     private void Start()
     {
@@ -37,8 +38,9 @@ public class CharacterPointerBehaviour : MonoBehaviour
 
         if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, currentLayerMask))
         {
-            if (pickupCharacter == null)
+            if (pickupCharacter == null && hit.collider != _lastHitCollider)
             {
+                _lastHitCollider = hit.collider;
                 focusCharacter = FindCharacterInParent(hit.collider.gameObject);
             }
             else if (pickupCharacter != null && !setDirection)
@@ -55,6 +57,7 @@ public class CharacterPointerBehaviour : MonoBehaviour
         }
         else
         {
+            _lastHitCollider = null;
             focusCharacter = null;
             focusPoint = null;
 
@@ -72,6 +75,7 @@ public class CharacterPointerBehaviour : MonoBehaviour
             focusCharacter.PauseAnimation(true);
             pickupCharacter = focusCharacter.gameObject;
             currentLayerMask = layerMaskFloor;
+            _lastHitCollider = null;
             pickupPosition = pickupCharacter.transform.position;
             pickupHeight.y = pickupPosition.y - lastHeight.y;
         }
@@ -94,6 +98,7 @@ public class CharacterPointerBehaviour : MonoBehaviour
             pickupCharacter = null;
             currentLayerMask = layerMaskCharacter;
             setDirection = false;
+            _lastHitCollider = null;
 
             lastHeight = focusHeight;
         }
@@ -105,6 +110,7 @@ public class CharacterPointerBehaviour : MonoBehaviour
             pickupCharacter = null;
             currentLayerMask = layerMaskCharacter;
             setDirection = false;
+            _lastHitCollider = null;
         }
     }
 

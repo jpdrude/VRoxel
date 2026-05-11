@@ -35,7 +35,8 @@ public class SpawnerActions : MonoBehaviour
     public SteamVR_Action_Boolean Left { get { return left; } }
     public SteamVR_Action_Boolean Right { get { return right; } }
     public SteamVR_Action_Boolean QuickOptionSwitch { get { return quickOptionSwitch; } }
-   
+
+    private int _lastDisplayedCount = -1;
 
     private void Update()
     {
@@ -69,7 +70,12 @@ public class SpawnerActions : MonoBehaviour
         if (_up || _down || _left || _right)
             DPadInputPressed(_up, _down, _left, _right);
 
-        MessageSystem.DisplayPermanentMessage(BlockContainer.Container.GetCount() + " Units");
+        int count = BlockContainer.Container.GetCount();
+        if (count != _lastDisplayedCount)
+        {
+            _lastDisplayedCount = count;
+            MessageSystem.DisplayPermanentMessage(count + " Units");
+        }
     }
 
     public virtual void OnTrigger() { }

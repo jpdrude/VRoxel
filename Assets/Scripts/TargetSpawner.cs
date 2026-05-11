@@ -65,6 +65,7 @@ public class TargetSpawner : MonoBehaviour
     const float epsilon = 0.000001f;
 
     bool interfaceVisible = true;
+    int _lastDisplayedCount = -1;
 
     PlacementVolume placement;
     PlacementVolume Placement
@@ -126,7 +127,12 @@ public class TargetSpawner : MonoBehaviour
         CheckSpawn();
         CheckUndo();
 
-        MessageSystem.DisplayPermanentMessage(BlockContainer.Container.GetCount() + " Blocks placed");
+        int count = BlockContainer.Container.GetCount();
+        if (count != _lastDisplayedCount)
+        {
+            _lastDisplayedCount = count;
+            MessageSystem.DisplayPermanentMessage(count + " Blocks placed");
+        }
     }
 
     void HideMenuToggle()

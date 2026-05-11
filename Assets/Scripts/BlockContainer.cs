@@ -48,9 +48,9 @@ public class BlockContainer
         {
             foreach (PositionKey maskKey in mask[i])
             {
-                if (blockDictionary.ContainsKey(maskKey))
+                if (blockDictionary.TryGetValue(maskKey, out PositionEntry maskEntry))
                 {
-                    maskedDictionary.Add(maskKey, blockDictionary[maskKey]);
+                    maskedDictionary.Add(maskKey, maskEntry);
                     blockDictionary.Remove(maskKey);
                 }
             }
@@ -412,10 +412,8 @@ public class BlockContainer
         {
             foreach (PositionKey dictKey in blockDictPositions[i])
             {
-                if (!blockDictionary.ContainsKey(dictKey) || blockDictionary[dictKey].item > 0)
+                if (!blockDictionary.TryGetValue(dictKey, out PositionEntry entry) || entry.item > 0)
                     continue;
-
-                PositionEntry entry = blockDictionary[dictKey];
 
                 int pcIndex = -entry.item;
 
@@ -546,11 +544,9 @@ public class BlockContainer
         else
             key = (PositionKey)blockKey;
 
-        if (blockDictionary.ContainsKey(key))
+        if (blockDictionary.TryGetValue(key, out PositionEntry entry))
         {
-            if (blockDictionary[key].item < 0) return false;
-
-            PositionEntry entry = blockDictionary[key];
+            if (entry.item < 0) return false;
 
             transformArray[entry.blockType][entry.item] = Matrix4x4.zero;
             indexStack[entry.blockType].Push(entry.item);
