@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -52,6 +53,8 @@ public class MixamoAnimationPlayer : MonoBehaviour
     public float FloorOffset { get; private set; }
 
     public AnimationClip CurrentClip { get; private set; }
+    // Raised after every evaluation with the frame's delta time before the speed multiplier
+    public event Action<float> Evaluated;
     public float Timer { get { return currentPlayable.IsValid() ? (float)currentPlayable.GetTime() : 0; } }
 
     void Awake()
@@ -88,12 +91,14 @@ public class MixamoAnimationPlayer : MonoBehaviour
         if (pauseAnimation || CurrentClip == null)
             return;
 
-        float deltaTime = AnimationIO.constantAnimationTime ? 1f / AnimationIO.animationFrameRate : Time.deltaTime;
-        deltaTime *= speed;
+        float frameTime = AnimationIO.constantAnimationTime ? 1f / AnimationIO.animationFrameRate : Time.deltaTime;
+        float deltaTime = frameTime * speed;
 
         UpdateCrossfade(deltaTime);
         graph.Evaluate(deltaTime);
         hips.position += transform.up * FloorOffset;
+
+        Evaluated?.Invoke(frameTime);
 
         if (cycleTestClips && !CurrentClip.isLooping && Timer >= CurrentClip.length)
             PlayNextTestClip();
@@ -131,6 +136,35 @@ public class MixamoAnimationPlayer : MonoBehaviour
         ApplyFadeWeights();
 
         CurrentClip = clip;
+    }
+
+    // Shows one frame of a clip and pauses there
+    public void ShowPose(AnimationClip clip, float time)
+    {
+        Play(clip, 0);
+        currentPlayable.SetTime(time);
+        graph.Evaluate(0);
+        hips.position += transform.up * FloorOffset;
+
+        pauseAnimation = true;
+    }
+
+    // Stops playback; the avatar keeps its last pose
+    public void Stop()
+    {
+        if (previousPlayable.IsValid())
+        {
+            graph.Disconnect(mixer, 1);
+            previousPlayable.Destroy();
+        }
+
+        if (currentPlayable.IsValid())
+        {
+            graph.Disconnect(mixer, 0);
+            currentPlayable.Destroy();
+        }
+
+        CurrentClip = null;
     }
 
     void UpdateCrossfade(float deltaTime)

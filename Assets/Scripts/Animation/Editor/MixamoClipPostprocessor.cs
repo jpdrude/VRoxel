@@ -21,6 +21,8 @@ public class MixamoClipPostprocessor : AssetPostprocessor
     static readonly string[] turningCategories = { "turn" };
     // Categories whose looping clips travel; loops elsewhere (sitting, leaning, working) stay on the spot
     static readonly string[] movingCategories = { "loco", "turn", "vert" };
+    // Categories whose clips climb or descend, so root height must stay root motion (stairs, ladders, steps)
+    static readonly string[] verticalCategories = { "vert" };
 
     // One-shot transitions inside otherwise looping categories, e.g. loco_startWalking, sit_standToSit
     static readonly Regex transitionPattern = new Regex(@"(start|stop|(?-i:To[A-Z])|getUp|lieDown)", RegexOptions.IgnoreCase);
@@ -30,7 +32,7 @@ public class MixamoClipPostprocessor : AssetPostprocessor
     public override uint GetVersion()
     {
         // Bump when the rules below change so Unity reimports the clips
-        return 5;
+        return 6;
     }
 
     void OnPreprocessModel()
@@ -94,7 +96,8 @@ public class MixamoClipPostprocessor : AssetPostprocessor
             clip.lockRootRotation = !rules.turning;
             clip.keepOriginalOrientation = true;
 
-            clip.lockRootHeightY = true;
+            // Climbing clips move the avatar up; all others keep the root at floor height
+            clip.lockRootHeightY = !rules.vertical;
             clip.keepOriginalPositionY = false;
             clip.heightFromFeet = true;
 
@@ -115,6 +118,7 @@ public class MixamoClipPostprocessor : AssetPostprocessor
         public bool loop;
         public bool stationary;
         public bool turning;
+        public bool vertical;
     }
 
     static ClipRules GetRules(string fileName)
@@ -135,6 +139,7 @@ public class MixamoClipPostprocessor : AssetPostprocessor
         rules.stationary = stationaryCategories.Contains(category) || isIdle
             || (rules.loop && !movingCategories.Contains(category) && !movingPattern.IsMatch(action));
         rules.turning = turningCategories.Contains(category);
+        rules.vertical = verticalCategories.Contains(category);
 
         return rules;
     }

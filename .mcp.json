@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vroxel": {
+      "command": "python",
+      "args": ["Tools/mcp/vroxel_mcp.py"]
+    }
+  }
+}

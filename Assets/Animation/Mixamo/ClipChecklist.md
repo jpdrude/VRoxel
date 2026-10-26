@@ -9,7 +9,18 @@ Target library of ~100 clips for LLM-driven avatars. Tick clips off as you downl
 - Frames per second: **30**
 - Keyframe Reduction: **none**
 - **In Place: leave unticked** (root motion is extracted / ignored in Unity)
-- Save to `Assets/Animation/Mixamo/Clips/` as the file name given below (`.fbx`)
+- Save into `Assets/Animation/Mixamo/Inbox~/` and **keep Mixamo's file name** (it is the animation title)
+- In Unity, open **VRoxel > Mixamo Inbox** and assign each download to its name below. The window moves it to
+  `Clips/`, records the exact Mixamo title and a search link in `MixamoManifest.csv`, and ticks it here
+- Character: always **X Bot**. The reference `Reference/xbot_tpose.fbx` is X Bot downloaded with skin, in T-pose, without animation
+- `Clips/`, `Reference/`, `Inbox~/` and the generated `MixamoLibrary.asset` are gitignored: Mixamo data must not be
+  redistributed, so every developer downloads them locally
+
+## Reproducing someone else's set
+
+`MixamoManifest.csv` (committed) lists every clip with its exact Mixamo title. Search each title on mixamo.com, download
+it with the settings above into `Inbox~/`, and assign it in the Mixamo Inbox window; titles from the manifest are
+pre-selected. The library builder logs which manifest clips are still missing.
 
 ## Naming
 
@@ -19,6 +30,7 @@ Target library of ~100 clips for LLM-driven avatars. Tick clips off as you downl
 - Loop: `idle`, `loco`, `gesture`, `activity` and any name containing `idle` loop; names containing `start`, `stop`, `To<Upper>`, `getUp`, `lieDown` are one-shot
 - On the spot: `idle`, `gesture`, and every loop outside `loco` / `turn` / `vert` unless the name contains `walk`, `run`, `jog`, `push` or `pull`. Everything else moves the avatar (root motion)
 - `turn` clips rotate the avatar; all others keep its facing direction
+- `vert` clips keep their height change as root motion, so the avatar climbs; all others keep the root at floor height
 
 ## How to read the list
 
@@ -28,9 +40,10 @@ Target library of ~100 clips for LLM-driven avatars. Tick clips off as you downl
 
 ---
 
-## idle: standing idles (8)
+## idle: standing idles (9)
 
 - [ ] ★ `idle_neutral` | Search "Idle" / "Breathing Idle" | calm baseline pose, the default for everything
+- [ ] `idle_standRelaxed` | "Standing Idle" / "Relaxed Idle" | relaxed variation of neutral
 - [ ] ★ `idle_weightShift` | "Weight Shift" | subtle variation of neutral
 - [ ] ★ `idle_lookAround` | "Looking Around" | orientation in a space
 - [ ] `idle_armsCrossed` | "Crossed Arms" / "Standing Arms Crossed" |
@@ -44,10 +57,10 @@ Target library of ~100 clips for LLM-driven avatars. Tick clips off as you downl
 - [ ] ★ `loco_walk` | "Walking" | main walk cycle
 - [ ] ★ `loco_walkSlow` | "Slow Walk" / "Old Man Walk" | elderly / leisurely pace
 - [ ] `loco_walkFast` | "Fast Walk" / "Brisk Walk" | commuting
-- [x] `loco_jogging` | "Jogging" |
+- [ ] `loco_jogging` | "Jogging" |
 - [ ] ★ `loco_run` | "Running" |
-- [x] `loco_catwalk` | "Catwalk Walk" |
-- [x] `loco_startWalking` | "Start Walking" | idle → walk
+- [ ] `loco_catwalk` | "Catwalk Walk" |
+- [ ] `loco_startWalking` | "Start Walking" | idle → walk
 - [ ] ★ `loco_stopWalking` | "Stop Walking" / "Walking To Stop" | walk → idle
 - [ ] `loco_walkBackwards` | "Walking Backwards" |
 - [ ] `loco_strafeLeft` | "Left Strafe Walking" | side-stepping in narrow spaces
@@ -63,7 +76,7 @@ Target library of ~100 clips for LLM-driven avatars. Tick clips off as you downl
 - [ ] `turn_walkLeft90` | "Walking Turn Left" / "Left Turn 90 (walking)" | turning without stopping
 - [ ] `turn_walkRight90` | "Walking Turn Right" |
 - [ ] `turn_walk180` | "Walking Turn 180" |
-- [x] `turn_jogInCircleRight_loop` | "Jog In Circle" |
+- [ ] `turn_jogInCircleRight_loop` | "Jog In Circle" |
 - [ ] `turn_lookBehind` | "Look Over Shoulder" / "Looking Behind" | upper body only
 
 ## vert: stairs, ladders, steps (8)
@@ -124,7 +137,7 @@ Target library of ~100 clips for LLM-driven avatars. Tick clips off as you downl
 
 ## interact: using the building (10)
 
-- [x] `interact_openDoorAndWalkThrough` | "Opening Door" |
+- [ ] `interact_openDoorAndWalkThrough` | "Opening Door" |
 - [ ] ★ `interact_openDoor` | "Open Door" / "Opening A Door" | without walking through
 - [ ] ★ `interact_pressButton` | "Button Pushing" / "Pressing Button" | elevator, light switch
 - [ ] ★ `interact_leanWall_loop` | "Leaning On Wall" / "Wall Lean" |
@@ -139,7 +152,7 @@ Target library of ~100 clips for LLM-driven avatars. Tick clips off as you downl
 
 These can later be layered over walking / sitting via an upper-body mask.
 
-- [x] `gesture_waving` | "Waving" |
+- [ ] `gesture_waving` | "Waving" |
 - [ ] ★ `gesture_point` | "Pointing" / "Pointing Forward" | directing attention
 - [ ] ★ `gesture_talking` | "Talking" | conversation loop
 - [ ] ★ `gesture_listening` | "Listening" / "Idle Listening" / "Agreeing" | the other side of the conversation
@@ -169,4 +182,4 @@ These can later be layered over walking / sitting via an upper-body mask.
 
 ---
 
-Total: 107 (6 already downloaded)
+Total: 108
