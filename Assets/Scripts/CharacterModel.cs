@@ -70,6 +70,7 @@ public class CharacterModel : MonoBehaviour
     [Space]
     [SerializeField]
     AvatarDimensions avatarDimensions = new AvatarDimensions();
+    public AvatarDimensions NativeDimensions { get { return avatarDimensions; } }
 
     [Space]
     [Header("Blend Shapes")]
@@ -150,6 +151,11 @@ public class CharacterModel : MonoBehaviour
 
         SetBodyMultipliers();
 
+        // Humanoid playback ignores the rescaled legs when placing the hips, so the Mixamo player corrects the floor height
+        MixamoAnimationPlayer mixamoPlayer = GetComponent<MixamoAnimationPlayer>();
+        if (mixamoPlayer != null)
+            mixamoPlayer.UpdateFloorOffset();
+
         SetColor(colorSet);
     }
 
@@ -161,7 +167,9 @@ public class CharacterModel : MonoBehaviour
         foreach (Renderer renderer in joints)
             renderer.material = colorSet.secondaryColor;
 
-        animationPlayer.FadeMaterial = colorSet.fadeColor;
+        // Mixamo avatars are driven by MixamoAnimationPlayer and have no CustomAnimationPlayer
+        if (animationPlayer != null)
+            animationPlayer.FadeMaterial = colorSet.fadeColor;
 
         foreach (LineRenderer lr in trailBrushes)
             lr.material = colorSet.strokeColor;

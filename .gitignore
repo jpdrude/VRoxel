@@ -90,3 +90,18 @@ Assets/Geometry/testing/insBlaue/InsBlaue/Apartment_0.005.xyz
 Assets/Geometry/testing/insBlaue/InsBlaue/Apartment_0.005.xyz.bin
 Assets/Geometry/testing/insBlaue/InsBlaue/Apartment_0.005.xyz.bin.meta
 Assets/Geometry/testing/insBlaue/InsBlaue/Apartment_0.005.xyz.meta
+
+# Local file exchange with Claude Code
+/claude_exchange/
+
+# Python bytecode (Tools/)
+__pycache__/
+*.pyc
+
+# Mixamo data must not be redistributed: clips, reference character and the library generated from them
+/Assets/Animation/Mixamo/Clips/
+/Assets/Animation/Mixamo/Clips.meta
+/Assets/Animation/Mixamo/Reference/
+/Assets/Animation/Mixamo/Reference.meta
+/Assets/Animation/Mixamo/MixamoLibrary.asset
+/Assets/Animation/Mixamo/MixamoLibrary.asset.meta
