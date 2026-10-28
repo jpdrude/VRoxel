@@ -71,6 +71,8 @@ public class CharacterModel : MonoBehaviour
     [SerializeField]
     AvatarDimensions avatarDimensions = new AvatarDimensions();
     public AvatarDimensions NativeDimensions { get { return avatarDimensions; } }
+    // The dimensions passed to InitializeAvatar
+    public AvatarDimensions Dimensions { get { return bodyDimensions; } }
 
     [Space]
     [Header("Blend Shapes")]

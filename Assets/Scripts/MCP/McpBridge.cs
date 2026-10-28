@@ -56,10 +56,12 @@ public class McpBridge : MonoBehaviour
         // Requests come from a terminal, so the app must keep updating without focus
         Application.runInBackground = true;
         GroundProbe.Layers = groundLayers;
+        MixamoAnimationPlayer.RegisterStairFixes(animationLibrary);
 
         Register("ping", args => new { scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name, avatars = AvatarRegistry.Count });
         AvatarCommands.Register(this);
         SceneCommands.Register(this);
+        AnimationFileCommands.Register(this);
     }
 
     void OnEnable()

@@ -27,6 +27,8 @@ public class DoAction
         ChangeAnimationPos,
         SpawnAvatar,
         RemoveAvatar,
-        SetSequence
+        SetSequence,
+        SetAvatarColor,
+        LoadAnimation
     }
 }

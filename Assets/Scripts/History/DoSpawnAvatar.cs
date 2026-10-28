@@ -17,6 +17,8 @@ public class DoSpawnAvatar : DoAction
         if (avatar == null) return false;
 
         avatar.SetActive(!spawned);
+        if (avatar.activeSelf)
+            AvatarRegistry.EnsureUniqueColor(avatar);
 
         return true;
     }
@@ -26,6 +28,8 @@ public class DoSpawnAvatar : DoAction
         if (avatar == null) return false;
 
         avatar.SetActive(spawned);
+        if (avatar.activeSelf)
+            AvatarRegistry.EnsureUniqueColor(avatar);
 
         return true;
     }

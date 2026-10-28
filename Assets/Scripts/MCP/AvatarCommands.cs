@@ -21,6 +21,7 @@ public static class AvatarCommands
         bridge.Register("restart_sequences", RestartSequences);
         bridge.Register("list_avatars", ListAvatars);
         bridge.Register("remove_avatar", RemoveAvatar);
+        bridge.Register("set_avatar_color", SetAvatarColor);
         bridge.Register("get_animation_motion", GetAnimationMotion);
         bridge.Register("get_ground_height", GetGroundHeight);
         bridge.Register("undo", Undo);
@@ -97,6 +98,8 @@ public static class AvatarCommands
         if (height < 50 || height > 250)
             throw new McpException("height_cm must be between 50 and 250");
 
+        AvatarColors.Entry color = ReadColor(args["color"], null) ?? AvatarColors.PickUnused(AvatarRegistry.UsedColors());
+
         string animation = (string)args["animation"];
         SequenceStep firstStep = string.IsNullOrEmpty(animation) ? null : NewStep(GetEntry(animation));
 
@@ -109,21 +112,15 @@ public static class AvatarCommands
                 position.y = ground.Value;
         }
 
-        GameObject avatar = Object.Instantiate(bridge.MixamoAvatar, position, Quaternion.Euler(0, yaw, 0));
-        CharacterModel model = avatar.GetComponent<CharacterModel>();
-
-        // Copied, so InitializeAvatar can't alias the prefab's native dimensions
-        AvatarDimensions dimensions = JsonUtility.FromJson<AvatarDimensions>(JsonUtility.ToJson(model.NativeDimensions));
+        AvatarDimensions dimensions = null;
         if (height.HasValue)
         {
             dimensions = new AvatarDimensions { bodyHeight = height.Value };
             dimensions.SetProportionsFromBodyHeight();
         }
 
-        model.InitializeAvatar(dimensions, GetColorSet(model, (int?)args["color_set"] ?? 0));
-
-        string id = AvatarRegistry.Register(avatar);
-        avatar.name = (string)args["name"] ?? id;
+        string id;
+        GameObject avatar = Spawn(position, yaw, dimensions, color, (string)args["name"], out id);
 
         // The spawn pose becomes the anchor that sequences replay from
         AvatarSequencer sequencer = GetSequencer(avatar);
@@ -139,10 +136,33 @@ public static class AvatarCommands
         return DescribeAvatar(id, avatar);
     }
 
+    // Instantiates and registers an avatar without recording history; null dimensions keep the model's own
+    internal static GameObject Spawn(Vector3 position, float yaw, AvatarDimensions dimensions, AvatarColors.Entry color, string name, out string id)
+    {
+        if (bridge.MixamoAvatar == null)
+            throw new McpException("McpBridge has no avatar prefab assigned");
+
+        GameObject avatar = Object.Instantiate(bridge.MixamoAvatar, position, Quaternion.Euler(0, yaw, 0));
+        CharacterModel model = avatar.GetComponent<CharacterModel>();
+
+        // Copied, so InitializeAvatar can't alias the prefab's native dimensions
+        if (dimensions == null)
+            dimensions = model.NativeDimensions;
+        dimensions = JsonUtility.FromJson<AvatarDimensions>(JsonUtility.ToJson(dimensions));
+
+        model.InitializeAvatar(dimensions, AvatarColors.Build(GetColorSet(model, 0), color));
+
+        id = AvatarRegistry.Register(avatar);
+        AvatarRegistry.ApplyColor(avatar, color.name);
+        avatar.name = name ?? id;
+
+        return avatar;
+    }
+
     // A one-step sequence from the avatar's current pose, crossfading from what it plays now
     static object PlayAnimation(JObject args)
     {
-        string id = (string)args["avatar_id"];
+        string id = ResolveId(args["avatar_id"]);
         GameObject avatar = GetAvatar(id);
 
         SequenceStep step = NewStep(GetEntry((string)args["animation"]));
@@ -163,7 +183,7 @@ public static class AvatarCommands
 
     static object SetSequence(JObject args)
     {
-        string id = (string)args["avatar_id"];
+        string id = ResolveId(args["avatar_id"]);
         GameObject avatar = GetAvatar(id);
 
         float fade;
@@ -176,7 +196,7 @@ public static class AvatarCommands
     // Dry run: where each step would start and end, without changing the scene
     static object PlanSequence(JObject args)
     {
-        string id = (string)args["avatar_id"];
+        string id = ResolveId(args["avatar_id"]);
         GameObject avatar = id != null ? GetAvatar(id) : null;
         if (avatar == null && args["start_position"] == null)
             throw new McpException("Give avatar_id or start_position");
@@ -265,7 +285,7 @@ public static class AvatarCommands
     // Replays sequences from their anchors, so several avatars start in sync
     static object RestartSequences(JObject args)
     {
-        string id = (string)args["avatar_id"];
+        string id = ResolveId(args["avatar_id"]);
         IEnumerable<KeyValuePair<string, GameObject>> targets = id == null
             ? AvatarRegistry.All()
             : new[] { new KeyValuePair<string, GameObject>(id, GetAvatar(id)) };
@@ -287,7 +307,7 @@ public static class AvatarCommands
 
     static object RemoveAvatar(JObject args)
     {
-        string id = (string)args["avatar_id"];
+        string id = ResolveId(args["avatar_id"]);
         GameObject avatar = GetAvatar(id);
 
         // Deactivated rather than destroyed, so undo can restore it
@@ -295,6 +315,45 @@ public static class AvatarCommands
         McpHistory.Push(new DoSpawnAvatar(DoAction.DoType.RemoveAvatar, avatar));
 
         return new { removed = id };
+    }
+
+    static object SetAvatarColor(JObject args)
+    {
+        string id = ResolveId(args["avatar_id"]);
+        GameObject avatar = GetAvatar(id);
+
+        string oldColor = AvatarRegistry.GetColor(avatar);
+        AvatarColors.Entry color = ReadColor(args["color"], avatar);
+        if (color == null)
+            throw new McpException("color is required. Free colours: " + string.Join(", ", FreeColors(avatar)));
+
+        AvatarRegistry.ApplyColor(avatar, color.name);
+        McpHistory.Push(new DoSetAvatarColor(DoAction.DoType.SetAvatarColor, avatar, oldColor, color.name));
+
+        return DescribeAvatar(id, avatar);
+    }
+
+    // A palette colour no other avatar wears, so colour names stay unambiguous; null if none was given
+    static AvatarColors.Entry ReadColor(JToken token, GameObject avatar)
+    {
+        string name = (string)token;
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        AvatarColors.Entry color = AvatarColors.Find(name);
+        if (color == null)
+            throw new McpException("Unknown color " + name + ". Colours: " + string.Join(", ", AvatarColors.Names));
+
+        if (AvatarRegistry.UsedColors(avatar).Contains(color.name))
+            throw new McpException("Another avatar is already " + color.name + ". Free colours: " + string.Join(", ", FreeColors(avatar)));
+
+        return color;
+    }
+
+    static IEnumerable<string> FreeColors(GameObject avatar)
+    {
+        HashSet<string> used = AvatarRegistry.UsedColors(avatar);
+        return AvatarColors.Names.Where(name => !used.Contains(name));
     }
 
     static void ApplySequence(AvatarSequencer sequencer, SequenceState state, float fade)
@@ -339,7 +398,7 @@ public static class AvatarCommands
         return step;
     }
 
-    static object DescribeAvatar(string id, GameObject avatar)
+    internal static object DescribeAvatar(string id, GameObject avatar)
     {
         MixamoAnimationPlayer player = avatar.GetComponent<MixamoAnimationPlayer>();
         AvatarSequencer sequencer = GetSequencer(avatar);
@@ -348,6 +407,7 @@ public static class AvatarCommands
         return new
         {
             id = id,
+            color = AvatarRegistry.GetColor(avatar),
             name = avatar.name,
             position = ToArray(avatar.transform.position),
             yaw = Round(avatar.transform.eulerAngles.y),
@@ -361,7 +421,7 @@ public static class AvatarCommands
         };
     }
 
-    static AnimationLibrary Library()
+    internal static AnimationLibrary Library()
     {
         if (bridge.AnimationLibrary == null)
             throw new McpException("McpBridge has no animation library assigned");
@@ -369,7 +429,7 @@ public static class AvatarCommands
         return bridge.AnimationLibrary;
     }
 
-    static AnimationLibraryEntry GetEntry(string name)
+    internal static AnimationLibraryEntry GetEntry(string name)
     {
         AnimationLibraryEntry entry = Library().Get(name ?? "");
         if (entry == null || entry.clip == null)
@@ -378,9 +438,9 @@ public static class AvatarCommands
         return entry;
     }
 
-    static SequenceStep NewStep(AnimationLibraryEntry entry)
+    internal static SequenceStep NewStep(AnimationLibraryEntry entry)
     {
-        return new SequenceStep { clip = entry.clip, vertical = entry.vertical };
+        return new SequenceStep { clip = entry.clip, vertical = entry.vertical, travelSpeed = entry.averageSpeed };
     }
 
     static SequenceEnd ReadEnd(JToken token)
@@ -394,7 +454,21 @@ public static class AvatarCommands
         }
     }
 
-    static GameObject GetAvatar(string id)
+    // avatar_id accepts the id ("avatar_1") or the avatar's colour ("teal"); null when not given
+    internal static string ResolveId(JToken token)
+    {
+        string reference = (string)token;
+        if (string.IsNullOrWhiteSpace(reference))
+            return null;
+
+        string id = AvatarRegistry.Resolve(reference);
+        if (id == null)
+            throw new McpException("No avatar " + reference + ". Use list_avatars for ids and colours");
+
+        return id;
+    }
+
+    internal static GameObject GetAvatar(string id)
     {
         GameObject avatar = AvatarRegistry.Get(id);
         if (avatar == null)
@@ -403,7 +477,7 @@ public static class AvatarCommands
         return avatar;
     }
 
-    static AvatarSequencer GetSequencer(GameObject avatar)
+    internal static AvatarSequencer GetSequencer(GameObject avatar)
     {
         AvatarSequencer sequencer = avatar.GetComponent<AvatarSequencer>();
         return sequencer != null ? sequencer : avatar.AddComponent<AvatarSequencer>();
@@ -450,12 +524,12 @@ public static class AvatarCommands
         return new Vector3((float)array[0], (float)array[1], (float)array[2]);
     }
 
-    static float[] ToArray(Vector3 v)
+    internal static float[] ToArray(Vector3 v)
     {
         return new[] { Round(v.x), Round(v.y), Round(v.z) };
     }
 
-    static float Round(float value)
+    internal static float Round(float value)
     {
         return Mathf.Round(value * 1000) / 1000;
     }
