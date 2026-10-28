@@ -15,6 +15,8 @@ public static class MixamoManifest
     public const string ClipFolder = "Assets/Animation/Mixamo/Clips/";
     // Unity ignores folders ending in "~", so raw downloads are not imported with the wrong settings
     public const string InboxFolder = "Assets/Animation/Mixamo/Inbox~/";
+    // Reversed transitions made from downloaded clips, gitignored like the downloads
+    public const string GeneratedFolder = "Assets/Animation/Mixamo/Generated/";
 
     const string Header = "name,mixamo_title,mixamo_link,character,fps,skin,in_place,notes";
 
@@ -112,7 +114,6 @@ public static class MixamoManifest
 
             foreach (Match term in Regex.Matches(match.Groups[4].Value, "\"([^\"]+)\""))
                 item.searchTerms.Add(term.Groups[1].Value);
-
             items.Add(item);
         }
 

@@ -1,1 +1,80 @@
 name,mixamo_title,mixamo_link,character,fps,skin,in_place,notes
+activity_bartending_loop,Bartending,https://www.mixamo.com/#/?page=1&query=Bartending&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+activity_dancing_loop,Wave Hip Hop Dance,https://www.mixamo.com/#/?page=1&query=Wave%20Hip%20Hop%20Dance&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+activity_exercise_loop,Jumping Jacks,https://www.mixamo.com/#/?page=1&query=Jumping%20Jacks&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+activity_guitar_loop,Guitar Playing,https://www.mixamo.com/#/?page=1&query=Guitar%20Playing&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+activity_speedbag_loop,Speedbag,https://www.mixamo.com/#/?page=1&query=Speedbag&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+activity_stretching_loop,Arm Stretching,https://www.mixamo.com/#/?page=1&query=Arm%20Stretching&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+bed_lyingIdle,Laying Sleeping,https://www.mixamo.com/#/?page=1&query=Laying%20Sleeping&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+bed_sitToLie,Lying Down,https://www.mixamo.com/#/?page=1&query=Lying%20Down&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,from bed rear
+floor_kneelIdle,Kneeling,https://www.mixamo.com/#/?page=1&query=Kneeling&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+floor_sitGroundIdle,Sitting Idle,https://www.mixamo.com/#/?page=1&query=Sitting%20Idle&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+floor_sitGroundToStand,Standing Up,https://www.mixamo.com/#/?page=1&query=Standing%20Up&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+floor_standToKneel,Kneeling Down,https://www.mixamo.com/#/?page=1&query=Kneeling%20Down&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_arguing,Talking,https://www.mixamo.com/#/?page=1&query=Talking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_cheering,Cheering,https://www.mixamo.com/#/?page=1&query=Cheering&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_clapping,Clapping,https://www.mixamo.com/#/?page=1&query=Clapping&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_explaining,Talking,https://www.mixamo.com/#/?page=1&query=Talking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_handshake_once,Shaking Hands 2,https://www.mixamo.com/#/?page=1&query=Shaking%20Hands%202&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_listening,Thoughtful Head Nod,https://www.mixamo.com/#/?page=1&query=Thoughtful%20Head%20Nod&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_nodYes_once,Head Nod Yes,https://www.mixamo.com/#/?page=1&query=Head%20Nod%20Yes&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_point,Pointing,https://www.mixamo.com/#/?page=1&query=Pointing&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,standing idly pointing
+gesture_shakeNo_once,Shaking Head No,https://www.mixamo.com/#/?page=1&query=Shaking%20Head%20No&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_shrug_once,Shrugging,https://www.mixamo.com/#/?page=1&query=Shrugging&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+gesture_talking,Talking,https://www.mixamo.com/#/?page=1&query=Talking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,standing idly talking
+gesture_waving,Waving,https://www.mixamo.com/#/?page=1&query=Waving&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,standing idly waving
+idle_bored,Bored,https://www.mixamo.com/#/?page=1&query=Bored&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+idle_lookAround,Looking Around,https://www.mixamo.com/#/?page=1&query=Looking%20Around&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,orientation in a space
+idle_neutral,Idle,https://www.mixamo.com/#/?page=1&query=Idle&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,"calm baseline pose, the default for everything"
+idle_phone,Texting,https://www.mixamo.com/#/?page=1&query=Texting&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,"waiting person, texting on the phone"
+idle_standRelaxed,Standing Idle,https://www.mixamo.com/#/?page=1&query=Standing%20Idle&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,relaxed variation of neutral
+idle_weightShift,Weight Shift,https://www.mixamo.com/#/?page=1&query=Weight%20Shift&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,subtle variation of neutral
+interact_closeCabinet,Closing,https://www.mixamo.com/#/?page=1&query=Closing&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+interact_leanRailing_loop,Leaning,https://www.mixamo.com/#/?page=1&query=Leaning&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+interact_leanWall_loop,Leaning,https://www.mixamo.com/#/?page=1&query=Leaning&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+interact_openCabinet,Opening,https://www.mixamo.com/#/?page=1&query=Opening&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+interact_openDoorAndWalkThrough,Open Door Outwards,https://www.mixamo.com/#/?page=1&query=Open%20Door%20Outwards&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+interact_pressButton,Button Pushing,https://www.mixamo.com/#/?page=1&query=Button%20Pushing&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+loco_catwalk,Catwalk,https://www.mixamo.com/#/?page=1&query=Catwalk&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+loco_crouchWalk,Crouched Walking,https://www.mixamo.com/#/?page=1&query=Crouched%20Walking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,under low ceilings
+loco_jogging,Jogging,https://www.mixamo.com/#/?page=1&query=Jogging&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+loco_run,Running,https://www.mixamo.com/#/?page=1&query=Running&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+loco_startWalking,Start Walking,https://www.mixamo.com/#/?page=1&query=Start%20Walking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,idle to walk
+loco_stopWalking,Stop Walking,https://www.mixamo.com/#/?page=1&query=Stop%20Walking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+loco_strafeLeft,Walk Strafe Left,https://www.mixamo.com/#/?page=1&query=Walk%20Strafe%20Left&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,side-stepping in narrow spaces
+loco_strafeRight,Walk Strafe Right,https://www.mixamo.com/#/?page=1&query=Walk%20Strafe%20Right&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,side-stepping in narrow spaces
+loco_walk,Walking,https://www.mixamo.com/#/?page=1&query=Walking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,main walk cycle
+loco_walkBackwards,Walking Backwards,https://www.mixamo.com/#/?page=1&query=Walking%20Backwards&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+loco_walkFast,Fast Walk,https://www.mixamo.com/#/?page=1&query=Fast%20Walk&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+loco_walkPhone,Texting While Walking,https://www.mixamo.com/#/?page=1&query=Texting%20While%20Walking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,distracted pedestrian
+loco_walkSlow,Slow Walk,https://www.mixamo.com/#/?page=1&query=Slow%20Walk&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,leisurely pace
+reach_pickUpFloor,Picking Up,https://www.mixamo.com/#/?page=1&query=Picking%20Up&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+reach_pull_loop,Pull Heavy Object,https://www.mixamo.com/#/?page=1&query=Pull%20Heavy%20Object&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+reach_push_loop,Push,https://www.mixamo.com/#/?page=1&query=Push&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+reach_shelfMid,Picking Up Object,https://www.mixamo.com/#/?page=1&query=Picking%20Up%20Object&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+reach_throw,Throwing,https://www.mixamo.com/#/?page=1&query=Throwing&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_clap_loop,Sitting Clap,https://www.mixamo.com/#/?page=1&query=Sitting%20Clap&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_disbelief_loop,Sitting Disbelief,https://www.mixamo.com/#/?page=1&query=Sitting%20Disbelief&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_idle,Sitting,https://www.mixamo.com/#/?page=1&query=Sitting&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_laughing_loop,Sitting Laughing,https://www.mixamo.com/#/?page=1&query=Sitting%20Laughing&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_sitToStand,Sit To Stand,https://www.mixamo.com/#/?page=1&query=Sit%20To%20Stand&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_standToSit,Stand to Sit,https://www.mixamo.com/#/?page=1&query=Stand%20to%20Sit&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_talking_loop,Sitting Talking,https://www.mixamo.com/#/?page=1&query=Sitting%20Talking&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_typing_loop,Typing,https://www.mixamo.com/#/?page=1&query=Typing&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+sit_writing_loop,Writing,https://www.mixamo.com/#/?page=1&query=Writing&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+turn_180,Turn 180,https://www.mixamo.com/#/?page=1&query=Turn%20180&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+turn_jogInCircleLeft_loop,Jog In Circle,https://www.mixamo.com/#/?page=1&query=Jog%20In%20Circle&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,Mirror ticked
+turn_jogInCircleRight_loop,Jog In Circle,https://www.mixamo.com/#/?page=1&query=Jog%20In%20Circle&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+turn_left90,Left Turn,https://www.mixamo.com/#/?page=1&query=Left%20Turn&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+turn_right90,Right Turn,https://www.mixamo.com/#/?page=1&query=Right%20Turn&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+turn_walkInCircleLeft_loop,Walking Left Turn,https://www.mixamo.com/#/?page=1&query=Walking%20Left%20Turn&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+turn_walkInCircleRight_loop,Walking Right Turn,https://www.mixamo.com/#/?page=1&query=Walking%20Right%20Turn&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_jumpOver,Running Jump,https://www.mixamo.com/#/?page=1&query=Running%20Jump&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_jumpStationary,Jump,https://www.mixamo.com/#/?page=1&query=Jump&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_ladderClimb_loop,Climbing Ladder,https://www.mixamo.com/#/?page=1&query=Climbing%20Ladder&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_ladderStart,Start Climbing Ladder,https://www.mixamo.com/#/?page=1&query=Start%20Climbing%20Ladder&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_ladderTopOut,Climbing To Top,https://www.mixamo.com/#/?page=1&query=Climbing%20To%20Top&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_stairsDown_loop,Descending Stairs,https://www.mixamo.com/#/?page=1&query=Descending%20Stairs&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_stairsUpRun_loop,Running Up Stairs,https://www.mixamo.com/#/?page=1&query=Running%20Up%20Stairs&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_stairsUp_loop,Ascending Stairs,https://www.mixamo.com/#/?page=1&query=Ascending%20Stairs&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,
+vert_stepDown,Climbing Down,https://www.mixamo.com/#/?page=1&query=Climbing%20Down&type=Motion%2CMotionPack,X Bot,30,Without Skin,false,

@@ -112,7 +112,7 @@ public class AvatarSequencer : MonoBehaviour
         if (step.hasTarget)
         {
             float distance = FlatDistance(transform.position, step.target);
-            float clipSpeed = Mathf.Max(new Vector2(step.clip.averageSpeed.x, step.clip.averageSpeed.z).magnitude * step.speed, 0.1f);
+            float clipSpeed = Mathf.Max(step.travelSpeed * step.speed, 0.1f);
             stepTimeout = distance / clipSpeed * 2 + 5;
         }
     }
@@ -225,6 +225,8 @@ public class SequenceStep
     // Crossfade into this step in seconds; negative = the player's default
     public float fade = -1;
     public float speed = 1;
+    // Library travel speed in m/s at speed 1 (AnimationLibraryEntry.averageSpeed), for the walk_to timeout
+    public float travelSpeed;
     // The clip climbs or descends (AnimationLibraryEntry.vertical), so floor following pauses
     public bool vertical;
 

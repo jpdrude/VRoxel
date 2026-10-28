@@ -19,6 +19,10 @@ public class MixamoAvatarTester : MonoBehaviour
     [SerializeField]
     bool rebindAfterPreset = false;
 
+    [Tooltip("Optional: applies the library's stair descent fixes to the test clips")]
+    [SerializeField]
+    AnimationLibrary animationLibrary;
+
     [Space]
     [Header("Keys")]
     [SerializeField]
@@ -40,6 +44,12 @@ public class MixamoAvatarTester : MonoBehaviour
     float lowestFootHeight;
     float minLowestFootHeight = float.MaxValue;
     float maxLowestFootHeight = float.MinValue;
+
+    // Before MixamoAnimationPlayer.Start plays the first test clip
+    void Awake()
+    {
+        MixamoAnimationPlayer.RegisterStairFixes(animationLibrary);
+    }
 
     void Start()
     {
@@ -171,7 +181,7 @@ public class MixamoAvatarTester : MonoBehaviour
 
         GUILayout.BeginArea(new Rect(10, 10, 420, 220), GUI.skin.box);
         GUILayout.Label("Preset: " + presetName + "   [" + nextPresetKey + "]");
-        GUILayout.Label("Clip: " + clip + "   [" + nextClipKey + "]");
+        GUILayout.Label("Clip: " + clip + "   [" + nextClipKey + "]" + (player.StairFixActive ? "   stair fix ON" : ""));
         GUILayout.Label("Hip height (actual): " + (hips.position.y - transform.position.y).ToString("0.000") + " m");
         GUILayout.Label("Hip height (CharacterModel): " + characterModel.HipPosition.y.ToString("0.000") + " (local)");
         GUILayout.Label("Floor offset (rest pose): " + player.FloorOffset.ToString("0.000") + " m");

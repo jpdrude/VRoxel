@@ -52,7 +52,22 @@ public class MixamoAnimationPlayer : MonoBehaviour
     float nativeHipToSole;
     public float FloorOffset { get; private set; }
 
+    // Stair descents corrected at runtime (see StairDescentFix), registered from the AnimationLibrary
+    static readonly Dictionary<AnimationClip, StairDescentFix> stairFixes = new Dictionary<AnimationClip, StairDescentFix>();
+
+    class FixState
+    {
+        public StairDescentFix fix;
+        public float appliedSink;
+    }
+
+    FixState currentFix;
+    FixState previousFix;
+    Transform leftUpperLeg, leftLowerLeg, leftFoot;
+    Transform rightUpperLeg, rightLowerLeg, rightFoot;
+
     public AnimationClip CurrentClip { get; private set; }
+    public bool StairFixActive { get { return currentFix != null; } }
     // Raised after every evaluation with the frame's delta time before the speed multiplier
     public event Action<float> Evaluated;
     public float Timer { get { return currentPlayable.IsValid() ? (float)currentPlayable.GetTime() : 0; } }
@@ -68,6 +83,13 @@ public class MixamoAnimationPlayer : MonoBehaviour
         for (int i = 0; i < restPoseBones.Length; i++)
             restPoseRotations[i] = restPoseBones[i].localRotation;
         nativeHipToSole = MeasureHipToSole();
+
+        leftUpperLeg = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
+        leftLowerLeg = animator.GetBoneTransform(HumanBodyBones.LeftLowerLeg);
+        leftFoot = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+        rightUpperLeg = animator.GetBoneTransform(HumanBodyBones.RightUpperLeg);
+        rightLowerLeg = animator.GetBoneTransform(HumanBodyBones.RightLowerLeg);
+        rightFoot = animator.GetBoneTransform(HumanBodyBones.RightFoot);
 
         // Manual time update so playback can follow AnimationIO.constantAnimationTime (recording)
         graph = PlayableGraph.Create(name + "_MixamoGraph");
@@ -97,6 +119,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
         UpdateCrossfade(deltaTime);
         graph.Evaluate(deltaTime);
         hips.position += transform.up * FloorOffset;
+        ApplyStairFixes();
 
         Evaluated?.Invoke(frameTime);
 
@@ -131,11 +154,66 @@ public class MixamoAnimationPlayer : MonoBehaviour
         currentPlayable.SetApplyFootIK(footIK);
         graph.Connect(currentPlayable, 0, mixer, 0);
 
+        previousFix = currentFix;
+        StairDescentFix fix;
+        currentFix = stairFixes.TryGetValue(clip, out fix) ? new FixState { fix = fix } : null;
+
         fadeDuration = previousPlayable.IsValid() ? fade : 0;
         fadeTimer = 0;
         ApplyFadeWeights();
 
         CurrentClip = clip;
+    }
+
+    public static void RegisterStairFixes(AnimationLibrary library)
+    {
+        if (library == null) return;
+
+        foreach (AnimationLibraryEntry entry in library.Entries)
+            if (entry.clip != null && entry.stairFix != null && entry.stairFix.IsValid)
+                stairFixes[entry.clip] = entry.stairFix;
+
+        Debug.Log("MixamoAnimationPlayer: " + stairFixes.Count + " stair descent fixes registered (" + string.Join(", ", stairFixes.Keys) + ")");
+    }
+
+    // Lowers the root by the clip's sink and raises the hips by the same amount, so the body keeps its path
+    // but the root follows the descent; then moves the feet down the stairs with IK. Weighted by the crossfade.
+    void ApplyStairFixes()
+    {
+        float rootDrop = 0;
+        float hipsRaise = 0;
+        float leftDrop = 0;
+        float rightDrop = 0;
+
+        ApplyStairFix(currentFix, currentPlayable, mixer.GetInputWeight(0), ref rootDrop, ref hipsRaise, ref leftDrop, ref rightDrop);
+        ApplyStairFix(previousFix, previousPlayable, previousPlayable.IsValid() ? mixer.GetInputWeight(1) : 0, ref rootDrop, ref hipsRaise, ref leftDrop, ref rightDrop);
+
+        if (rootDrop == 0 && hipsRaise == 0 && leftDrop == 0 && rightDrop == 0)
+            return;
+
+        // Moving the root moves the whole skeleton, so the hips are raised back afterwards
+        transform.position -= transform.up * rootDrop;
+        hips.position += transform.up * hipsRaise;
+
+        if (leftDrop > 0.001f)
+            LegIK.Solve(leftUpperLeg, leftLowerLeg, leftFoot, leftFoot.position - transform.up * leftDrop);
+        if (rightDrop > 0.001f)
+            LegIK.Solve(rightUpperLeg, rightLowerLeg, rightFoot, rightFoot.position - transform.up * rightDrop);
+    }
+
+    static void ApplyStairFix(FixState state, AnimationClipPlayable playable, float weight,
+        ref float rootDrop, ref float hipsRaise, ref float leftDrop, ref float rightDrop)
+    {
+        if (state == null || !playable.IsValid()) return;
+
+        double time = playable.GetTime();
+        float totalSink = state.fix.TotalSink(time);
+        rootDrop += (totalSink - state.appliedSink) * weight;
+        state.appliedSink = totalSink;
+
+        hipsRaise += state.fix.SinkAt(time) * weight;
+        leftDrop += state.fix.LeftFootDropAt(time) * weight;
+        rightDrop += state.fix.RightFootDropAt(time) * weight;
     }
 
     // Shows one frame of a clip and pauses there

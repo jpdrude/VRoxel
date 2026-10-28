@@ -26,7 +26,7 @@ public class MixamoClipPostprocessor : AssetPostprocessor
 
     // One-shot transitions inside otherwise looping categories, e.g. loco_startWalking, sit_standToSit
     static readonly Regex transitionPattern = new Regex(@"(start|stop|(?-i:To[A-Z])|getUp|lieDown)", RegexOptions.IgnoreCase);
-    // Travelling loops outside the moving categories, e.g. reach_carryBoxWalk_loop, reach_push_loop
+    // Travelling loops outside the moving categories, e.g. reach_push_loop, reach_pull_loop
     static readonly Regex movingPattern = new Regex(@"(walk|run|jog|push|pull)", RegexOptions.IgnoreCase);
 
     public override uint GetVersion()

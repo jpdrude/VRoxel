@@ -106,3 +106,5 @@ __pycache__/
 /Assets/Animation/Mixamo/MixamoLibrary.asset
 /Assets/Animation/Mixamo/MixamoLibrary.asset.meta
 /Assets/Animation/Mixamo/Inbox~/
+/Assets/Animation/Mixamo/Generated/
+/Assets/Animation/Mixamo/Generated.meta

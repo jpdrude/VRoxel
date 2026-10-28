@@ -31,155 +31,137 @@ pre-selected. The library builder logs which manifest clips are still missing.
 - On the spot: `idle`, `gesture`, and every loop outside `loco` / `turn` / `vert` unless the name contains `walk`, `run`, `jog`, `push` or `pull`. Everything else moves the avatar (root motion)
 - `turn` clips rotate the avatar; all others keep its facing direction
 - `vert` clips keep their height change as root motion, so the avatar climbs; all others keep the root at floor height
+- Reversed transitions are generated, not downloaded: for every `category_aToB` whose `category_bToA` isn't in
+  `Clips/`, and for `lieDown` / `getUp` and `pickUp` / `putDown`, the library builder plays the clip backwards into
+  `Generated/` (gitignored). A downloaded clip of the same name replaces the generated one
 
 ## How to read the list
 
 - **Search** is a search term for mixamo.com. Mixamo's exact titles vary and change; pick the closest match and check it in the preview
-- ★ = core set, download these first (34 clips)
+- ★ = core set, download these first (28 clips)
 - Chains that belong together are marked with →, e.g. sit down → sit idle → stand up. Download complete chains
+- Every transition into an idle state needs one out of it. Where Mixamo only has one direction, name the clip
+  `category_aToB` and the way back is generated, so avatars never get stuck in a pose
 
 ---
 
-## idle: standing idles (9)
+## idle: standing idles (6)
 
-- [ ] ★ `idle_neutral` | Search "Idle" / "Breathing Idle" | calm baseline pose, the default for everything
-- [ ] `idle_standRelaxed` | "Standing Idle" / "Relaxed Idle" | relaxed variation of neutral
-- [ ] ★ `idle_weightShift` | "Weight Shift" | subtle variation of neutral
-- [ ] ★ `idle_lookAround` | "Looking Around" | orientation in a space
-- [ ] `idle_armsCrossed` | "Crossed Arms" / "Standing Arms Crossed" |
-- [ ] `idle_handsInPockets` | "Hands In Pockets" / "Casual Idle" |
-- [ ] ★ `idle_phone` | "Texting" / "Texting While Standing" | waiting person
-- [ ] `idle_bored` | "Bored" |
-- [ ] `idle_thinking` | "Thinking" | looking at something, considering
+- [x] ★ `idle_neutral` | Search "Idle" / "Breathing Idle" | calm baseline pose, the default for everything
+- [x] `idle_standRelaxed` | "Standing Idle" / "Relaxed Idle" | relaxed variation of neutral
+- [x] ★ `idle_weightShift` | "Weight Shift" | subtle variation of neutral
+- [x] ★ `idle_lookAround` | "Looking Around" | orientation in a space
+- [x] ★ `idle_phone` | "Texting" / "Texting While Standing" | waiting person
+- [x] `idle_bored` | "Bored" |
 
 ## loco: locomotion (13)
 
-- [ ] ★ `loco_walk` | "Walking" | main walk cycle
-- [ ] ★ `loco_walkSlow` | "Slow Walk" / "Old Man Walk" | elderly / leisurely pace
-- [ ] `loco_walkFast` | "Fast Walk" / "Brisk Walk" | commuting
-- [ ] `loco_jogging` | "Jogging" |
-- [ ] ★ `loco_run` | "Running" |
-- [ ] `loco_catwalk` | "Catwalk Walk" |
-- [ ] `loco_startWalking` | "Start Walking" | idle → walk
-- [ ] ★ `loco_stopWalking` | "Stop Walking" / "Walking To Stop" | walk → idle
-- [ ] `loco_walkBackwards` | "Walking Backwards" |
-- [ ] `loco_strafeLeft` | "Left Strafe Walking" | side-stepping in narrow spaces
-- [ ] `loco_strafeRight` | "Right Strafe Walking" |
-- [ ] `loco_walkPhone` | "Texting While Walking" | distracted pedestrian
-- [ ] `loco_crouchWalk` | "Crouched Walking" | under low ceilings
+- [x] ★ `loco_walk` | "Walking" | main walk cycle
+- [x] ★ `loco_walkSlow` | "Slow Walk" / "Old Man Walk" | elderly / leisurely pace
+- [x] `loco_walkFast` | "Fast Walk" / "Brisk Walk" | commuting
+- [x] `loco_jogging` | "Jogging" |
+- [x] ★ `loco_run` | "Running" |
+- [x] `loco_catwalk` | "Catwalk Walk" |
+- [x] `loco_startWalking` | "Start Walking" | idle → walk
+- [x] ★ `loco_stopWalking` | "Stop Walking" / "Walking To Stop" | walk → idle
+- [x] `loco_walkBackwards` | "Walking Backwards" |
+- [x] `loco_strafeLeft` | "Left Strafe Walking" | side-stepping in narrow spaces
+- [x] `loco_strafeRight` | "Right Strafe Walking" |
+- [x] `loco_walkPhone` | "Texting While Walking" | distracted pedestrian
+- [x] `loco_crouchWalk` | "Crouched Walking" | under low ceilings
 
-## turn: turning on the spot (8)
+## turn: turning on the spot and walking in circles (7)
 
-- [ ] ★ `turn_left90` | "Left Turn" / "Standing Turn Left 90" |
-- [ ] ★ `turn_right90` | "Right Turn" / "Standing Turn Right 90" |
-- [ ] ★ `turn_180` | "Turn 180" / "Standing Turn 180" |
-- [ ] `turn_walkLeft90` | "Walking Turn Left" / "Left Turn 90 (walking)" | turning without stopping
-- [ ] `turn_walkRight90` | "Walking Turn Right" |
-- [ ] `turn_walk180` | "Walking Turn 180" |
-- [ ] `turn_jogInCircleRight_loop` | "Jog In Circle" |
-- [ ] `turn_lookBehind` | "Look Over Shoulder" / "Looking Behind" | upper body only
+- [x] ★ `turn_left90` | "Left Turn" / "Standing Turn Left 90" |
+- [x] ★ `turn_right90` | "Right Turn" / "Standing Turn Right 90" |
+- [x] ★ `turn_180` | "Turn 180" / "Standing Turn 180" |
+- [x] `turn_walkInCircleLeft_loop` | "Walking In Circle" / "Walk In A Circle" | one cycle turns roughly 30°; turns while walking, set the angle with `loops`
+- [x] `turn_walkInCircleRight_loop` | "Walking In Circle" (mirrored) / "Walk In A Circle" | as above, turning right
+- [x] `turn_jogInCircleLeft_loop` | "Jog In Circle" with **Mirror** ticked | turning left
+- [x] `turn_jogInCircleRight_loop` | "Jog In Circle" | turning right
 
-## vert: stairs, ladders, steps (8)
+## vert: stairs, ladders, steps, jumps (9)
 
-- [ ] ★ `vert_stairsUp_loop` | "Ascending Stairs" / "Walking Up Stairs" | loop it along a staircase
-- [ ] ★ `vert_stairsDown_loop` | "Descending Stairs" / "Walking Down Stairs" |
-- [ ] `vert_stairsUpRun_loop` | "Running Up Stairs" |
-- [ ] `vert_ladderClimb_loop` | "Climbing Ladder" |
-- [ ] `vert_ladderTopOut` | "Climbing To Top" / "Climb Ladder End" | leave ladder at the top
-- [ ] `vert_stepUp` | "Step Up" / "Climbing (low obstacle)" | single high step / platform
-- [ ] `vert_stepDown` | "Step Down" / "Jump Down (low)" |
-- [ ] `vert_jumpOver` | "Jump Over" / "Running Jump" | gap or obstacle
+- [x] ★ `vert_stairsUp_loop` | "Ascending Stairs" / "Walking Up Stairs" | loop it along a staircase
+- [x] ★ `vert_stairsDown_loop` | "Descending Stairs" / "Walking Down Stairs" | Mixamo pins the feet to a flat floor; the library builder bakes a StairDescentFix that lowers the feet at runtime
+- [x] `vert_stairsUpRun_loop` | "Running Up Stairs" |
+- [x] `vert_ladderStart` | "Start Climbing Ladder" / "Climbing Ladder Start" | standing to the first rungs → `vert_ladderClimb_loop`
+- [x] `vert_ladderClimb_loop` | "Climbing Ladder" |
+- [x] `vert_ladderTopOut` | "Climbing To Top" / "Climb Ladder End" | leave ladder at the top
+- [x] `vert_stepDown` | "Step Down" / "Jump Down (low)" |
+- [x] `vert_jumpOver` | "Jump Over" / "Running Jump" | gap or obstacle
+- [x] `vert_jumpStationary` | "Jump" / "Jumping Up" / "Standing Jump" | jump on the spot, lands where it took off
 
-## sit: chairs and benches (14)
+## sit: chairs and benches (9)
 
-- [ ] ★ `sit_standToSit` | "Stand To Sit" | → `sit_idle`
-- [ ] ★ `sit_idle` | "Sitting Idle" | loops by name ("idle")
-- [ ] ★ `sit_sitToStand` | "Sit To Stand" / "Standing Up (from chair)" | `sit_idle` →
-- [ ] `sit_standToSit_low` | "Sitting Down (low)" / "Stand To Sit" on low seat | low bench / sofa, if a distinct clip exists
-- [ ] ★ `sit_talking_loop` | "Sitting Talking" | meetings, cafés
-- [ ] `sit_laughing_loop` | "Sitting Laughing" |
-- [ ] ★ `sit_typing_loop` | "Typing" / "Sitting Typing" | desk work
-- [ ] `sit_writing_loop` | "Writing" / "Sitting Writing" |
-- [ ] `sit_drinking_loop` | "Drinking" / "Sitting Drinking" |
-- [ ] `sit_eating_loop` | "Eating" / "Sitting Eating" |
-- [ ] `sit_phone_loop` | "Sitting Texting" / "Sitting Phone" |
-- [ ] `sit_leanBack_loop` | "Sitting Relaxed" / "Sitting Leaning Back" |
-- [ ] `sit_clap_loop` | "Sitting Clap" | audience
-- [ ] `sit_disbelief_loop` | "Sitting Disapproval" / "Sitting Rubbing Head" | variation
+- [x] ★ `sit_standToSit` | "Stand To Sit" | → `sit_idle`
+- [x] ★ `sit_idle` | "Sitting Idle" | loops by name ("idle")
+- [x] ★ `sit_sitToStand` | "Sit To Stand" / "Standing Up (from chair)" | `sit_idle` →
+- [x] ★ `sit_talking_loop` | "Sitting Talking" | meetings, cafés
+- [x] `sit_laughing_loop` | "Sitting Laughing" |
+- [x] ★ `sit_typing_loop` | "Typing" / "Sitting Typing" | desk work
+- [x] `sit_writing_loop` | "Writing" / "Sitting Writing" |
+- [x] `sit_clap_loop` | "Sitting Clap" | audience
+- [x] `sit_disbelief_loop` | "Sitting Disapproval" / "Sitting Rubbing Head" | variation
 
-## floor: crouching, kneeling, floor sitting, lying (10)
+## floor: kneeling, floor sitting (4)
 
-- [ ] ★ `floor_standToCrouch` | "Standing To Crouched" | → `floor_crouchIdle`
-- [ ] ★ `floor_crouchIdle` | "Crouching Idle" / "Crouch Idle" | loops by name
-- [ ] ★ `floor_crouchToStand` | "Crouch To Stand" |
-- [ ] `floor_standToKneel` | "Kneeling Down" / "Stand To Kneel" |
-- [ ] `floor_kneelIdle` | "Kneeling Idle" |
-- [ ] `floor_standToSitGround` | "Sitting Down (ground)" / "Stand To Sit On Floor" |
-- [ ] `floor_sitGroundIdle` | "Sitting On Ground Idle" |
-- [ ] `floor_lieDown` | "Laying Down" / "Lying Down" | → `floor_lyingIdle`
-- [ ] `floor_lyingIdle` | "Laying Idle" / "Sleeping Idle" | loops by name
-- [ ] `floor_getUp` | "Getting Up" / "Stand Up" |
+- [x] `floor_standToKneel` | "Kneeling Down" / "Stand To Kneel" | → `floor_kneelIdle`; `floor_kneelToStand` is generated
+- [x] `floor_kneelIdle` | "Kneeling Idle" |
+- [x] `floor_sitGroundIdle` | "Sitting On Ground Idle" |
+- [x] `floor_sitGroundToStand` | "Standing Up" / "Sitting To Standing" | `floor_sitGroundIdle` →; `floor_standToSitGround` is generated
 
-## reach: picking up, placing, carrying (12)
+## bed: lying in bed (2)
 
-- [ ] ★ `reach_pickUpFloor` | "Picking Up" / "Pick Up Object" |
-- [ ] ★ `reach_putDownFloor` | "Put Down" / "Placing Object" |
-- [ ] ★ `reach_pickUpTable` | "Pick Up (waist height)" / "Grabbing" | counter / table height
-- [ ] `reach_shelfHigh` | "Reaching Up" / "Grab High" | top shelf, overhead cabinet
-- [ ] `reach_shelfLow` | "Reaching Low" / "Pick Up Low" | bottom shelf
-- [ ] ★ `reach_liftBox` | "Lifting" / "Box Lift" | → `reach_carryBoxWalk`
-- [ ] ★ `reach_carryBoxWalk_loop` | "Walking With Box" / "Carry Walk" |
-- [ ] `reach_carryBoxIdle_loop` | "Box Idle" / "Holding Box" |
-- [ ] `reach_dropBox` | "Box Put Down" / "Putting Down Box" | end of carry chain
-- [ ] `reach_push_loop` | "Pushing" / "Push Object" | cart, heavy door
-- [ ] `reach_pull_loop` | "Pulling" / "Pull Object" |
-- [ ] `reach_throw` | "Throw" / "Toss" |
+Lying happens on a bed, not the floor. The avatar sits on the bed edge first (`sit_standToSit` at mattress height), lies down from there and sits up again with the generated `bed_lieToSit` (Mixamo has no getting out of bed). Place it on the mattress surface; pick clips whose body stays level with the hips (no reach down to a floor).
 
-## interact: using the building (10)
+- [x] ★ `bed_sitToLie` | "Laying Down" / "Lying Down" / "Sitting To Laying" | from sitting on the bed edge → `bed_lyingIdle` → `bed_lieToSit` (generated) → `sit_sitToStand`
+- [x] ★ `bed_lyingIdle` | "Sleeping Idle" / "Laying Idle" / "Lying Idle" | loops by name
 
-- [ ] `interact_openDoorAndWalkThrough` | "Opening Door" |
-- [ ] ★ `interact_openDoor` | "Open Door" / "Opening A Door" | without walking through
-- [ ] ★ `interact_pressButton` | "Button Pushing" / "Pressing Button" | elevator, light switch
-- [ ] ★ `interact_leanWall_loop` | "Leaning On Wall" / "Wall Lean" |
-- [ ] `interact_leanRailing_loop` | "Leaning On Railing" / "Leaning Forward" | balcony, bridge
-- [ ] `interact_lookOutWindow_loop` | "Looking Forward Idle" / "Looking Out" |
-- [ ] `interact_openDrawer` | "Opening Drawer" / "Open Cabinet" |
-- [ ] `interact_typingStanding_loop` | "Standing Typing" / "Using Computer Standing" | counter, kiosk
-- [ ] `interact_keyLock` | "Unlocking Door" / "Using Key" |
-- [ ] `interact_sitAtCounter` | "Sitting At Bar" / "Bar Stool Sit" | high seat
+## reach: picking up, reaching, pushing (5)
 
-## gesture: upper-body social gestures (14)
+- [x] ★ `reach_pickUpFloor` | "Picking Up" / "Pick Up Object" | `reach_putDownFloor` is generated
+- [x] `reach_shelfMid` | "Reaching" / "Reaching Out" | shelf at breast height; Mixamo has no high or low shelf reach and no pick up from a table
+- [x] `reach_push_loop` | "Pushing" / "Push Object" | walking behind a cart or trolley
+- [x] `reach_pull_loop` | "Pulling" / "Pull Object" |
+- [x] `reach_throw` | "Throw" / "Toss" |
 
-These can later be layered over walking / sitting via an upper-body mask.
+## interact: using the building (6)
 
-- [ ] `gesture_waving` | "Waving" |
-- [ ] ★ `gesture_point` | "Pointing" / "Pointing Forward" | directing attention
-- [ ] ★ `gesture_talking` | "Talking" | conversation loop
-- [ ] ★ `gesture_listening` | "Listening" / "Idle Listening" / "Agreeing" | the other side of the conversation
-- [ ] ★ `gesture_handshake_once` | "Shaking Hands" |
-- [ ] `gesture_nodYes_once` | "Head Nod Yes" |
-- [ ] `gesture_shakeNo_once` | "Shaking Head No" |
-- [ ] `gesture_explaining` | "Explaining" / "Talking With Hands" | presentation
-- [ ] `gesture_clapping` | "Clapping" |
-- [ ] `gesture_cheering` | "Cheering" |
-- [ ] `gesture_arguing` | "Arguing" |
-- [ ] `gesture_beckon_once` | "Come Here" / "Waving Over" | "follow me"
-- [ ] `gesture_checkWatch_once` | "Looking At Watch" / "Checking Watch" |
-- [ ] `gesture_shrug_once` | "Shrugging" |
+- [x] ★ `interact_openDoorAndWalkThrough` | "Opening Door" | the only room door clip: opens it and walks through
+- [x] ★ `interact_pressButton` | "Button Pushing" / "Pressing Button" | elevator, light switch
+- [x] ★ `interact_leanWall_loop` | "Leaning On Wall" / "Wall Lean" |
+- [x] `interact_leanRailing_loop` | "Leaning On Railing" / "Leaning Forward" | balcony, bridge
+- [x] `interact_openCabinet` | "Opening Cabinet" / "Open Cabinet" | cabinet door → `interact_closeCabinet`
+- [x] `interact_closeCabinet` | "Closing Cabinet" / "Close Cabinet" |
 
-## activity: longer task motions (10)
+## gesture: standing social gestures (12)
 
-- [ ] ★ `activity_cleaning_loop` | "Mopping" / "Sweeping" / "Cleaning" | maintenance scenarios
-- [ ] `activity_wipingTable_loop` | "Wiping" / "Cleaning Table" |
-- [ ] `activity_cooking_loop` | "Cooking" / "Stirring" | kitchen
-- [ ] `activity_counterWork_loop` | "Working At Counter" / "Standing Work" |
-- [ ] `activity_hammering_loop` | "Hammering" | workshop / construction
-- [ ] `activity_stretching_loop` | "Stretching" / "Arm Stretching" |
-- [ ] `activity_exercise_loop` | "Jumping Jacks" / "Push Up" | gym / outdoor
-- [ ] `activity_dancing_loop` | "Dancing" | event space
-- [ ] `activity_playing_loop` | "Playing" / "Jumping" | play areas, children-like motion
-- [ ] `activity_painting_loop` | "Painting" / "Drawing On Wall" |
+Pick the **standing** version of every gesture: the clips are full-body, so a gesture always plays standing on the spot.
+Sitting avatars use the `sit_` loops instead. Upper-body layering over walking / sitting via a mask may come later.
+
+- [x] `gesture_waving` | "Waving" |
+- [x] ★ `gesture_point` | "Pointing" / "Pointing Forward" | directing attention
+- [x] ★ `gesture_talking` | "Talking" | conversation loop
+- [x] ★ `gesture_listening` | "Listening" / "Idle Listening" / "Agreeing" | the other side of the conversation
+- [x] ★ `gesture_handshake_once` | "Shaking Hands" |
+- [x] `gesture_nodYes_once` | "Head Nod Yes" |
+- [x] `gesture_shakeNo_once` | "Shaking Head No" |
+- [x] `gesture_explaining` | "Explaining" / "Talking With Hands" | presentation
+- [x] `gesture_clapping` | "Clapping" |
+- [x] `gesture_cheering` | "Cheering" |
+- [x] `gesture_arguing` | "Arguing" |
+- [x] `gesture_shrug_once` | "Shrugging" |
+
+## activity: longer task motions (6)
+
+- [x] `activity_stretching_loop` | "Stretching" / "Arm Stretching" |
+- [x] `activity_exercise_loop` | "Jumping Jacks" / "Push Up" | gym / outdoor
+- [x] `activity_dancing_loop` | "Dancing" | event space
+- [x] `activity_bartending_loop` | "Bartending" | behind a bar or counter
+- [x] `activity_guitar_loop` | "Guitar Playing" | music, event space
+- [x] `activity_speedbag_loop` | "Speedbag" | gym, boxing training
 
 ---
 
-Total: 108
+Total: 79

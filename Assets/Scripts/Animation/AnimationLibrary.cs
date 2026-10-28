@@ -43,7 +43,7 @@ public class AnimationLibraryEntry
     [Space]
     public bool loop;
     public float length;
-    // Horizontal root motion in m/s, 0 for clips on the spot
+    // Horizontal root motion in m/s along the baked path, 0 for clips on the spot
     public float averageSpeed;
     // Root moves up or down (vert clips); playing it lifts the avatar off floor following
     public bool vertical;
@@ -53,6 +53,9 @@ public class AnimationLibraryEntry
 
     // Root motion over one clip cycle, baked on MixamoAvatar, in the avatar's frame at clip start
     public List<MotionSample> motion = new List<MotionSample>();
+
+    // Correction for Mixamo stair descents, whose feet are pinned to a flat floor; empty for other clips
+    public StairDescentFix stairFix = new StairDescentFix();
 
     // Pose change after clip time t (seconds, unscaled by playback speed). Looping clips repeat their cycle.
     public MotionSample SampleMotion(float t)
@@ -92,6 +95,47 @@ public class AnimationLibraryEntry
             up = Mathf.Lerp(a.up, b.up, f),
             turn = Mathf.LerpAngle(a.turn, b.turn, f)
         };
+    }
+}
+
+// Mixamo bakes its stair descents onto a flat floor: the feet stay at floor height while the body goes down,
+// so the knees fold. Baked per clip: how far the hips sink relative to the root over one cycle, and how far
+// each foot should be lowered at each moment (it goes down one cycle drop during its swing).
+// MixamoAnimationPlayer lowers the root by the sink, raises the hips by the same amount and moves the feet down with IK.
+[System.Serializable]
+public class StairDescentFix
+{
+    public float interval;
+    // Sink of the hips relative to the root since clip start; the last sample is the drop per cycle
+    public float[] sink = new float[0];
+    public float[] leftFootDrop = new float[0];
+    public float[] rightFootDrop = new float[0];
+
+    public bool IsValid { get { return sink != null && sink.Length > 1 && interval > 0; } }
+    public float CycleDrop { get { return IsValid ? sink[sink.Length - 1] : 0; } }
+    public float Length { get { return IsValid ? interval * (sink.Length - 1) : 0; } }
+
+    // Sink accumulated over all cycles played so far; continuous across loops
+    public float TotalSink(double time)
+    {
+        int cycles = Mathf.FloorToInt((float)(time / Length));
+        return cycles * CycleDrop + Sample(sink, (float)(time - cycles * Length));
+    }
+
+    public float SinkAt(double time) { return Sample(sink, CycleTime(time)); }
+    public float LeftFootDropAt(double time) { return Sample(leftFootDrop, CycleTime(time)); }
+    public float RightFootDropAt(double time) { return Sample(rightFootDrop, CycleTime(time)); }
+
+    float CycleTime(double time)
+    {
+        return Mathf.Repeat((float)time, Length);
+    }
+
+    float Sample(float[] values, float time)
+    {
+        float index = Mathf.Clamp(time / interval, 0, values.Length - 1);
+        int i = Mathf.Min(Mathf.FloorToInt(index), values.Length - 2);
+        return Mathf.Lerp(values[i], values[i + 1], index - i);
     }
 }
 

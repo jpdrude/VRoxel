@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -16,6 +17,14 @@ public class AnimationLibraryBuilder : AssetPostprocessor
     const float SampleInterval = 0.1f;
     // Root height change that marks a clip as climbing
     const float VerticalThreshold = 0.05f;
+    // Mixamo stair descents keep the feet on a flat floor and get StairDescentFix
+    static readonly Regex stairDescentPattern = new Regex(@"^vert_.*(stairsDown|descend)", RegexOptions.IgnoreCase);
+    const float StairFixInterval = 1f / 30;
+    static readonly string GeneratedFolder = MixamoManifest.GeneratedFolder.TrimEnd('/');
+    // Transitions from one state to another, e.g. floor_standToKneel; loops and start/stop aren't reversible
+    static readonly Regex towardPattern = new Regex(@"^([a-z]+)_([a-z][a-zA-Z]*)To([A-Z][a-zA-Z]*)(_once)?$");
+    // Actions whose reverse is the other one of the pair
+    static readonly string[][] oppositeActions = { new[] { "lieDown", "getUp" }, new[] { "pickUp", "putDown" } };
 
     [InitializeOnLoadMethod]
     static void BuildIfMissing()
@@ -53,10 +62,15 @@ public class AnimationLibraryBuilder : AssetPostprocessor
             .GroupBy(entry => entry.name)
             .ToDictionary(group => group.Key, group => group.First().description);
 
+        HashSet<string> generated = GenerateReversedClips();
+
         List<AnimationLibraryEntry> entries = new List<AnimationLibraryEntry>();
         GameObject avatarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(AvatarPath);
 
-        foreach (string guid in AssetDatabase.FindAssets("t:AnimationClip", new[] { ClipFolder.TrimEnd('/') }))
+        string[] folders = AssetDatabase.IsValidFolder(GeneratedFolder)
+            ? new[] { ClipFolder.TrimEnd('/'), GeneratedFolder }
+            : new[] { ClipFolder.TrimEnd('/') };
+        foreach (string guid in AssetDatabase.FindAssets("t:AnimationClip", folders))
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
             string name = Path.GetFileNameWithoutExtension(path);
@@ -76,16 +90,22 @@ public class AnimationLibraryBuilder : AssetPostprocessor
                 clip = clip,
                 loop = clip.isLooping,
                 length = clip.length,
-                averageSpeed = new Vector2(clip.averageSpeed.x, clip.averageSpeed.z).magnitude,
                 description = description,
                 motion = avatarPrefab != null ? BakeMotion(avatarPrefab, clip) : new List<MotionSample>()
             });
         }
 
-        // FindAssets returns a clip once per model, but stay safe against duplicates
-        foreach (AnimationLibraryEntry entry in entries)
-            entry.vertical = entry.motion.Any(sample => Mathf.Abs(sample.up) > VerticalThreshold);
+        if (avatarPrefab != null)
+            foreach (AnimationLibraryEntry entry in entries.Where(entry => stairDescentPattern.IsMatch(entry.name)))
+                ApplyStairFix(avatarPrefab, entry);
 
+        foreach (AnimationLibraryEntry entry in entries)
+        {
+            entry.vertical = entry.motion.Any(sample => Mathf.Abs(sample.up) > VerticalThreshold);
+            entry.averageSpeed = TravelSpeed(entry);
+        }
+
+        // FindAssets returns a clip once per model, but stay safe against duplicates
         entries = entries.GroupBy(entry => entry.name).Select(group => group.First()).OrderBy(entry => entry.name).ToList();
 
         if (avatarPrefab == null)
@@ -95,7 +115,114 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         EditorUtility.SetDirty(library);
         AssetDatabase.SaveAssets();
 
-        CheckManifest(entries.Select(entry => entry.name));
+        CheckManifest(entries.Select(entry => entry.name).Where(name => !generated.Contains(name)));
+    }
+
+    // Mixamo has many transitions in one direction only (sitting down on the floor, but not getting up from kneeling).
+    // Every transition whose opposite isn't downloaded gets the clip played backwards, written to the Generated folder,
+    // so avatars can always leave the state a transition brings them into.
+    static HashSet<string> GenerateReversedClips()
+    {
+        HashSet<string> local = new HashSet<string>(AssetDatabase.FindAssets("t:AnimationClip", new[] { ClipFolder.TrimEnd('/') })
+            .Select(guid => Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid))));
+        HashSet<string> generated = new HashSet<string>();
+
+        foreach (string name in local.OrderBy(name => name))
+        {
+            string reverseName = ReverseName(name);
+            if (reverseName == null || local.Contains(reverseName) || generated.Contains(reverseName)) continue;
+
+            AnimationClip source = AssetDatabase.LoadAllAssetsAtPath(ClipFolder + name + ".fbx").OfType<AnimationClip>()
+                .FirstOrDefault(c => !c.name.StartsWith("__preview__"));
+            if (source == null || source.isLooping) continue;
+
+            AnimationClip reversed = Reverse(source, reverseName);
+            if (reversed == null) continue;
+
+            // Overwriting in place keeps the asset's GUID, so references to it survive a rebuild
+            string path = GeneratedFolder + "/" + reverseName + ".anim";
+            AnimationClip existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if (existing != null)
+            {
+                EditorUtility.CopySerialized(reversed, existing);
+                Object.DestroyImmediate(reversed);
+            }
+            else
+            {
+                if (!AssetDatabase.IsValidFolder(GeneratedFolder))
+                    AssetDatabase.CreateFolder(Path.GetDirectoryName(GeneratedFolder).Replace('\\', '/'), Path.GetFileName(GeneratedFolder));
+                AssetDatabase.CreateAsset(reversed, path);
+            }
+
+            generated.Add(reverseName);
+        }
+
+        // Drop generated clips whose source is gone or whose opposite has been downloaded since
+        if (AssetDatabase.IsValidFolder(GeneratedFolder))
+            foreach (string guid in AssetDatabase.FindAssets("t:AnimationClip", new[] { GeneratedFolder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!generated.Contains(Path.GetFileNameWithoutExtension(path)))
+                    AssetDatabase.DeleteAsset(path);
+            }
+
+        AssetDatabase.SaveAssets();
+        if (generated.Count > 0)
+            Debug.Log("AnimationLibraryBuilder: " + generated.Count + " reversed transitions generated: " + string.Join(", ", generated.OrderBy(name => name)));
+        return generated;
+    }
+
+    // The opposite transition's name, or null if the clip isn't a reversible transition:
+    // category_aToB -> category_bToA (sit_standToSit -> sit_sitToStand), and lieDown <-> getUp, pickUp <-> putDown
+    static string ReverseName(string name)
+    {
+        Match toward = towardPattern.Match(name);
+        if (toward.Success)
+            return toward.Groups[1].Value + "_" + LowerFirst(toward.Groups[3].Value) + "To" + UpperFirst(toward.Groups[2].Value) + toward.Groups[4].Value;
+
+        foreach (string[] pair in oppositeActions)
+            for (int i = 0; i < 2; i++)
+                if (name.Contains("_" + pair[i]))
+                    return name.Replace("_" + pair[i], "_" + pair[1 - i]);
+
+        return null;
+    }
+
+    static string LowerFirst(string text) { return char.ToLowerInvariant(text[0]) + text.Substring(1); }
+    static string UpperFirst(string text) { return char.ToUpperInvariant(text[0]) + text.Substring(1); }
+
+    // Copies the clip's humanoid curves mirrored in time (key at t moves to length - t, tangents swap and flip)
+    // and its import settings, so looping and root motion behave like the source
+    static AnimationClip Reverse(AnimationClip source, string name)
+    {
+        EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(source);
+        if (bindings.Length == 0)
+        {
+            Debug.LogWarning("AnimationLibraryBuilder: " + source.name + " has no readable curves, can't generate " + name);
+            return null;
+        }
+
+        AnimationClip reversed = new AnimationClip { name = name, frameRate = source.frameRate };
+        float length = source.length;
+
+        foreach (EditorCurveBinding binding in bindings)
+        {
+            Keyframe[] keys = AnimationUtility.GetEditorCurve(source, binding).keys
+                .Select(key => new Keyframe(length - key.time, key.value, -key.outTangent, -key.inTangent))
+                .Reverse()
+                .ToArray();
+            AnimationUtility.SetEditorCurve(reversed, binding, new AnimationCurve(keys));
+        }
+
+        AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(source);
+        settings.startTime = 0;
+        settings.stopTime = length;
+        AnimationUtility.SetAnimationClipSettings(reversed, settings);
+
+        if (!reversed.humanMotion)
+            Debug.LogWarning("AnimationLibraryBuilder: " + name + " was generated without humanoid curves and won't retarget");
+
+        return reversed;
     }
 
     // Clips are gitignored, so a fresh clone has the manifest but not the files; say what to download
@@ -114,6 +241,126 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         if (unrecorded.Count > 0)
             Debug.LogWarning("AnimationLibraryBuilder: " + unrecorded.Count + " local clips have no Mixamo title in the manifest, " +
                 "so others can't reproduce them. Re-download them through VRoxel > Mixamo Inbox:\n" + string.Join("\n", unrecorded));
+    }
+
+    static void ApplyStairFix(GameObject avatarPrefab, AnimationLibraryEntry entry)
+    {
+        StairDescentFix fix = BakeStairFix(avatarPrefab, entry.clip);
+        if (!fix.IsValid || fix.CycleDrop < VerticalThreshold)
+        {
+            Debug.LogWarning("AnimationLibraryBuilder: " + entry.name + " is named as a stair descent, but its hips don't sink " +
+                "relative to the root (" + fix.CycleDrop.ToString("0.00") + " m per cycle); playing it unchanged");
+            return;
+        }
+
+        entry.stairFix = fix;
+
+        // At runtime the root goes down by the sink, so plans and the vertical flag see the descent
+        for (int i = 0; i < entry.motion.Count; i++)
+        {
+            MotionSample sample = entry.motion[i];
+            sample.up -= fix.TotalSink(sample.time);
+            entry.motion[i] = sample;
+        }
+
+        Debug.Log("AnimationLibraryBuilder: " + entry.name + " gets the stair descent fix, " + fix.CycleDrop.ToString("0.00") + " m down per cycle");
+    }
+
+    // Records how far the hips sink relative to the root, and spreads one cycle's drop over each foot's swing,
+    // proportional to how far the foot travels (a planted foot doesn't move, so it isn't lowered)
+    static StairDescentFix BakeStairFix(GameObject avatarPrefab, AnimationClip clip)
+    {
+        GameObject avatar = Object.Instantiate(avatarPrefab);
+        avatar.hideFlags = HideFlags.HideAndDontSave;
+        avatar.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+        Animator animator = avatar.GetComponent<Animator>();
+        animator.applyRootMotion = true;
+        Transform root = avatar.transform;
+        Transform hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+        Transform leftFoot = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+        Transform rightFoot = animator.GetBoneTransform(HumanBodyBones.RightFoot);
+
+        int count = Mathf.CeilToInt(clip.length / StairFixInterval) + 1;
+        float[] sink = new float[count];
+        float[] leftTravel = new float[count];
+        float[] rightTravel = new float[count];
+
+        PlayableGraph graph = PlayableGraph.Create("StairFixBake");
+        try
+        {
+            graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+            AnimationPlayableOutput output = AnimationPlayableOutput.Create(graph, "Bake", animator);
+            output.SetSourcePlayable(AnimationClipPlayable.Create(graph, clip));
+            graph.Play();
+            graph.Evaluate(0);
+
+            float startHips = root.InverseTransformPoint(hips.position).y;
+            Vector3 lastLeft = leftFoot.position;
+            Vector3 lastRight = rightFoot.position;
+            float interval = clip.length / (count - 1);
+            float lastTime = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                // The last sample stops just short of the clip length: a looping clip wraps to frame 0 exactly there
+                float time = i < count - 1 ? i * interval : clip.length - 1e-3f;
+                if (i > 0)
+                    graph.Evaluate(time - lastTime);
+                lastTime = time;
+
+                sink[i] = startHips - root.InverseTransformPoint(hips.position).y;
+                leftTravel[i] = (i > 0 ? leftTravel[i - 1] : 0) + FlatDistance(leftFoot.position, lastLeft);
+                rightTravel[i] = (i > 0 ? rightTravel[i - 1] : 0) + FlatDistance(rightFoot.position, lastRight);
+                lastLeft = leftFoot.position;
+                lastRight = rightFoot.position;
+            }
+        }
+        finally
+        {
+            graph.Destroy();
+            Object.DestroyImmediate(avatar);
+        }
+
+        float cycleDrop = sink[count - 1];
+        Debug.Log("AnimationLibraryBuilder: " + clip.name + " hips relative to root over one cycle: sink min " + sink.Min().ToString("0.000") +
+            ", max " + sink.Max().ToString("0.000") + ", end " + cycleDrop.ToString("0.000") + " m; feet travel left " +
+            leftTravel[count - 1].ToString("0.00") + ", right " + rightTravel[count - 1].ToString("0.00") + " m");
+        StairDescentFix fix = new StairDescentFix
+        {
+            interval = clip.length / (count - 1),
+            sink = sink,
+            leftFootDrop = DistributeDrop(leftTravel, cycleDrop),
+            rightFootDrop = DistributeDrop(rightTravel, cycleDrop)
+        };
+        return fix;
+    }
+
+    static float[] DistributeDrop(float[] travel, float cycleDrop)
+    {
+        float total = travel[travel.Length - 1];
+        return travel.Select(distance => total > 1e-4f ? cycleDrop * distance / total : 0).ToArray();
+    }
+
+    static float FlatDistance(Vector3 a, Vector3 b)
+    {
+        a.y = 0;
+        b.y = 0;
+        return Vector3.Distance(a, b);
+    }
+
+    // Horizontal path length of the baked root motion over one cycle, per second. Unity's clip.averageSpeed is 0 for
+    // generated clips and measured on the native skeleton, so it is only the fallback when nothing was baked.
+    static float TravelSpeed(AnimationLibraryEntry entry)
+    {
+        if (entry.motion.Count < 2 || entry.length <= 0)
+            return new Vector2(entry.clip.averageSpeed.x, entry.clip.averageSpeed.z).magnitude;
+
+        float distance = 0;
+        for (int i = 1; i < entry.motion.Count; i++)
+            distance += new Vector2(entry.motion[i].right - entry.motion[i - 1].right, entry.motion[i].forward - entry.motion[i - 1].forward).magnitude;
+
+        return distance / entry.length;
     }
 
     // Plays one cycle on a hidden avatar instance with root motion and records the root relative to its start pose
