@@ -4,10 +4,12 @@ Thin layer: every tool forwards to the McpBridge component in Unity (see vroxel_
 Run with: python Tools/mcp/vroxel_mcp.py   (stdio transport, started by the MCP client)
 """
 
+from pathlib import Path
 from typing import Annotated, Literal, Optional
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
+from mcp.server.mcpserver.resources import TextResource
 from pydantic import BaseModel, Field
 
 import vroxel_bridge
@@ -35,7 +37,10 @@ mcp = MCPServer(
         "e.g. walking on at the top of stairs that don't exist, until its feet reach a real floor again.\n"
         "Sequences: set_sequence scripts multi-step behaviour from an anchor pose. Check it with plan_sequence first. "
         "By default the last step holds; only if the user asks, use end='loop' (repeat) or end='return' (jump back to "
-        "the start and wait). For loops, aim for a small loop_gap. restart_sequences replays the scene.\n"
+        "the start and wait). For loops, aim for a small loop_gap. restart_sequences replays the scene. A holding last "
+        "step keeps its clip playing, so a final walk keeps walking past its target: end such sequences with an idle.\n"
+        "Examples: worked recipes with tested numbers are MCP resources vroxel://examples/<name> (conversation, "
+        "walk-around, sit-at-desk, stairs, door). Read the matching one before building a scene like it.\n"
         "Colours: every avatar gets a random colour of its own at spawn (list_avatars shows it). Refer to avatars by "
         "colour when talking to the user ('the teal avatar'), and pass the colour as avatar_id when the user names one. "
         "set_avatar_color changes it; no two avatars share a colour.\n"
@@ -45,6 +50,28 @@ mcp = MCPServer(
         "undo / redo only affect changes made through these tools, never the user's own edits."
     ),
 )
+
+
+# Each examples/<name>.md becomes vroxel://examples/<name>; its first line ("# Example: ...") is the title
+# and its first paragraph the description
+def _register_examples():
+    for path in sorted((Path(__file__).parent / "examples").glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        title, _, body = text.partition("\n")
+        paragraphs = [p for p in body.strip().split("\n\n") if p.strip()]
+        description = " ".join(paragraphs[0].split()) if paragraphs else ""
+        title = title.lstrip("# ").strip() or path.stem
+        mcp.add_resource(TextResource(
+            uri=f"vroxel://examples/{path.stem}",
+            name=path.stem,
+            title=title,
+            description=description,
+            mime_type="text/markdown",
+            text=text,
+        ))
+
+
+_register_examples()
 
 
 class SequenceStep(BaseModel):
