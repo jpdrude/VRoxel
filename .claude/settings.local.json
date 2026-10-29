@@ -6,5 +6,9 @@
       "Bash(Select-Object -ExpandProperty Name)",
       "Bash(Get-ChildItem *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "vroxel"
+  ],
+  "enableAllProjectMcpServers": true
 }
