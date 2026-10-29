@@ -17,6 +17,7 @@ public class AvatarSequencer : MonoBehaviour
     bool followGround = true;
 
     MixamoAnimationPlayer player;
+    AnimationTrailBrush[] trailBrushes;
 
     List<SequenceStep> steps = new List<SequenceStep>();
     SequenceEnd end = SequenceEnd.Hold;
@@ -34,6 +35,7 @@ public class AvatarSequencer : MonoBehaviour
     {
         player = GetComponent<MixamoAnimationPlayer>();
         player.Evaluated += Tick;
+        trailBrushes = GetComponentsInChildren<AnimationTrailBrush>(true);
 
         SetAnchor(transform.position, transform.eulerAngles.y);
         Grounded = GroundProbe.IsOnFloor(transform.position);
@@ -90,6 +92,10 @@ public class AvatarSequencer : MonoBehaviour
     void MoveToAnchor()
     {
         transform.SetPositionAndRotation(AnchorPosition, Quaternion.Euler(0, AnchorYaw, 0));
+
+        // Stroke trails start over, as CustomAnimationPlayer does on loop, instead of drawing a line across the jump
+        foreach (AnimationTrailBrush brush in trailBrushes)
+            brush.ResetStroke();
 
         // An anchor in the air (start of a climb, a floor that doesn't exist) stays in the air
         Grounded = GroundProbe.IsOnFloor(AnchorPosition);

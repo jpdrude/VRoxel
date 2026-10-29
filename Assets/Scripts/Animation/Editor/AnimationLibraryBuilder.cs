@@ -23,6 +23,16 @@ public class AnimationLibraryBuilder : AssetPostprocessor
     static readonly string GeneratedFolder = MixamoManifest.GeneratedFolder.TrimEnd('/');
     // Transitions from one state to another, e.g. floor_standToKneel; loops and start/stop aren't reversible
     static readonly Regex towardPattern = new Regex(@"^([a-z]+)_([a-z][a-zA-Z]*)To([A-Z][a-zA-Z]*)(_once)?$");
+    // Pose clips whose body height must match the transition into or out of them: Mixamo's lying idle lies on the
+    // floor while its lie-down ends on a bed. The idle is raised (or lowered) to the transition's end (or start) pose.
+    static readonly (string idle, string transition, bool atEnd)[] poseMatches =
+    {
+        ("bed_lyingIdle", "bed_sitToLie", true),
+        ("floor_kneelIdle", "floor_standToKneel", true),
+        ("floor_sitGroundIdle", "floor_sitGroundToStand", false),
+    };
+    // Height differences below this are left alone
+    const float PoseMatchThreshold = 0.02f;
     // Actions whose reverse is the other one of the pair
     static readonly string[][] oppositeActions = { new[] { "lieDown", "getUp" }, new[] { "pickUp", "putDown" } };
 
@@ -96,8 +106,12 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         }
 
         if (avatarPrefab != null)
+        {
             foreach (AnimationLibraryEntry entry in entries.Where(entry => stairDescentPattern.IsMatch(entry.name)))
                 ApplyStairFix(avatarPrefab, entry);
+
+            MatchPoseHeights(avatarPrefab, entries);
+        }
 
         foreach (AnimationLibraryEntry entry in entries)
         {
@@ -126,6 +140,7 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         HashSet<string> local = new HashSet<string>(AssetDatabase.FindAssets("t:AnimationClip", new[] { ClipFolder.TrimEnd('/') })
             .Select(guid => Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid))));
         HashSet<string> generated = new HashSet<string>();
+        GameObject avatarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(AvatarPath);
 
         foreach (string name in local.OrderBy(name => name))
         {
@@ -138,6 +153,9 @@ public class AnimationLibraryBuilder : AssetPostprocessor
 
             AnimationClip reversed = Reverse(source, reverseName);
             if (reversed == null) continue;
+
+            if (avatarPrefab != null)
+                MatchReversedHeight(avatarPrefab, source, reversed);
 
             // Overwriting in place keeps the asset's GUID, so references to it survive a rebuild
             string path = GeneratedFolder + "/" + reverseName + ".anim";
@@ -170,6 +188,33 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         if (generated.Count > 0)
             Debug.Log("AnimationLibraryBuilder: " + generated.Count + " reversed transitions generated: " + string.Join(", ", generated.OrderBy(name => name)));
         return generated;
+    }
+
+    // Unity places a humanoid clip's body relative to the feet at its first frame. A reversed lie-down starts lying with
+    // the feet up on the bed, so the whole clip would drop by the bed height. The clip's Y offset (level) moves its
+    // start back to the source's end pose.
+    static void MatchReversedHeight(GameObject avatarPrefab, AnimationClip source, AnimationClip reversed)
+    {
+        float target = HipsHeight(avatarPrefab, source, source.length - 1e-3f);
+        float error = target - HipsHeight(avatarPrefab, reversed, 0);
+        if (Mathf.Abs(error) <= PoseMatchThreshold) return;
+
+        AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(reversed);
+        float originalLevel = settings.level;
+        settings.level = originalLevel + error;
+        AnimationUtility.SetAnimationClipSettings(reversed, settings);
+
+        // The sign of level isn't documented; keep whichever direction closes the gap
+        float remaining = target - HipsHeight(avatarPrefab, reversed, 0);
+        if (Mathf.Abs(remaining) > Mathf.Abs(error))
+        {
+            settings.level = originalLevel - error;
+            AnimationUtility.SetAnimationClipSettings(reversed, settings);
+            remaining = target - HipsHeight(avatarPrefab, reversed, 0);
+        }
+
+        Debug.Log("AnimationLibraryBuilder: " + reversed.name + " started " + Mathf.Abs(error).ToString("0.00") + " m " + (error > 0 ? "below" : "above") +
+            " the end of " + source.name + "; Y offset corrected, " + Mathf.Abs(remaining).ToString("0.000") + " m left");
     }
 
     // The opposite transition's name, or null if the clip isn't a reversible transition:
@@ -347,6 +392,57 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         a.y = 0;
         b.y = 0;
         return Vector3.Distance(a, b);
+    }
+
+    static void MatchPoseHeights(GameObject avatarPrefab, List<AnimationLibraryEntry> entries)
+    {
+        foreach (var match in poseMatches)
+        {
+            AnimationLibraryEntry idle = entries.FirstOrDefault(entry => entry.name == match.idle);
+            AnimationLibraryEntry transition = entries.FirstOrDefault(entry => entry.name == match.transition);
+            if (idle == null || transition == null) continue;
+
+            // A non-looping clip holds its last frame just before its length
+            float transitionTime = match.atEnd ? transition.clip.length - 1e-3f : 0;
+            float target = HipsHeight(avatarPrefab, transition.clip, transitionTime);
+            float current = HipsHeight(avatarPrefab, idle.clip, 0);
+            float offset = target - current;
+
+            Debug.Log("AnimationLibraryBuilder: hips of " + match.transition + " at its " + (match.atEnd ? "end" : "start") + " " +
+                target.ToString("0.00") + " m, " + match.idle + " " + current.ToString("0.00") + " m" +
+                (Mathf.Abs(offset) > PoseMatchThreshold ? ": " + match.idle + (offset > 0 ? " raised" : " lowered") + " by " + Mathf.Abs(offset).ToString("0.00") + " m" : ", matching"));
+
+            idle.heightOffset = Mathf.Abs(offset) > PoseMatchThreshold ? offset : 0;
+        }
+    }
+
+    // Hips height above the root at one moment of a clip, on a hidden avatar instance
+    static float HipsHeight(GameObject avatarPrefab, AnimationClip clip, float time)
+    {
+        GameObject avatar = Object.Instantiate(avatarPrefab);
+        avatar.hideFlags = HideFlags.HideAndDontSave;
+        avatar.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+        Animator animator = avatar.GetComponent<Animator>();
+
+        PlayableGraph graph = PlayableGraph.Create("HipsBake");
+        try
+        {
+            graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+            AnimationPlayableOutput output = AnimationPlayableOutput.Create(graph, "Bake", animator);
+            AnimationClipPlayable playable = AnimationClipPlayable.Create(graph, clip);
+            output.SetSourcePlayable(playable);
+            graph.Play();
+            playable.SetTime(time);
+            graph.Evaluate(0);
+
+            Transform hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+            return avatar.transform.InverseTransformPoint(hips.position).y;
+        }
+        finally
+        {
+            graph.Destroy();
+            Object.DestroyImmediate(avatar);
+        }
     }
 
     // Horizontal path length of the baked root motion over one cycle, per second. Unity's clip.averageSpeed is 0 for

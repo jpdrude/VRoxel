@@ -113,7 +113,9 @@ pre-selected. The library builder logs which manifest clips are still missing.
 
 ## bed: lying in bed (2)
 
-Lying happens on a bed, not the floor. The avatar sits on the bed edge first (`sit_standToSit` at mattress height), lies down from there and sits up again with the generated `bed_lieToSit` (Mixamo has no getting out of bed). Place it on the mattress surface; pick clips whose body stays level with the hips (no reach down to a floor).
+Lying happens on a bed, not the floor. The avatar stands on the floor beside the bed, sits down on its edge (`sit_standToSit`), lies down onto the mattress and sits up again with the generated `bed_lieToSit` (Mixamo has no getting out of bed). The clips lift the body to bed height themselves; the avatar's root stays on the floor.
+
+Mixamo's "Laying Sleeping" lies on the floor, while "Lying Down" ends on a bed. The library builder measures the hips at the end of `bed_sitToLie` and raises `bed_lyingIdle` to that height (`heightOffset`, logged on rebuild). The kneeling and floor-sitting idles are checked against their transitions the same way.
 
 - [x] ★ `bed_sitToLie` | "Laying Down" / "Lying Down" / "Sitting To Laying" | from sitting on the bed edge → `bed_lyingIdle` → `bed_lieToSit` (generated) → `sit_sitToStand`
 - [x] ★ `bed_lyingIdle` | "Sleeping Idle" / "Laying Idle" / "Lying Idle" | loops by name

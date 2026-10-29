@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -54,6 +55,9 @@ public class MixamoAnimationPlayer : MonoBehaviour
 
     // Stair descents corrected at runtime (see StairDescentFix), registered from the AnimationLibrary
     static readonly Dictionary<AnimationClip, StairDescentFix> stairFixes = new Dictionary<AnimationClip, StairDescentFix>();
+    // Body lifts that line pose clips up with their transitions (AnimationLibraryEntry.heightOffset)
+    static readonly Dictionary<AnimationClip, float> heightOffsets = new Dictionary<AnimationClip, float>();
+    AnimationClip previousClip;
 
     class FixState
     {
@@ -118,7 +122,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
 
         UpdateCrossfade(deltaTime);
         graph.Evaluate(deltaTime);
-        hips.position += transform.up * FloorOffset;
+        hips.position += transform.up * (FloorOffset + HeightOffset());
         ApplyStairFixes();
 
         Evaluated?.Invoke(frameTime);
@@ -150,6 +154,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
             graph.Connect(previousPlayable, 0, mixer, 1);
         }
 
+        previousClip = CurrentClip;
         currentPlayable = AnimationClipPlayable.Create(graph, clip);
         currentPlayable.SetApplyFootIK(footIK);
         graph.Connect(currentPlayable, 0, mixer, 0);
@@ -165,15 +170,37 @@ public class MixamoAnimationPlayer : MonoBehaviour
         CurrentClip = clip;
     }
 
-    public static void RegisterStairFixes(AnimationLibrary library)
+    // Stair descent fixes and height offsets baked into the library
+    public static void RegisterClipFixes(AnimationLibrary library)
     {
         if (library == null) return;
 
         foreach (AnimationLibraryEntry entry in library.Entries)
-            if (entry.clip != null && entry.stairFix != null && entry.stairFix.IsValid)
-                stairFixes[entry.clip] = entry.stairFix;
+        {
+            if (entry.clip == null) continue;
 
-        Debug.Log("MixamoAnimationPlayer: " + stairFixes.Count + " stair descent fixes registered (" + string.Join(", ", stairFixes.Keys) + ")");
+            if (entry.stairFix != null && entry.stairFix.IsValid)
+                stairFixes[entry.clip] = entry.stairFix;
+            if (Mathf.Abs(entry.heightOffset) > 0.001f)
+                heightOffsets[entry.clip] = entry.heightOffset;
+        }
+
+        Debug.Log("MixamoAnimationPlayer: " + stairFixes.Count + " stair descent fixes (" + string.Join(", ", stairFixes.Keys.Select(clip => clip.name)) +
+            "), " + heightOffsets.Count + " height offsets (" + string.Join(", ", heightOffsets.Select(pair => pair.Key.name + " " + pair.Value.ToString("+0.00;-0.00"))) + ") registered");
+    }
+
+    // Lift of the current and fading-out clip, weighted by the crossfade
+    float HeightOffset()
+    {
+        float offset = 0;
+        float lift;
+
+        if (CurrentClip != null && heightOffsets.TryGetValue(CurrentClip, out lift))
+            offset += lift * mixer.GetInputWeight(0);
+        if (previousPlayable.IsValid() && previousClip != null && heightOffsets.TryGetValue(previousClip, out lift))
+            offset += lift * mixer.GetInputWeight(1);
+
+        return offset;
     }
 
     // Lowers the root by the clip's sink and raises the hips by the same amount, so the body keeps its path
@@ -222,7 +249,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
         Play(clip, 0);
         currentPlayable.SetTime(time);
         graph.Evaluate(0);
-        hips.position += transform.up * FloorOffset;
+        hips.position += transform.up * (FloorOffset + HeightOffset());
 
         pauseAnimation = true;
     }

@@ -57,6 +57,10 @@ public class AnimationLibraryEntry
     // Correction for Mixamo stair descents, whose feet are pinned to a flat floor; empty for other clips
     public StairDescentFix stairFix = new StairDescentFix();
 
+    // Meters the body is raised while this clip plays, so a pose clip lines up with the transition into it
+    // (Mixamo's lying idle lies on the floor, its lie-down ends on a bed); 0 for most clips
+    public float heightOffset;
+
     // Pose change after clip time t (seconds, unscaled by playback speed). Looping clips repeat their cycle.
     public MotionSample SampleMotion(float t)
     {

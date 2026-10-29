@@ -19,7 +19,7 @@ public class MixamoAvatarTester : MonoBehaviour
     [SerializeField]
     bool rebindAfterPreset = false;
 
-    [Tooltip("Optional: applies the library's stair descent fixes to the test clips")]
+    [Tooltip("Optional: applies the library's stair descent fixes and height offsets to the test clips")]
     [SerializeField]
     AnimationLibrary animationLibrary;
 
@@ -48,7 +48,7 @@ public class MixamoAvatarTester : MonoBehaviour
     // Before MixamoAnimationPlayer.Start plays the first test clip
     void Awake()
     {
-        MixamoAnimationPlayer.RegisterStairFixes(animationLibrary);
+        MixamoAnimationPlayer.RegisterClipFixes(animationLibrary);
     }
 
     void Start()
