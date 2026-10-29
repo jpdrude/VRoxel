@@ -29,6 +29,8 @@ public class DoAction
         RemoveAvatar,
         SetSequence,
         SetAvatarColor,
+        SetAvatarBody,
+        SetAvatarBrush,
         LoadAnimation
     }
 }

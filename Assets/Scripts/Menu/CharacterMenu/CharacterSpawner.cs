@@ -22,11 +22,22 @@ public class CharacterSpawner : MonoBehaviour
     DoAddStroke currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
     DoRemoveStroke currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
 
+    // Brushing caps the animation's frame time (AnimationIO.cappedAnimationTime), so strokes have no gaps when frames drop.
+    // Several avatars can brush at once; the cap stays on until the last of them stops.
+    static int activeBrushes = 0;
+    bool counted = false;
+
+    // A Mixamo avatar brushes only once its body is animated, not with its T-pose right after spawning
+    MixamoAnimationPlayer mixamoPlayer;
+
+    public bool Brushing { get { return addBlocks || removeBlocks; } }
+
     // Start is called before the first frame update
     void Start()
     {
         sphereColliders = GetComponentsInChildren<SphereCollider>();
         capsuleColliders = GetComponentsInChildren<CapsuleCollider>();
+        mixamoPlayer = GetComponent<MixamoAnimationPlayer>();
     }
 
     public void AddCharacterBrush()
@@ -40,7 +51,7 @@ public class CharacterSpawner : MonoBehaviour
         addBlocks = true;
         removeBlocks = false;
 
-        AnimationIO.constantAnimationTime = true;
+        CountBrush(true);
         enabled = true;
     }
 
@@ -56,7 +67,7 @@ public class CharacterSpawner : MonoBehaviour
         removeBlocks = true;
         addBlocks = false;
 
-        AnimationIO.constantAnimationTime = true;
+        CountBrush(true);
         enabled = true;
     }
 
@@ -77,16 +88,29 @@ public class CharacterSpawner : MonoBehaviour
 
         addBlocks = false;
         removeBlocks = false;
-        AnimationIO.constantAnimationTime = false;
+        CountBrush(false);
         enabled = false;
+    }
+
+    void CountBrush(bool active)
+    {
+        if (active != counted)
+        {
+            activeBrushes += active ? 1 : -1;
+            counted = active;
+        }
+
+        AnimationIO.cappedAnimationTime = activeBrushes > 0;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (mixamoPlayer != null && !mixamoPlayer.Posed)
+            return;
+
         if (addBlocks)
         {
-            AnimationIO.constantAnimationTime = true;
 
             foreach (SphereCollider sc in sphereColliders)
             {
@@ -103,11 +127,11 @@ public class CharacterSpawner : MonoBehaviour
             {
                 UndoStack.Push(currentAddStroke);
                 currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
+                strokeCounter = 0;
             }
         }
         else if (removeBlocks)
         {
-            AnimationIO.constantAnimationTime = true;
 
             foreach (SphereCollider sc in sphereColliders)
             {
@@ -124,18 +148,20 @@ public class CharacterSpawner : MonoBehaviour
             {
                 UndoStack.Push(currentRemoveStroke);
                 currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
+                strokeCounter = 0;
             }
         }
     }
 
+    // Collider sizes follow the scale of the bones they sit on (lossyScale), so the brush fits CharacterModel's body:
+    // height, proportions and limb widths
     void AddRemoveFromSphere(SphereCollider sc, bool add)
     {
-        float maxScale = sc.transform.localScale.x;
-        if (sc.transform.localScale.y > maxScale) maxScale = sc.transform.localScale.y;
-        if (sc.transform.localScale.z > maxScale) maxScale = sc.transform.localScale.z;
+        Vector3 scale = sc.transform.lossyScale;
+        float maxScale = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
 
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sc.transform.position + sc.transform.rotation * sc.center, sc.radius * maxScale, out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sc.transform.TransformPoint(sc.center), sc.radius * maxScale, out blockDictKeys);
         
         if (add)
         {
@@ -156,11 +182,17 @@ public class CharacterSpawner : MonoBehaviour
         if (cc.direction == 1) capsuleDirection = Vector3.up;
         else if (cc.direction == 2) capsuleDirection = Vector3.forward;
 
-        Vector3 positionA = cc.transform.position + cc.transform.rotation * (cc.center - capsuleDirection * (cc.height / 2) + capsuleDirection * cc.radius);
-        Vector3 positionB = cc.transform.position + cc.transform.rotation * (cc.center + capsuleDirection * (cc.height / 2) - capsuleDirection * cc.radius);
+        Vector3 positionA = cc.transform.TransformPoint(cc.center - capsuleDirection * (cc.height / 2) + capsuleDirection * cc.radius);
+        Vector3 positionB = cc.transform.TransformPoint(cc.center + capsuleDirection * (cc.height / 2) - capsuleDirection * cc.radius);
+
+        // The radius scales with the widest axis across the capsule
+        Vector3 scale = cc.transform.lossyScale;
+        float across = cc.direction == 0 ? Mathf.Max(Mathf.Abs(scale.y), Mathf.Abs(scale.z))
+            : cc.direction == 1 ? Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z))
+            : Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
 
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(positionA, positionB, cc.radius, out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(positionA, positionB, cc.radius * across, out blockDictKeys);
 
         if (add)
         {

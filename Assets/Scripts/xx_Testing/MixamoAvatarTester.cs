@@ -184,7 +184,7 @@ public class MixamoAvatarTester : MonoBehaviour
         GUILayout.Label("Clip: " + clip + "   [" + nextClipKey + "]" + (player.StairFixActive ? "   stair fix ON" : ""));
         GUILayout.Label("Hip height (actual): " + (hips.position.y - transform.position.y).ToString("0.000") + " m");
         GUILayout.Label("Hip height (CharacterModel): " + characterModel.HipPosition.y.ToString("0.000") + " (local)");
-        GUILayout.Label("Floor offset (rest pose): " + player.FloorOffset.ToString("0.000") + " m");
+        GUILayout.Label("Body scale (rest pose leg length): " + player.BodyScale.ToString("0.000"));
         GUILayout.Label("Lowest foot bone: " + lowestFootHeight.ToString("0.000") + " m");
         GUILayout.Label("  min / max since preset: " + minLowestFootHeight.ToString("0.000") + " / " + maxLowestFootHeight.ToString("0.000") + " m");
         GUILayout.Label("Rebind Animator   [" + rebindKey + "]");

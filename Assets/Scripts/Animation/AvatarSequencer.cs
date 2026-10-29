@@ -122,7 +122,7 @@ public class AvatarSequencer : MonoBehaviour
         if (step.hasTarget)
         {
             float distance = FlatDistance(transform.position, step.target);
-            float clipSpeed = Mathf.Max(step.travelSpeed * step.speed, 0.1f);
+            float clipSpeed = Mathf.Max(step.travelSpeed * (step.vertical ? 1 : player.BodyScale) * step.speed, 0.1f);
             stepTimeout = distance / clipSpeed * 2 + 5;
         }
     }

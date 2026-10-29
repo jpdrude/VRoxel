@@ -35,6 +35,8 @@ public static class AnimationFileCommands
         public string name;
         public string color;
         public AvatarDimensions dimensions;
+        // How the body was set (weight, sex, ...), so later changes start from it; dimensions alone rebuild it
+        public AvatarBodies.Parameters body;
         public float[] anchor;
         public float anchorYaw;
         public string end;
@@ -172,6 +174,7 @@ public static class AnimationFileCommands
             Vector3 anchor = ToVector3(record.anchor);
             string id;
             GameObject avatar = AvatarCommands.Spawn(anchor, record.anchorYaw, record.dimensions, color, record.name, out id);
+            AvatarBodies.Remember(avatar, record.body);
             actions.Add(new DoSpawnAvatar(DoAction.DoType.SpawnAvatar, avatar));
 
             SequenceState state = new SequenceState
@@ -208,6 +211,7 @@ public static class AnimationFileCommands
             name = avatar.name,
             color = AvatarRegistry.GetColor(avatar),
             dimensions = model != null ? model.Dimensions : null,
+            body = AvatarBodies.Get(avatar),
             anchor = AvatarCommands.ToArray(state.anchorPosition),
             anchorYaw = AvatarCommands.Round(state.anchorYaw),
             end = state.end.ToString().ToLowerInvariant(),

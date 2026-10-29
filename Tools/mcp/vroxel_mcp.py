@@ -5,7 +5,7 @@ Run with: python Tools/mcp/vroxel_mcp.py   (stdio transport, started by the MCP 
 """
 
 from pathlib import Path
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal, Optional, Union
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
@@ -28,7 +28,10 @@ mcp = MCPServer(
         "Controls avatars in VRoxel, a VR tool for architectural design. Units are meters, Y is up, "
         "yaw is in degrees clockwise around Y seen from above (0 faces +Z, 90 faces +X). VRoxel must be in Play mode.\n"
         "Clips: call list_animations first; names follow category_actionName. cycle_motion is how far one clip "
-        "cycle moves the avatar in its own frame (right / forward in meters, turn in degrees). "
+        "cycle moves the avatar in its own frame (right / forward in meters, turn in degrees), for the 181 cm model: "
+        "a smaller or taller avatar takes shorter or longer steps, so non-vertical clips move it body_scale times as "
+        "far and fast (list_avatars). Vertical clips keep their path, so a stair or ladder fits every avatar. "
+        "plan_sequence accounts for both. "
         "get_animation_motion gives the trajectory over time. gesture clips are full-body and standing: playing one "
         "on a sitting avatar stands it up, so seated avatars use the sit_ loops (talking, laughing, clapping) instead.\n"
         "Floors: grounded avatars stand on floors and imported geometry found by raycast and walk through VRoxel "
@@ -44,6 +47,11 @@ mcp = MCPServer(
         "Colours: every avatar gets a random colour of its own at spawn (list_avatars shows it). Refer to avatars by "
         "colour when talking to the user ('the teal avatar'), and pass the colour as avatar_id when the user names one. "
         "set_avatar_color changes it; no two avatars share a colour.\n"
+        "Bodies: spawn_avatar and set_avatar_body take height_cm, weight_kg, sex and muscularity for the shape, and "
+        "measurements in cm for proportions (e.g. longer legs), which override the averages; list_avatars shows each "
+        "body's current measurements. Chairs and beds keep their height for every body, as stairs and ladders do. "
+        "The ends of the scales are extremes (BMI 18 and 35, muscularity 1 for a heavy weightlifter): describe ordinary people "
+        "with values in between, and vary them so a group doesn't look alike.\n"
         "Saving: save_animation stores the avatars with their colours, sizes and sequences under a name; "
         "load_animation brings a saved one back (replacing the current avatars unless replace=false) and replays it "
         "from the start. Check list_saved_animations before saving so you don't overwrite the user's work.\n"
@@ -102,6 +110,23 @@ Start = Annotated[
 Color = Literal["red", "blue", "mint", "canary", "pink", "orange", "green", "purple", "teal", "sand"]
 AvatarId = Annotated[str, Field(description="Avatar id (avatar_1) or its colour (teal)")]
 
+# Body: lengths from height (average proportions) or measurements, shape from weight, sex and muscularity
+HeightCm = Annotated[Optional[float], Field(ge=50, le=250, description="Body height in cm; sets average proportions. Default: 179 cm for men, 166 cm for women, the model's 181 cm without a sex")]
+WeightKg = Annotated[Optional[float], Field(ge=20, le=300, description="Body weight in kg; with the height it gives the BMI that makes the body slimmer or heavier. "
+                                                                     "The shapes span BMI 18 (very lean) to 35 (obese); most adults are between 20 and 30")]
+Sex = Annotated[Optional[Union[float, Literal["male", "neutral", "female"]]], Field(
+    description="'male', 'neutral', 'female', or 0 (male) over 0.5 (neutral) to 1 (female): breast, hips, bottom, shoulders. "
+                "Default neutral: the model is gender neutral")]
+Muscularity = Annotated[Optional[float], Field(ge=0, le=1, description="0 untrained to 1 a heavy weightlifter or bodybuilder; most people are 0-0.15, regular gym-goers 0.3-0.5, fit athletes 0.5-0.7. "
+                                                                         "Muscle counts towards the weight, so it doesn't also read as fat")]
+Measurements = Annotated[Optional[dict[str, Optional[float]]], Field(
+    description="Real measurements in cm that override the average proportions and stay when height or weight change: "
+                "footLength, shoulderHeight, shoulderWidth, elbowSpan, wristSpan, armSpan (fingertip to fingertip), hipHeight, "
+                "hipWidth, kneeHeight, ankleHeight, bodyHeight (alone, changes only the head and neck). Legs are hipHeight / kneeHeight / "
+                "ankleHeight above the floor; longer legs means raising hipHeight and kneeHeight. list_avatars shows the current "
+                "values; null drops one again")]
+BodyFile = Annotated[Optional[str], Field(description="A body saved in the character editor (.vrxlbody): a path, or a name in %APPDATA%/VRoxel/Bodies; '' drops it")]
+
 StartPosition = Annotated[Optional[list[float]], Field(min_length=3, max_length=3, description="New anchor [x, y, z]")]
 StartYaw = Annotated[Optional[float], Field(description="New anchor yaw in degrees")]
 
@@ -153,7 +178,12 @@ def spawn_avatar(
     position: Annotated[list[float], Field(description="[x, y, z] in meters; snaps to a floor within 0.5 m above or 1.5 m below y", min_length=3, max_length=3)],
     yaw: Annotated[float, Field(description="Facing direction in degrees around Y")] = 0,
     on_floor: Annotated[bool, Field(description="False places the avatar exactly at y, airborne, e.g. on a floor that doesn't exist")] = True,
-    height_cm: Annotated[Optional[float], Field(description="Body height in cm (50-250); default is the model's 181 cm", ge=50, le=250)] = None,
+    height_cm: HeightCm = None,
+    weight_kg: WeightKg = None,
+    sex: Sex = None,
+    muscularity: Muscularity = None,
+    measurements: Measurements = None,
+    body_file: BodyFile = None,
     color: Annotated[Optional[Color], Field(description="Colour no other avatar has; default is a random free one")] = None,
     animation: Annotated[Optional[str], Field(description="Clip to start immediately")] = None,
     name: Annotated[Optional[str], Field(description="Display name in the scene")] = None,
@@ -165,6 +195,11 @@ def spawn_avatar(
         yaw=yaw,
         on_floor=on_floor,
         height_cm=height_cm,
+        weight_kg=weight_kg,
+        sex=sex,
+        muscularity=muscularity,
+        measurements=measurements,
+        body_file=body_file,
         color=color,
         animation=animation,
         name=name,
@@ -238,6 +273,34 @@ def set_avatar_color(
 ) -> dict:
     """Change an avatar's colour, e.g. when the user wants to tell avatars apart differently."""
     return call("set_avatar_color", avatar_id=avatar_id, color=color)
+
+
+@mcp.tool()
+def set_avatar_brush(
+    avatar_id: AvatarId,
+    mode: Annotated[Literal["add", "remove", "off"], Field(description="'add' fills blocks wherever its body moves, 'remove' carves them away, 'off' stops")],
+) -> dict:
+    """Let an avatar's body add or remove VRoxel blocks wherever it moves, e.g. carve a path or a seat by walking or
+    sitting through blocks. The blocks are the user's design edits: they go on the user's undo, while undo here only
+    switches the brush back. While any avatar brushes, animation advances at most 1/30 s per frame, so if brushing
+    lowers the frame rate, all avatars slow down rather than leave gaps in the stroke."""
+    return call("set_avatar_brush", avatar_id=avatar_id, mode=mode)
+
+
+@mcp.tool()
+def set_avatar_body(
+    avatar_id: AvatarId,
+    height_cm: HeightCm = None,
+    weight_kg: WeightKg = None,
+    sex: Sex = None,
+    muscularity: Muscularity = None,
+    measurements: Measurements = None,
+    body_file: BodyFile = None,
+) -> dict:
+    """Change an avatar's body: height, weight, sex, muscularity or single measurements. Values left out keep their
+    current setting. Its sequence plays on; steps of non-vertical clips scale with the new leg length."""
+    return call("set_avatar_body", avatar_id=avatar_id, height_cm=height_cm, weight_kg=weight_kg, sex=sex,
+                muscularity=muscularity, measurements=measurements, body_file=body_file)
 
 
 AnimationName = Annotated[str, Field(description="1-64 letters, digits, spaces, '-' or '_'", min_length=1, max_length=64)]

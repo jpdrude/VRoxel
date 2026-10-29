@@ -256,16 +256,8 @@ public class CustomAnimationPlayer : MonoBehaviour
 
         CheckTrails();
 
-        if (!AnimationIO.constantAnimationTime)
-        {
-            timer += Time.deltaTime * speed;
-            trailTimer += Time.deltaTime;
-        }
-        else
-        {
-            timer += 1f / AnimationIO.animationFrameRate * speed;
-            trailTimer += 1f / AnimationIO.animationFrameRate;            
-        }
+        timer += AnimationIO.FrameTime * speed;
+        trailTimer += AnimationIO.FrameTime;
 
         if (timer > animationEnd)
         {

@@ -47,13 +47,18 @@ public class MixamoAnimationPlayer : MonoBehaviour
     float fadeDuration = 0;
     int testClipIndex = -1;
 
-    // Humanoid places the hips for the native leg length, ignoring CharacterModel's bone scaling.
-    // The offset is the change in hip-to-sole distance in the rest pose (T-pose) and is added after every evaluation.
+    // Humanoid places the hips for the native leg length, ignoring CharacterModel's bone scaling. The body is scaled
+    // about the root by the change in hip-to-sole distance in the rest pose (T-pose), which fits it to this avatar's legs
+    // in every pose, and so is the clips' travel: a shorter avatar takes shorter steps.
     Transform hips;
     Transform[] restPoseBones;
     Quaternion[] restPoseRotations;
     float nativeHipToSole;
-    public float FloorOffset { get; private set; }
+    // Height of the ankles above the soles in the rest pose; on furniture the feet are kept at least this high
+    float footToSole;
+    public float BodyScale { get; private set; } = 1;
+    // False until a clip has posed the body; before that it stands in its T-pose (CharacterSpawner waits for it)
+    public bool Posed { get; private set; }
 
     // Stair descents corrected at runtime (see StairDescentFix), registered from the AnimationLibrary
     static readonly Dictionary<AnimationClip, StairDescentFix> stairFixes = new Dictionary<AnimationClip, StairDescentFix>();
@@ -101,7 +106,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
         restPoseRotations = new Quaternion[restPoseBones.Length];
         for (int i = 0; i < restPoseBones.Length; i++)
             restPoseRotations[i] = restPoseBones[i].localRotation;
-        nativeHipToSole = MeasureHipToSole();
+        nativeHipToSole = MeasureHipToSole(out footToSole);
 
         leftUpperLeg = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
         leftLowerLeg = animator.GetBoneTransform(HumanBodyBones.LeftLowerLeg);
@@ -110,7 +115,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
         rightLowerLeg = animator.GetBoneTransform(HumanBodyBones.RightLowerLeg);
         rightFoot = animator.GetBoneTransform(HumanBodyBones.RightFoot);
 
-        // Manual time update so playback can follow AnimationIO.constantAnimationTime (recording)
+        // Manual time update so playback can follow AnimationIO.FrameTime (recording, brushing)
         graph = PlayableGraph.Create(name + "_MixamoGraph");
         graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
 
@@ -132,7 +137,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
         if (pauseAnimation || CurrentClip == null)
             return;
 
-        float frameTime = AnimationIO.constantAnimationTime ? 1f / AnimationIO.animationFrameRate : Time.deltaTime;
+        float frameTime = AnimationIO.FrameTime;
         float deltaTime = frameTime * speed;
 
         UpdateCrossfade(deltaTime);
@@ -221,15 +226,15 @@ public class MixamoAnimationPlayer : MonoBehaviour
         Vector3 move = Vector3.zero;
         float turn = 0;
 
-        AddRootMotion(currentMotion, currentPlayable, mixer.GetInputWeight(0), ref move, ref turn);
-        AddRootMotion(previousMotion, previousPlayable, previousPlayable.IsValid() ? mixer.GetInputWeight(1) : 0, ref move, ref turn);
+        AddRootMotion(currentMotion, currentPlayable, mixer.GetInputWeight(0), BodyScale, ref move, ref turn);
+        AddRootMotion(previousMotion, previousPlayable, previousPlayable.IsValid() ? mixer.GetInputWeight(1) : 0, BodyScale, ref move, ref turn);
 
         // The offsets are in the avatar's frame before this frame's turn
         transform.position += transform.rotation * move;
         transform.rotation = Quaternion.AngleAxis(turn, transform.up) * transform.rotation;
     }
 
-    static void AddRootMotion(RootMotionState state, AnimationClipPlayable playable, float weight, ref Vector3 move, ref float turn)
+    static void AddRootMotion(RootMotionState state, AnimationClipPlayable playable, float weight, float bodyScale, ref Vector3 move, ref float turn)
     {
         if (state == null || !playable.IsValid()) return;
 
@@ -237,7 +242,9 @@ public class MixamoAnimationPlayer : MonoBehaviour
         MotionSample delta = state.entry.MotionBetween((float)state.lastTime, (float)time);
         state.lastTime = time;
 
-        move += new Vector3(delta.right, delta.up, delta.forward) * weight;
+        // Climbing clips keep their path, so a stair or ladder has the same shape for every avatar
+        float scale = state.entry.vertical ? 1 : bodyScale;
+        move += new Vector3(delta.right * scale, delta.up, delta.forward * scale) * weight;
         turn += delta.turn * weight;
     }
 
@@ -249,17 +256,52 @@ public class MixamoAnimationPlayer : MonoBehaviour
             GetComponent<Animator>().ApplyBuiltinRootMotion();
     }
 
-    // Shifts and turns the body by the current and fading-out clip's pose offsets, weighted by the crossfade
+    // Shifts and turns the body by the current and fading-out clip's pose offsets, weighted by the crossfade, and scales
+    // it about the root to this avatar's legs. Furniture has the same height for everyone, so sitting on chairs and lying
+    // on beds keep the model's hip height; there a taller avatar's feet are lifted back onto the floor.
     void ApplyPoseOffsets()
     {
-        hips.position += transform.up * FloorOffset + PoseOffset();
+        Posed = true;
+        float furniture = FurnitureWeight();
+        Vector3 body = transform.InverseTransformPoint(hips.position) + PoseOffset();
+        body.x *= BodyScale;
+        body.y *= Mathf.Lerp(BodyScale, 1, furniture);
+        body.z *= BodyScale;
+        hips.position = transform.TransformPoint(body);
 
         float yaw = PoseYaw();
         if (Mathf.Abs(yaw) > 1e-3f)
             hips.rotation = Quaternion.AngleAxis(yaw, transform.up) * hips.rotation;
+
+        if (furniture > 0)
+        {
+            KeepFootOnFloor(leftUpperLeg, leftLowerLeg, leftFoot, furniture);
+            KeepFootOnFloor(rightUpperLeg, rightLowerLeg, rightFoot, furniture);
+        }
     }
 
-    // Body shift of the current and fading-out clip in world space, weighted by the crossfade
+    void KeepFootOnFloor(Transform upperLeg, Transform lowerLeg, Transform foot, float weight)
+    {
+        float below = footToSole * BodyScale - transform.InverseTransformPoint(foot.position).y;
+        if (below > 0.001f)
+            LegIK.Solve(upperLeg, lowerLeg, foot, foot.position + transform.up * below * weight);
+    }
+
+    // How much the current and fading-out clip sit or lie on furniture (0-1), weighted by the crossfade
+    float FurnitureWeight()
+    {
+        float weight = 0;
+        AnimationLibraryEntry entry;
+
+        if (CurrentClip != null && currentPlayable.IsValid() && motions.TryGetValue(CurrentClip, out entry))
+            weight += entry.FurnitureAt((float)currentPlayable.GetTime()) * mixer.GetInputWeight(0);
+        if (previousPlayable.IsValid() && previousClip != null && motions.TryGetValue(previousClip, out entry))
+            weight += entry.FurnitureAt((float)previousPlayable.GetTime()) * mixer.GetInputWeight(1);
+
+        return weight;
+    }
+
+    // Body shift of the current and fading-out clip in the avatar's frame, weighted by the crossfade
     Vector3 PoseOffset()
     {
         Vector3 offset = Vector3.zero;
@@ -270,7 +312,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
         if (previousPlayable.IsValid() && previousClip != null && poseOffsets.TryGetValue(previousClip, out entry))
             offset += entry.PoseOffsetAt((float)previousPlayable.GetTime()) * mixer.GetInputWeight(1);
 
-        return transform.rotation * offset;
+        return offset;
     }
 
     // Body turn about the hips of the current and fading-out clip, weighted by the crossfade
@@ -376,7 +418,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
     }
 
     // Call after the skeleton is rescaled (CharacterModel.InitializeAvatar)
-    public void UpdateFloorOffset()
+    public void UpdateBodyScale()
     {
         if (hips == null) return;
 
@@ -387,14 +429,14 @@ public class MixamoAnimationPlayer : MonoBehaviour
             restPoseBones[i].localRotation = restPoseRotations[i];
         }
 
-        FloorOffset = MeasureHipToSole() - nativeHipToSole;
+        BodyScale = MeasureHipToSole(out footToSole) / nativeHipToSole;
 
         for (int i = 0; i < restPoseBones.Length; i++)
             restPoseBones[i].localRotation = animatedRotations[i];
     }
 
-    // Height of the hips above the lowest skinned vertex, in the avatar's root space
-    float MeasureHipToSole()
+    // Height of the hips (and the lower ankle) above the lowest skinned vertex, in the avatar's root space
+    float MeasureHipToSole(out float ankleToSole)
     {
         float lowest = float.MaxValue;
         Mesh baked = new Mesh();
@@ -409,6 +451,8 @@ public class MixamoAnimationPlayer : MonoBehaviour
         }
 
         Destroy(baked);
+        float ankle = Mathf.Min(transform.InverseTransformPoint(animator.GetBoneTransform(HumanBodyBones.LeftFoot).position).y, transform.InverseTransformPoint(animator.GetBoneTransform(HumanBodyBones.RightFoot).position).y);
+        ankleToSole = ankle - lowest;
         return transform.InverseTransformPoint(hips.position).y - lowest;
     }
 

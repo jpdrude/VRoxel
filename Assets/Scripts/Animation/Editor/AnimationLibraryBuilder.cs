@@ -51,6 +51,14 @@ public class AnimationLibraryBuilder : AssetPostprocessor
     // Clips whose sideways root motion is dropped: Mixamo's ladder start steps 1 m sideways while it turns, which
     // keepFacing undoes, so the avatar steps straight onto a ladder in front of it
     static readonly string[] noSideways = { "vert_ladderStart", "vert_ladderEnd" };
+    // Clips resting on furniture, whose height is the same for every avatar: weight at the clip's start and end, first
+    // matching name wins. Sitting down moves onto the chair, standing up off it; chair and bed poses stay on it.
+    static readonly (Regex name, float start, float end)[] furniturePoses =
+    {
+        (new Regex(@"^sit_standToSit"), 0, 1),
+        (new Regex(@"^sit_sitToStand"), 1, 0),
+        (new Regex(@"^(sit|bed)_"), 1, 1),
+    };
     // Clips whose body stands or sits away from the root, so crossfading into them slides it over the floor; their body
     // is moved horizontally to the reference clip's (Mixamo's bartender stands 45 cm behind its root). Transitions are
     // matched at their end, phased in over the clip (sitting down ends 15 cm behind where the sitting loops sit).
@@ -185,6 +193,13 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         {
             entry.vertical = entry.motion.Any(sample => Mathf.Abs(sample.up) > VerticalThreshold);
             entry.averageSpeed = TravelSpeed(entry);
+
+            var furniture = furniturePoses.FirstOrDefault(pose => pose.name.IsMatch(entry.name));
+            if (furniture.name != null)
+            {
+                entry.furnitureStart = furniture.start;
+                entry.furnitureEnd = furniture.end;
+            }
         }
 
         // FindAssets returns a clip once per model, but stay safe against duplicates

@@ -40,7 +40,8 @@ public static class SequencePlanner
         public float lastTime;
     }
 
-    public static Plan Simulate(SequenceState state, AnimationLibrary library)
+    // bodyScale is the avatar's MixamoAnimationPlayer.BodyScale: travel of non-climbing clips scales with its legs
+    public static Plan Simulate(SequenceState state, AnimationLibrary library, float bodyScale = 1)
     {
         Plan plan = new Plan();
         Vector3 position = state.anchorPosition;
@@ -73,7 +74,7 @@ public static class SequencePlanner
 
             float stepTime = 0;
             float timeout = step.hasTarget
-                ? FlatDistance(position, step.target) / Mathf.Max(step.travelSpeed * step.speed, 0.1f) * 2 + 5
+                ? FlatDistance(position, step.target) / Mathf.Max(step.travelSpeed * (step.vertical ? 1 : bodyScale) * step.speed, 0.1f) * 2 + 5
                 : 0;
 
             while (time < MaxDuration)
@@ -96,8 +97,8 @@ public static class SequencePlanner
 
                 Vector3 move = Vector3.zero;
                 float turn = 0;
-                AddRootMotion(current, weight, ref move, ref turn);
-                AddRootMotion(previous, 1 - weight, ref move, ref turn);
+                AddRootMotion(current, weight, bodyScale, ref move, ref turn);
+                AddRootMotion(previous, 1 - weight, bodyScale, ref move, ref turn);
                 position += Quaternion.Euler(0, yaw, 0) * move;
                 yaw += turn;
 
@@ -156,14 +157,15 @@ public static class SequencePlanner
     }
 
     // Same as MixamoAnimationPlayer.AddRootMotion: the clip's baked motion since the last frame, weighted
-    static void AddRootMotion(ClipState state, float weight, ref Vector3 move, ref float turn)
+    static void AddRootMotion(ClipState state, float weight, float bodyScale, ref Vector3 move, ref float turn)
     {
         if (state == null || state.entry == null) return;
 
         MotionSample delta = state.entry.MotionBetween(state.lastTime, state.time);
         state.lastTime = state.time;
 
-        move += new Vector3(delta.right, delta.up, delta.forward) * weight;
+        float scale = state.entry.vertical ? 1 : bodyScale;
+        move += new Vector3(delta.right * scale, delta.up, delta.forward * scale) * weight;
         turn += delta.turn * weight;
     }
 

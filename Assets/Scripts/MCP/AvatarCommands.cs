@@ -22,6 +22,8 @@ public static class AvatarCommands
         bridge.Register("list_avatars", ListAvatars);
         bridge.Register("remove_avatar", RemoveAvatar);
         bridge.Register("set_avatar_color", SetAvatarColor);
+        bridge.Register("set_avatar_body", SetAvatarBody);
+        bridge.Register("set_avatar_brush", SetAvatarBrush);
         bridge.Register("get_animation_motion", GetAnimationMotion);
         bridge.Register("get_ground_height", GetGroundHeight);
         bridge.Register("undo", Undo);
@@ -94,9 +96,8 @@ public static class AvatarCommands
 
         Vector3 position = ReadVector3(args["position"], Vector3.zero);
         float yaw = (float?)args["yaw"] ?? 0;
-        float? height = (float?)args["height_cm"];
-        if (height < 50 || height > 250)
-            throw new McpException("height_cm must be between 50 and 250");
+        AvatarBodies.Parameters body = AvatarBodies.Read(args, null);
+        AvatarDimensions dimensions = AvatarBodies.Build(body, bridge.MixamoAvatar.GetComponent<CharacterModel>().NativeDimensions);
 
         AvatarColors.Entry color = ReadColor(args["color"], null) ?? AvatarColors.PickUnused(AvatarRegistry.UsedColors());
 
@@ -112,15 +113,9 @@ public static class AvatarCommands
                 position.y = ground.Value;
         }
 
-        AvatarDimensions dimensions = null;
-        if (height.HasValue)
-        {
-            dimensions = new AvatarDimensions { bodyHeight = height.Value };
-            dimensions.SetProportionsFromBodyHeight();
-        }
-
         string id;
         GameObject avatar = Spawn(position, yaw, dimensions, color, (string)args["name"], out id);
+        AvatarBodies.Remember(avatar, body);
 
         // The spawn pose becomes the anchor that sequences replay from
         AvatarSequencer sequencer = GetSequencer(avatar);
@@ -148,7 +143,7 @@ public static class AvatarCommands
         // Copied, so InitializeAvatar can't alias the prefab's native dimensions
         if (dimensions == null)
             dimensions = model.NativeDimensions;
-        dimensions = JsonUtility.FromJson<AvatarDimensions>(JsonUtility.ToJson(dimensions));
+        dimensions = AvatarBodies.Copy(dimensions);
 
         model.InitializeAvatar(dimensions, AvatarColors.Build(GetColorSet(model, 0), color));
 
@@ -190,7 +185,7 @@ public static class AvatarCommands
         SequenceState state = ReadSequenceState(args, avatar, out fade);
         ApplySequence(GetSequencer(avatar), state, fade);
 
-        return new { avatar = DescribeAvatar(id, avatar), plan = DescribePlan(state) };
+        return new { avatar = DescribeAvatar(id, avatar), plan = DescribePlan(state, BodyScale(avatar)) };
     }
 
     // Dry run: where each step would start and end, without changing the scene
@@ -202,7 +197,7 @@ public static class AvatarCommands
             throw new McpException("Give avatar_id or start_position");
 
         float fade;
-        return DescribePlan(ReadSequenceState(args, avatar, out fade));
+        return DescribePlan(ReadSequenceState(args, avatar, out fade), BodyScale(avatar));
     }
 
     // Steps, loop flag and anchor from set_sequence / plan_sequence arguments; avatar may be null for plans
@@ -248,9 +243,15 @@ public static class AvatarCommands
         return state;
     }
 
-    static object DescribePlan(SequenceState state)
+    // Travel of non-climbing clips scales with the avatar's legs; plans without an avatar use the model's
+    static float BodyScale(GameObject avatar)
     {
-        SequencePlanner.Plan plan = SequencePlanner.Simulate(state, Library());
+        return avatar != null ? avatar.GetComponent<MixamoAnimationPlayer>().BodyScale : 1;
+    }
+
+    static object DescribePlan(SequenceState state, float bodyScale)
+    {
+        SequencePlanner.Plan plan = SequencePlanner.Simulate(state, Library(), bodyScale);
         float gap = Vector3.Distance(plan.endPosition, state.anchorPosition);
 
         return new
@@ -331,6 +332,105 @@ public static class AvatarCommands
         McpHistory.Push(new DoSetAvatarColor(DoAction.DoType.SetAvatarColor, avatar, oldColor, color.name));
 
         return DescribeAvatar(id, avatar);
+    }
+
+    // Changes height, weight, sex, muscularity or measurements; arguments left out keep their current value
+    static object SetAvatarBody(JObject args)
+    {
+        string id = ResolveId(args["avatar_id"]);
+        GameObject avatar = GetAvatar(id);
+        CharacterModel model = avatar.GetComponent<CharacterModel>();
+
+        AvatarBodies.Parameters oldBody = AvatarBodies.Get(avatar) ?? new AvatarBodies.Parameters();
+        AvatarDimensions oldDimensions = AvatarBodies.Copy(model.Dimensions);
+        AvatarBodies.Parameters body = AvatarBodies.Read(args, oldBody);
+        AvatarDimensions dimensions = AvatarBodies.Build(body, model.NativeDimensions);
+
+        ApplyBody(avatar, dimensions, body);
+        McpHistory.Push(new DoSetAvatarBody(DoAction.DoType.SetAvatarBody, avatar, oldDimensions, oldBody, AvatarBodies.Copy(dimensions), body.Copy()));
+
+        return DescribeAvatar(id, avatar);
+    }
+
+    // Rebuilds the body; its colour and sequence stay
+    internal static void ApplyBody(GameObject avatar, AvatarDimensions dimensions, AvatarBodies.Parameters body)
+    {
+        CharacterModel model = avatar.GetComponent<CharacterModel>();
+        model.InitializeAvatar(AvatarBodies.Copy(dimensions), model.CurrentColorSet);
+        AvatarRegistry.ApplyColor(avatar, AvatarRegistry.GetColor(avatar));
+        AvatarBodies.Remember(avatar, body);
+    }
+
+    // The avatar's body adds or removes blocks wherever it moves (CharacterSpawner), or stops
+    static object SetAvatarBrush(JObject args)
+    {
+        string id = ResolveId(args["avatar_id"]);
+        GameObject avatar = GetAvatar(id);
+
+        string mode = ((string)args["mode"] ?? "").Trim().ToLowerInvariant();
+        if (mode != "add" && mode != "remove" && mode != "off")
+            throw new McpException("mode must be 'add', 'remove' or 'off'");
+
+        string oldMode = BrushMode(avatar);
+        ApplyBrush(avatar, mode);
+        McpHistory.Push(new DoSetAvatarBrush(DoAction.DoType.SetAvatarBrush, avatar, oldMode, mode));
+
+        return DescribeAvatar(id, avatar);
+    }
+
+    internal static void ApplyBrush(GameObject avatar, string mode)
+    {
+        CharacterSpawner spawner = avatar.GetComponent<CharacterSpawner>();
+        if (spawner == null)
+            throw new McpException("This avatar has no CharacterSpawner, so it can't brush blocks");
+
+        if (mode == "add")
+            spawner.AddCharacterBrush();
+        else if (mode == "remove")
+            spawner.RemoveCharacterBrush();
+        else
+            spawner.DisableCharacterBrush();
+    }
+
+    static string BrushMode(GameObject avatar)
+    {
+        CharacterSpawner spawner = avatar.GetComponent<CharacterSpawner>();
+        return spawner == null || !spawner.Brushing ? "off" : spawner.AddBlocks ? "add" : "remove";
+    }
+
+    // The body as set and as built: all lengths in cm, so a change like "longer legs" can start from the current values
+    static object DescribeBody(GameObject avatar)
+    {
+        CharacterModel model = avatar.GetComponent<CharacterModel>();
+        AvatarDimensions d = model.Dimensions;
+        AvatarBodies.Parameters body = AvatarBodies.Get(avatar) ?? new AvatarBodies.Parameters();
+        float? bmi = AvatarBodies.Bmi(body, d);
+
+        return new
+        {
+            height_cm = Round(d.bodyHeight),
+            weight_kg = body.weightKg,
+            bmi = bmi.HasValue ? Round(bmi.Value) : (float?)null,
+            sex = body.sex.HasValue ? Round(body.sex.Value) : (float?)null,
+            muscularity = Round(body.muscularity),
+            body_file = body.bodyFile,
+            measurements = new
+            {
+                footLength = Round(d.footLength),
+                shoulderHeight = Round(d.shoulderHeight),
+                shoulderWidth = Round(d.shoulderWidth),
+                elbowSpan = Round(d.elbowSpan),
+                wristSpan = Round(d.wristSpan),
+                armSpan = Round(d.armSpan),
+                hipHeight = Round(d.hipHeight),
+                hipWidth = Round(d.hipWidth),
+                kneeHeight = Round(d.kneeHeight),
+                ankleHeight = Round(d.ankleHeight),
+                extraShowSoleThickness = Round(d.extraShowSoleThickness)
+            },
+            // Measurements given explicitly; they stay when height, weight, sex or muscularity change
+            fixed_measurements = body.measurements.Keys.ToList()
+        };
     }
 
     // A palette colour no other avatar wears, so colour names stay unambiguous; null if none was given
@@ -418,6 +518,11 @@ public static class AvatarCommands
             // Where the body is, e.g. on a bed while the avatar's root stays on the floor beside it
             body_position = ToArray(animator.GetBoneTransform(HumanBodyBones.Hips).position),
             body_yaw = Round(Mathf.Atan2(bodyForward.x, bodyForward.z) * Mathf.Rad2Deg),
+            body = DescribeBody(avatar),
+            // add / remove: its body adds or removes blocks wherever it moves
+            brush = BrushMode(avatar),
+            // Leg length relative to the 181 cm model: steps, and so cycle_motion and speed of non-climbing clips, scale by it
+            body_scale = Round(player.BodyScale),
             yaw = Round(avatar.transform.eulerAngles.y),
             animation = player.CurrentClip != null ? player.CurrentClip.name : null,
             sequence = state.steps.Select(step => step.clip.name).ToList(),

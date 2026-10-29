@@ -87,6 +87,19 @@ public class AnimationLibraryEntry
         return Vector3.Lerp(poseOffsetStart, poseOffsetEnd, Mathf.Clamp01(time / length));
     }
 
+    // How much the body rests on furniture (0-1), blended from start to end over the clip: chairs and beds have the same
+    // height for everyone, so these poses keep the model's hip height on any avatar (MixamoAnimationPlayer.BodyScale)
+    public float furnitureStart;
+    public float furnitureEnd;
+
+    public float FurnitureAt(float time)
+    {
+        if (loop || length <= 0)
+            return furnitureStart;
+
+        return Mathf.Lerp(furnitureStart, furnitureEnd, Mathf.Clamp01(time / length));
+    }
+
     public float PoseYawAt(float time)
     {
         if (poseYaw == null || poseYaw.Length == 0)

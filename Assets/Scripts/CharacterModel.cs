@@ -153,10 +153,10 @@ public class CharacterModel : MonoBehaviour
 
         SetBodyMultipliers();
 
-        // Humanoid playback ignores the rescaled legs when placing the hips, so the Mixamo player corrects the floor height
+        // Humanoid playback ignores the rescaled legs when placing the hips, so the Mixamo player scales the body and its travel
         MixamoAnimationPlayer mixamoPlayer = GetComponent<MixamoAnimationPlayer>();
         if (mixamoPlayer != null)
-            mixamoPlayer.UpdateFloorOffset();
+            mixamoPlayer.UpdateBodyScale();
 
         SetColor(colorSet);
     }
