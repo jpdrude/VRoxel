@@ -12,11 +12,11 @@ using UnityEngine;
 // so they stay valid when the library is rebuilt or the clips are downloaded again.
 public static class AnimationFileCommands
 {
-    const string Extension = ".vrxlanim";
+    public const string Extension = ".vrxlanim";
     const int FileVersion = 1;
     static readonly Regex validName = new Regex(@"^[\w\- ]{1,64}$");
 
-    static string Folder
+    public static string Folder
     {
         get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VRoxel", "Animations"); }
     }
@@ -117,7 +117,6 @@ public static class AnimationFileCommands
         return animations;
     }
 
-    // Spawns the saved avatars and replays their sequences from the start, in sync; one undo step reverts the load
     static object LoadAnimation(JObject args)
     {
         string name = ReadName(args["name"]);
@@ -125,14 +124,32 @@ public static class AnimationFileCommands
         if (!File.Exists(path))
             throw new McpException("No saved animation " + name + ". Use list_saved_animations");
 
+        LoadResult result = LoadFile(path, (bool?)args["replace"] ?? true);
+        return new { loaded = name, description = result.description, avatars = result.avatars, warnings = result.warnings };
+    }
+
+    public class LoadResult
+    {
+        public string description;
+        public List<object> avatars = new List<object>();
+        public List<string> warnings = new List<string>();
+    }
+
+    // Spawns the saved avatars and replays their sequences from the start, in sync; one MCP undo step reverts the load.
+    // Also called by the character menu's animation import for .vrxlanim files. Throws McpException on failure.
+    public static LoadResult LoadFile(string path, bool replace)
+    {
+        if (McpBridge.Bridge == null)
+            throw new McpException("Loading saved animations needs an McpBridge in the scene");
+
         AnimationFile file = TryRead(path);
         if (file == null)
-            throw new McpException(name + " could not be read");
+            throw new McpException(Path.GetFileName(path) + " could not be read");
 
         List<DoAction> actions = new List<DoAction>();
         List<string> warnings = new List<string>();
 
-        if ((bool?)args["replace"] ?? true)
+        if (replace)
             foreach (KeyValuePair<string, GameObject> entry in AvatarRegistry.All().ToList())
             {
                 entry.Value.SetActive(false);
@@ -178,7 +195,7 @@ public static class AnimationFileCommands
 
         McpHistory.Push(new DoMcpBatch(DoAction.DoType.LoadAnimation, actions));
 
-        return new { loaded = name, description = file.description, avatars = loaded, warnings = warnings };
+        return new LoadResult { description = file.description, avatars = loaded, warnings = warnings };
     }
 
     static AvatarRecord Record(GameObject avatar)

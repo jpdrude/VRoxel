@@ -210,7 +210,8 @@ public class CharacterEditor : MonoBehaviour
 
     public void StartImportDialog()
     {
-        FileBrowser.SetFilters(true, new FileBrowser.Filter("FBX", ".fbx"));
+        // Animations saved through the MCP bridge load as an alternative to motion capture
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("FBX", ".fbx"), new FileBrowser.Filter("VRoxel Avatar Animation", AnimationFileCommands.Extension));
         FileBrowser.SetDefaultFilter(".fbx");
 
         FileBrowser.ShowLoadDialog(OnImportSuccess, OnCancel, FileBrowser.PickMode.Files, false);
@@ -257,8 +258,29 @@ public class CharacterEditor : MonoBehaviour
 
     void OnImportSuccess(string[] args)
     {
-        AnimationIO.ImportMotionCapture(args[0], characterOptions);
+        if (Path.GetExtension(args[0]).ToLowerInvariant() == AnimationFileCommands.Extension)
+            LoadAvatarAnimation(args[0]);
+        else
+            AnimationIO.ImportMotionCapture(args[0], characterOptions);
+
         Resume.Invoke();
+    }
+
+    // Adds the saved avatars to the scene, next to those already there
+    void LoadAvatarAnimation(string path)
+    {
+        try
+        {
+            AnimationFileCommands.LoadResult result = AnimationFileCommands.LoadFile(path, false);
+            MessageSystem.DisplayMessage("Loaded " + Path.GetFileNameWithoutExtension(path) + " with " + result.avatars.Count + " avatars");
+
+            if (result.warnings.Count > 0)
+                MessageSystem.DisplayWarning(string.Join("\n", result.warnings));
+        }
+        catch (McpException e)
+        {
+            MessageSystem.DisplayWarning(e.Message);
+        }
     }
 
     void OnWheelchairImportSuccess(string[] args)
