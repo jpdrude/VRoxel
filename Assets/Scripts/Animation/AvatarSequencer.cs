@@ -175,12 +175,13 @@ public class AvatarSequencer : MonoBehaviour
         SequenceStep step = IsPlaying ? steps[stepIndex] : null;
 
         // Climbing clips own the height; after them the avatar lands only where its feet meet a real floor
+        // (or are a little below one, GroundProbe.HasLanded)
         if (step != null && step.vertical)
             return;
 
         if (!Grounded)
         {
-            Grounded = GroundProbe.IsOnFloor(transform.position);
+            Grounded = GroundProbe.HasLanded(transform.position);
             if (!Grounded) return;
         }
 

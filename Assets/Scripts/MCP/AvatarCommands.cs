@@ -403,6 +403,11 @@ public static class AvatarCommands
         MixamoAnimationPlayer player = avatar.GetComponent<MixamoAnimationPlayer>();
         AvatarSequencer sequencer = GetSequencer(avatar);
         SequenceState state = sequencer.GetState();
+        Animator animator = avatar.GetComponent<Animator>();
+
+        // The body faces away from its hip line, which can differ from the root's yaw while a clip turns the body
+        Vector3 hipLine = animator.GetBoneTransform(HumanBodyBones.RightUpperLeg).position - animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg).position;
+        Vector3 bodyForward = Vector3.Cross(Vector3.ProjectOnPlane(hipLine, Vector3.up), Vector3.up);
 
         return new
         {
@@ -411,7 +416,8 @@ public static class AvatarCommands
             name = avatar.name,
             position = ToArray(avatar.transform.position),
             // Where the body is, e.g. on a bed while the avatar's root stays on the floor beside it
-            body_position = ToArray(avatar.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).position),
+            body_position = ToArray(animator.GetBoneTransform(HumanBodyBones.Hips).position),
+            body_yaw = Round(Mathf.Atan2(bodyForward.x, bodyForward.z) * Mathf.Rad2Deg),
             yaw = Round(avatar.transform.eulerAngles.y),
             animation = player.CurrentClip != null ? player.CurrentClip.name : null,
             sequence = state.steps.Select(step => step.clip.name).ToList(),

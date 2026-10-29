@@ -60,8 +60,11 @@ public static class SequencePlanner
 
             // BeginStep: the previous clip fades out over this step's fade; the first step cuts in
             float fade = index == 0 ? 0 : (step.fade >= 0 ? step.fade : MixamoAnimationPlayer.DefaultCrossfadeDuration);
+            AnimationLibraryEntry entry = library.Get(step.clip.name);
+            if (current != null)
+                fade = AnimationLibraryEntry.Crossfade(current.entry, current.time, entry, fade);
             previous = current;
-            current = new ClipState { entry = library.Get(step.clip.name), clip = step.clip };
+            current = new ClipState { entry = entry, clip = step.clip };
             fadeDuration = previous != null ? fade : 0;
             fadeTimer = 0;
 
@@ -105,7 +108,7 @@ public static class SequencePlanner
                 if (!step.vertical)
                 {
                     if (!grounded)
-                        grounded = GroundProbe.IsOnFloor(position);
+                        grounded = GroundProbe.HasLanded(position);
 
                     float? ground = grounded ? GroundProbe.FindStandingHeight(position) : null;
                     if (ground.HasValue)

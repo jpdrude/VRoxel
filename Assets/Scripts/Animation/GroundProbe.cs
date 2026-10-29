@@ -55,6 +55,13 @@ public static class GroundProbe
         return ground.HasValue;
     }
 
+    // An airborne avatar lands on a floor up to StepHeight above its feet, as a grounded one steps up onto it:
+    // Mixamo's descents go a little further down than its ascents go up (4 stair cycles: 1.92 m up, 2.04 m down)
+    public static bool HasLanded(Vector3 position)
+    {
+        return FindBelow(position + Vector3.up * StepHeight, StepHeight + LandingTolerance).HasValue;
+    }
+
     static bool IsAvatar(Collider collider)
     {
         return collider.GetComponentInParent<CharacterModel>() != null;

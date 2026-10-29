@@ -11,9 +11,9 @@ using UnityEngine.Playables;
 public class AnimationLibraryBuilder : AssetPostprocessor
 {
     const string ClipFolder = "Assets/Animation/Mixamo/Clips/";
-    const string LibraryPath = "Assets/Animation/Mixamo/MixamoLibrary.asset";
+    public const string LibraryPath = "Assets/Animation/Mixamo/MixamoLibrary.asset";
     // Root motion is baked on the avatar that plays the clips, so distances match runtime
-    const string AvatarPath = "Assets/Animation/Characters/MixamoAvatar.prefab";
+    public const string AvatarPath = "Assets/Animation/Characters/MixamoAvatar.prefab";
     // Fine enough to drive the avatar's root from at runtime (MixamoAnimationPlayer)
     const float SampleInterval = 1f / 30;
     // Root height change that marks a clip as climbing
@@ -31,11 +31,53 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         ("bed_lyingIdle", "bed_sitToLie", true),
         ("floor_kneelIdle", "floor_standToKneel", true),
         ("floor_sitGroundIdle", "floor_sitGroundToStand", false),
+        // Mixamo's climbing loop climbs 1 m to the side of where its ladder start ends
+        ("vert_ladderClimb_loop", "vert_ladderStart", true),
+        ("vert_ladderClimbDown_loop", "vert_ladderEnd", false),
+    };
+    // Clips whose body turns while the avatar should keep facing the same way: Mixamo's ladder start turns the body 180°
+    // onto a ladder that its top-out climbs facing the other way. The turn is undone frame by frame (pose yaw), keeping
+    // the facing of the clip's standing end: the start, or the end for the generated step off the ladder.
+    static readonly (string clip, bool keepEnd)[] keepFacing = { ("vert_ladderStart", false), ("vert_ladderEnd", true) };
+    // Clips whose body must face the way a neighbouring clip does at its end (or start): the climbing loops face like
+    // the ladder start and step off they blend with
+    static readonly (string clip, string other, bool atEnd)[] facingMatches =
+    {
+        ("vert_ladderClimb_loop", "vert_ladderStart", true),
+        ("vert_ladderClimbDown_loop", "vert_ladderEnd", false),
+    };
+    // Facing differences below this are left alone
+    const float FacingMatchThreshold = 5;
+    // Clips whose sideways root motion is dropped: Mixamo's ladder start steps 1 m sideways while it turns, which
+    // keepFacing undoes, so the avatar steps straight onto a ladder in front of it
+    static readonly string[] noSideways = { "vert_ladderStart", "vert_ladderEnd" };
+    // Clips whose body stands or sits away from the root, so crossfading into them slides it over the floor; their body
+    // is moved horizontally to the reference clip's (Mixamo's bartender stands 45 cm behind its root). Transitions are
+    // matched at their end, phased in over the clip (sitting down ends 15 cm behind where the sitting loops sit).
+    static readonly (string clip, string reference, bool atEnd)[] alignMatches =
+    {
+        ("activity_bartending_loop", "idle_neutral", false),
+        ("gesture_cheering", "idle_neutral", false),
+        ("interact_leanRailing_loop", "idle_neutral", false),
+        ("sit_idle", "sit_talking_loop", false),
+        ("sit_writing_loop", "sit_talking_loop", false),
+        ("sit_standToSit", "sit_talking_loop", true),
+        ("sit_sitToStand", "idle_neutral", true),
+    };
+    // Clip families that stand lower than every other clip: Mixamo's floor sitting stands up 7 cm low, and its idle and
+    // generated sit-down are matched to it. The whole family is raised until the clip's standing end meets the reference.
+    static readonly (string clip, string reference, string[] family)[] heightMatches =
+    {
+        ("floor_sitGroundToStand", "idle_neutral", new[] { "floor_sitGroundToStand", "floor_standToSitGround", "floor_sitGroundIdle" }),
     };
     // Pose differences below this are left alone
     const float PoseMatchThreshold = 0.02f;
-    // Actions whose reverse is the other one of the pair
-    static readonly string[][] oppositeActions = { new[] { "lieDown", "getUp" }, new[] { "pickUp", "putDown" } };
+    // Actions whose reverse is the other one of the pair; the only way loops get reversed
+    static readonly string[][] oppositeActions =
+    {
+        new[] { "lieDown", "getUp" }, new[] { "pickUp", "putDown" }, new[] { "stepDown", "stepUp" },
+        new[] { "ladderStart", "ladderEnd" }, new[] { "ladderTopOut", "ladderTopIn" }, new[] { "ladderClimb_loop", "ladderClimbDown_loop" },
+    };
 
     [InitializeOnLoadMethod]
     static void BuildIfMissing()
@@ -107,14 +149,7 @@ public class AnimationLibraryBuilder : AssetPostprocessor
             });
         }
 
-        if (avatarPrefab != null)
-        {
-            foreach (AnimationLibraryEntry entry in entries.Where(entry => stairDescentPattern.IsMatch(entry.name)))
-                ApplyStairFix(avatarPrefab, entry);
-
-            MatchPoses(avatarPrefab, entries);
-        }
-
+        // Before the pose matches, which meet reversed clips including these and override them for matched loops
         foreach (AnimationLibraryEntry entry in entries)
         {
             Vector3[] offsets;
@@ -122,6 +157,27 @@ public class AnimationLibraryBuilder : AssetPostprocessor
             {
                 entry.poseOffsetStart = offsets[0];
                 entry.poseOffsetEnd = offsets[1];
+            }
+        }
+
+        if (avatarPrefab != null)
+        {
+            foreach (AnimationLibraryEntry entry in entries.Where(entry => stairDescentPattern.IsMatch(entry.name)))
+                ApplyStairFix(avatarPrefab, entry);
+
+            MatchPoses(avatarPrefab, entries);
+            MatchFacing(avatarPrefab, entries);
+        }
+
+        foreach (AnimationLibraryEntry entry in entries.Where(entry => noSideways.Contains(entry.name) && entry.motion.Count > 0))
+        {
+            Debug.Log("AnimationLibraryBuilder: " + entry.name + " moved " + entry.motion[entry.motion.Count - 1].right.ToString("+0.00;-0.00") +
+                " m sideways; dropped, so it keeps to a straight line");
+            for (int i = 0; i < entry.motion.Count; i++)
+            {
+                MotionSample sample = entry.motion[i];
+                sample.right = 0;
+                entry.motion[i] = sample;
             }
         }
 
@@ -162,7 +218,8 @@ public class AnimationLibraryBuilder : AssetPostprocessor
 
             AnimationClip source = AssetDatabase.LoadAllAssetsAtPath(ClipFolder + name + ".fbx").OfType<AnimationClip>()
                 .FirstOrDefault(c => !c.name.StartsWith("__preview__"));
-            if (source == null || source.isLooping) continue;
+            // Loops only reverse as named opposite actions (climbing up / down); a reversed walk is a different gait
+            if (source == null || (source.isLooping && !oppositeActions.Any(pair => pair.Any(action => name.Contains("_" + action))))) continue;
 
             AnimationClip reversed = Reverse(source, reverseName);
             if (reversed == null) continue;
@@ -439,7 +496,7 @@ public class AnimationLibraryBuilder : AssetPostprocessor
 
             // A non-looping clip holds its last frame just before its length
             float transitionTime = match.atEnd ? transition.clip.length - 1e-3f : 0;
-            Vector3 offset = HipsLocal(avatarPrefab, transition.clip, transitionTime) - HipsLocal(avatarPrefab, idle.clip, 0);
+            Vector3 offset = HipsLocal(avatarPrefab, transition.clip, transitionTime) + transition.PoseOffsetAt(transitionTime) - HipsLocal(avatarPrefab, idle.clip, 0);
             bool apply = offset.magnitude > PoseMatchThreshold;
 
             Debug.Log("AnimationLibraryBuilder: " + match.idle + (apply ? " body moved by " + FormatOffset(offset) : " matches") +
@@ -448,11 +505,139 @@ public class AnimationLibraryBuilder : AssetPostprocessor
             idle.poseOffsetStart = apply ? offset : Vector3.zero;
             idle.poseOffsetEnd = idle.poseOffsetStart;
         }
+
+        foreach (var match in alignMatches)
+        {
+            AnimationLibraryEntry clip = entries.FirstOrDefault(entry => entry.name == match.clip);
+            AnimationLibraryEntry reference = entries.FirstOrDefault(entry => entry.name == match.reference);
+            if (clip == null || reference == null) continue;
+
+            float time = match.atEnd ? clip.clip.length - 1e-3f : 0;
+            Vector3 offset = HipsLocal(avatarPrefab, reference.clip, 0) + reference.PoseOffsetAt(0) - HipsLocal(avatarPrefab, clip.clip, time) - clip.PoseOffsetAt(time);
+            offset.y = 0;
+            if (offset.magnitude <= PoseMatchThreshold)
+            {
+                Debug.Log("AnimationLibraryBuilder: " + match.clip + " matches " + match.reference);
+                continue;
+            }
+
+            Debug.Log("AnimationLibraryBuilder: " + match.clip + " body moved by " + FormatOffset(offset) + (match.atEnd ? " at its end" : "") +
+                " to stand where " + match.reference + " does");
+
+            clip.poseOffsetEnd += offset;
+            if (!match.atEnd)
+                clip.poseOffsetStart += offset;
+        }
+
+        // After the matches above, which line the family's clips up with each other
+        foreach (var match in heightMatches)
+        {
+            AnimationLibraryEntry clip = entries.FirstOrDefault(entry => entry.name == match.clip);
+            AnimationLibraryEntry reference = entries.FirstOrDefault(entry => entry.name == match.reference);
+            if (clip == null || reference == null) continue;
+
+            float end = clip.clip.length - 1e-3f;
+            float lift = HipsLocal(avatarPrefab, reference.clip, 0).y + reference.PoseOffsetAt(0).y - HipsLocal(avatarPrefab, clip.clip, end).y - clip.PoseOffsetAt(end).y;
+            if (Mathf.Abs(lift) <= PoseMatchThreshold) continue;
+
+            Debug.Log("AnimationLibraryBuilder: " + string.Join(", ", match.family) + " raised by " + lift.ToString("+0.00;-0.00") + " m, so " +
+                match.clip + " stands up as high as " + match.reference);
+
+            foreach (AnimationLibraryEntry entry in entries.Where(entry => match.family.Contains(entry.name)))
+            {
+                entry.poseOffsetStart += Vector3.up * lift;
+                entry.poseOffsetEnd += Vector3.up * lift;
+            }
+        }
+    }
+
+    // Facing of the body relative to the root (degrees clockwise, from the hip line, unwrapped) at count evenly spaced
+    // moments of a clip, played in small steps as at runtime
+    static float[] BodyYaws(GameObject avatarPrefab, AnimationClip clip, int count)
+    {
+        GameObject avatar = BakeInstance(avatarPrefab);
+        Animator animator = avatar.GetComponent<Animator>();
+        animator.applyRootMotion = true;
+        Transform leftHip = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
+        Transform rightHip = animator.GetBoneTransform(HumanBodyBones.RightUpperLeg);
+        float[] yaws = new float[count];
+
+        PlayableGraph graph = PlayableGraph.Create("FacingBake");
+        try
+        {
+            graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+            AnimationPlayableOutput output = AnimationPlayableOutput.Create(graph, "Bake", animator);
+            output.SetSourcePlayable(AnimationClipPlayable.Create(graph, clip));
+            graph.Play();
+            graph.Evaluate(0);
+
+            float interval = count > 1 ? clip.length / (count - 1) : 0;
+            float lastTime = 0;
+            for (int i = 0; i < count; i++)
+            {
+                // The last sample stops just short of the clip length, where a looping clip wraps to frame 0
+                float time = i < count - 1 || count == 1 ? i * interval : Mathf.Max(0, clip.length - 1e-3f);
+                for (float played = lastTime; played < time; played += SampleInterval)
+                    graph.Evaluate(Mathf.Min(SampleInterval, time - played));
+                lastTime = time;
+
+                Vector3 right = Vector3.ProjectOnPlane(avatar.transform.InverseTransformDirection(rightHip.position - leftHip.position), Vector3.up);
+                Vector3 forward = Vector3.Cross(right, Vector3.up);
+                float yaw = Mathf.Atan2(forward.x, forward.z) * Mathf.Rad2Deg;
+                yaws[i] = i > 0 ? yaws[i - 1] + Mathf.DeltaAngle(yaws[i - 1], yaw) : yaw;
+            }
+        }
+        finally
+        {
+            graph.Destroy();
+            Object.DestroyImmediate(avatar);
+        }
+
+        return yaws;
+    }
+
+    static void MatchFacing(GameObject avatarPrefab, List<AnimationLibraryEntry> entries)
+    {
+        foreach (var keep in keepFacing)
+        {
+            AnimationLibraryEntry entry = entries.FirstOrDefault(candidate => candidate.name == keep.clip);
+            if (entry == null) continue;
+
+            int count = Mathf.CeilToInt(entry.clip.length / SampleInterval) + 1;
+            float[] yaws = BodyYaws(avatarPrefab, entry.clip, count);
+            float kept = keep.keepEnd ? yaws[count - 1] : yaws[0];
+            entry.poseYaw = yaws.Select(yaw => kept - yaw).ToArray();
+            entry.poseYawInterval = entry.clip.length / (count - 1);
+
+            Debug.Log("AnimationLibraryBuilder: " + entry.name + " turns its body by " + (yaws[count - 1] - yaws[0]).ToString("+0;-0") +
+                "°, undone so the avatar keeps facing forward");
+        }
+
+        foreach (var match in facingMatches)
+        {
+            AnimationLibraryEntry clip = entries.FirstOrDefault(entry => entry.name == match.clip);
+            AnimationLibraryEntry other = entries.FirstOrDefault(entry => entry.name == match.other);
+            if (clip == null || other == null) continue;
+
+            float otherTurn = other.PoseYawAt(match.atEnd ? other.clip.length : 0);
+            float otherFacing = (match.atEnd ? BodyYaws(avatarPrefab, other.clip, 2)[1] : BodyYaws(avatarPrefab, other.clip, 1)[0]) + otherTurn;
+            float clipStart = BodyYaws(avatarPrefab, clip.clip, 1)[0];
+            // Picked closest to the other clip's own turn, so the crossfade between the two blends their turns smoothly
+            float turn = Mathf.DeltaAngle(0, otherFacing - clipStart);
+            turn += Mathf.Round((otherTurn - turn) / 360) * 360;
+            bool apply = Mathf.Abs(Mathf.DeltaAngle(0, turn)) > FacingMatchThreshold;
+
+            Debug.Log("AnimationLibraryBuilder: " + match.clip + (apply ? " body turned by " + turn.ToString("+0;-0") + "°" : " faces the same way") +
+                " to meet " + match.other + " at its " + (match.atEnd ? "end" : "start"));
+
+            clip.poseYaw = apply ? new[] { turn } : new float[0];
+            clip.poseYawInterval = 0;
+        }
     }
 
     // A hidden avatar at the origin for baking. MixamoAnimationPlayer handles OnAnimatorMove, which stops the
     // Animator from moving the root, and its scripts don't run in the editor; without it Unity applies root motion.
-    static GameObject BakeInstance(GameObject avatarPrefab)
+    public static GameObject BakeInstance(GameObject avatarPrefab)
     {
         GameObject avatar = Object.Instantiate(avatarPrefab);
         avatar.hideFlags = HideFlags.HideAndDontSave;

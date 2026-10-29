@@ -23,6 +23,9 @@ public class MixamoClipPostprocessor : AssetPostprocessor
     static readonly string[] movingCategories = { "loco", "turn", "vert" };
     // Categories whose clips climb or descend, so root height must stay root motion (stairs, ladders, steps)
     static readonly string[] verticalCategories = { "vert" };
+    // Clips in those categories that land where they took off: as root motion their height follows the body, which
+    // crouches on landing and took the feet below the floor, so it stays in the pose
+    static readonly Regex sameLevelPattern = new Regex(@"jump", RegexOptions.IgnoreCase);
 
     // One-shot transitions inside otherwise looping categories, e.g. loco_startWalking, sit_standToSit
     static readonly Regex transitionPattern = new Regex(@"(start|stop|(?-i:To[A-Z])|getUp|lieDown)", RegexOptions.IgnoreCase);
@@ -32,7 +35,7 @@ public class MixamoClipPostprocessor : AssetPostprocessor
     public override uint GetVersion()
     {
         // Bump when the rules below change so Unity reimports the clips
-        return 6;
+        return 7;
     }
 
     void OnPreprocessModel()
@@ -139,7 +142,7 @@ public class MixamoClipPostprocessor : AssetPostprocessor
         rules.stationary = stationaryCategories.Contains(category) || isIdle
             || (rules.loop && !movingCategories.Contains(category) && !movingPattern.IsMatch(action));
         rules.turning = turningCategories.Contains(category);
-        rules.vertical = verticalCategories.Contains(category);
+        rules.vertical = verticalCategories.Contains(category) && !sameLevelPattern.IsMatch(action);
 
         return rules;
     }

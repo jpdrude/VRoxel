@@ -57,7 +57,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
 
     // Stair descents corrected at runtime (see StairDescentFix), registered from the AnimationLibrary
     static readonly Dictionary<AnimationClip, StairDescentFix> stairFixes = new Dictionary<AnimationClip, StairDescentFix>();
-    // Body shifts that line clips' poses up with their neighbours (AnimationLibraryEntry.poseOffsetStart / End)
+    // Body shifts and turns that line clips' poses up with their neighbours (AnimationLibraryEntry.poseOffsetStart / End, poseYaw)
     static readonly Dictionary<AnimationClip, AnimationLibraryEntry> poseOffsets = new Dictionary<AnimationClip, AnimationLibraryEntry>();
     AnimationClip previousClip;
 
@@ -138,7 +138,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
         UpdateCrossfade(deltaTime);
         graph.Evaluate(deltaTime);
         ApplyRootMotion();
-        hips.position += transform.up * FloorOffset + PoseOffset();
+        ApplyPoseOffsets();
         ApplyStairFixes();
 
         Evaluated?.Invoke(frameTime);
@@ -155,6 +155,10 @@ public class MixamoAnimationPlayer : MonoBehaviour
     public void Play(AnimationClip clip, float fade)
     {
         if (clip == null) return;
+
+        AnimationLibraryEntry fromEntry, toEntry;
+        if (CurrentClip != null && currentPlayable.IsValid() && motions.TryGetValue(CurrentClip, out fromEntry) && motions.TryGetValue(clip, out toEntry))
+            fade = AnimationLibraryEntry.Crossfade(fromEntry, (float)currentPlayable.GetTime(), toEntry, fade);
 
         // Mixer input 0 holds the current clip, input 1 the clip fading out
         if (previousPlayable.IsValid())
@@ -245,6 +249,16 @@ public class MixamoAnimationPlayer : MonoBehaviour
             GetComponent<Animator>().ApplyBuiltinRootMotion();
     }
 
+    // Shifts and turns the body by the current and fading-out clip's pose offsets, weighted by the crossfade
+    void ApplyPoseOffsets()
+    {
+        hips.position += transform.up * FloorOffset + PoseOffset();
+
+        float yaw = PoseYaw();
+        if (Mathf.Abs(yaw) > 1e-3f)
+            hips.rotation = Quaternion.AngleAxis(yaw, transform.up) * hips.rotation;
+    }
+
     // Body shift of the current and fading-out clip in world space, weighted by the crossfade
     Vector3 PoseOffset()
     {
@@ -257,6 +271,20 @@ public class MixamoAnimationPlayer : MonoBehaviour
             offset += entry.PoseOffsetAt((float)previousPlayable.GetTime()) * mixer.GetInputWeight(1);
 
         return transform.rotation * offset;
+    }
+
+    // Body turn about the hips of the current and fading-out clip, weighted by the crossfade
+    float PoseYaw()
+    {
+        float yaw = 0;
+        AnimationLibraryEntry entry;
+
+        if (CurrentClip != null && currentPlayable.IsValid() && poseOffsets.TryGetValue(CurrentClip, out entry))
+            yaw += entry.PoseYawAt((float)currentPlayable.GetTime()) * mixer.GetInputWeight(0);
+        if (previousPlayable.IsValid() && previousClip != null && poseOffsets.TryGetValue(previousClip, out entry))
+            yaw += entry.PoseYawAt((float)previousPlayable.GetTime()) * mixer.GetInputWeight(1);
+
+        return yaw;
     }
 
     // The root follows the descent through the baked motion, whose height includes the clip's sink; the hips are
@@ -301,7 +329,7 @@ public class MixamoAnimationPlayer : MonoBehaviour
         if (currentMotion != null)
             currentMotion.lastTime = time;
         graph.Evaluate(0);
-        hips.position += transform.up * FloorOffset + PoseOffset();
+        ApplyPoseOffsets();
 
         pauseAnimation = true;
     }

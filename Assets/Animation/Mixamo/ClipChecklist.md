@@ -30,10 +30,16 @@ pre-selected. The library builder logs which manifest clips are still missing.
 - Loop: `idle`, `loco`, `gesture`, `activity` and any name containing `idle` loop; names containing `start`, `stop`, `To<Upper>`, `getUp`, `lieDown` are one-shot
 - On the spot: `idle`, `gesture`, and every loop outside `loco` / `turn` / `vert` unless the name contains `walk`, `run`, `jog`, `push` or `pull`. Everything else moves the avatar (root motion)
 - `turn` clips rotate the avatar; all others keep its facing direction
-- `vert` clips keep their height change as root motion, so the avatar climbs; all others keep the root at floor height
+- `vert` clips keep their height change as root motion, so the avatar climbs; all others keep the root at floor height,
+  and so do jumps (`vert_jump…`), which land where they took off: their height stays in the pose, so the feet don't
+  follow the body below the floor when it crouches on landing
 - Reversed transitions are generated, not downloaded: for every `category_aToB` whose `category_bToA` isn't in
-  `Clips/`, and for `lieDown` / `getUp` and `pickUp` / `putDown`, the library builder plays the clip backwards into
-  `Generated/` (gitignored). A downloaded clip of the same name replaces the generated one
+  `Clips/`, and for `lieDown` / `getUp`, `pickUp` / `putDown`, `stepDown` / `stepUp` and the ladder (`ladderStart` /
+  `ladderEnd`, `ladderClimb_loop` / `ladderClimbDown_loop`, `ladderTopOut` / `ladderTopIn`), the library builder plays
+  the clip backwards into `Generated/` (gitignored). A downloaded clip of the same name replaces the generated one
+- Mixamo's ladder start turns the body 180° and steps 1 m sideways onto a ladder that its top-out climbs facing the
+  other way. The library builder undoes the turn and the sideways step, and turns and moves the climbing loops to match,
+  so avatars face the ladder from walking up to it until they leave it at the top (and the same way down)
 
 ## How to read the list
 

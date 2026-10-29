@@ -64,7 +64,20 @@ public class AnimationLibraryEntry
     public Vector3 poseOffsetStart;
     public Vector3 poseOffsetEnd;
 
-    public bool HasPoseOffset { get { return poseOffsetStart.sqrMagnitude > 1e-6f || poseOffsetEnd.sqrMagnitude > 1e-6f; } }
+    // Turn of the body about its hips while this clip plays (degrees clockwise seen from above), sampled every
+    // poseYawInterval seconds; one value for a constant turn, empty for most clips. Mixamo's ladder start turns the body
+    // 180° onto a ladder that its top-out faces the other way, so the turn is undone frame by frame.
+    public float[] poseYaw = new float[0];
+    public float poseYawInterval;
+
+    // Clips whose own poses face further apart than this can't crossfade: the blend turns the body the short way round.
+    // Their pose yaws line them up, so the player switches between them at once.
+    public const float CutAngle = 90;
+
+    public bool HasPoseOffset
+    {
+        get { return poseOffsetStart.sqrMagnitude > 1e-6f || poseOffsetEnd.sqrMagnitude > 1e-6f || (poseYaw != null && poseYaw.Length > 0); }
+    }
 
     public Vector3 PoseOffsetAt(float time)
     {
@@ -72,6 +85,27 @@ public class AnimationLibraryEntry
             return poseOffsetStart;
 
         return Vector3.Lerp(poseOffsetStart, poseOffsetEnd, Mathf.Clamp01(time / length));
+    }
+
+    public float PoseYawAt(float time)
+    {
+        if (poseYaw == null || poseYaw.Length == 0)
+            return 0;
+        if (poseYaw.Length == 1 || poseYawInterval <= 0)
+            return poseYaw[0];
+
+        float index = Mathf.Clamp((loop && length > 0 ? Mathf.Repeat(time, length) : time) / poseYawInterval, 0, poseYaw.Length - 1);
+        int i = Mathf.Min(Mathf.FloorToInt(index), poseYaw.Length - 2);
+        return Mathf.Lerp(poseYaw[i], poseYaw[i + 1], index - i);
+    }
+
+    // The crossfade from one clip (at its current time) into the next, 0 where their poses can't blend (CutAngle)
+    public static float Crossfade(AnimationLibraryEntry from, float fromTime, AnimationLibraryEntry to, float fade)
+    {
+        if (from == null || to == null)
+            return fade;
+
+        return Mathf.Abs(from.PoseYawAt(fromTime) - to.PoseYawAt(0)) > CutAngle ? 0 : fade;
     }
 
     // Pose change after clip time t (seconds, unscaled by playback speed). Looping clips repeat their cycle.
