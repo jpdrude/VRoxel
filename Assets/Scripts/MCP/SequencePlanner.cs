@@ -1,11 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Predicts where an avatar is after each step of a sequence, from the root motion baked into the library.
-// Mirrors AvatarSequencer's step timing; walk_to steps are approximated as a straight walk at the clip's speed,
-// and heights only follow the floor at step ends (a wall or gap mid-step is not detected).
+// Predicts where an avatar is after each step of a sequence by replaying it frame by frame the way
+// MixamoAnimationPlayer and AvatarSequencer do: crossfade weights, root motion blended from the library's baked
+// trajectories, floor following, steering toward walk_to targets and the steps' end conditions.
+// It runs at a fixed frame rate, so it can differ slightly from the real frame times.
 public static class SequencePlanner
 {
+    const float FrameTime = 1f / 30;
+    // Plans stop here, e.g. for a sequence that walks against a target it never reaches
+    const float MaxDuration = 900;
+
     public class StepPlan
     {
         public string animation;
@@ -26,6 +31,15 @@ public static class SequencePlanner
         public float endYaw;
     }
 
+    // A clip playing in the simulated mixer
+    class ClipState
+    {
+        public AnimationLibraryEntry entry;
+        public AnimationClip clip;
+        public float time;
+        public float lastTime;
+    }
+
     public static Plan Simulate(SequenceState state, AnimationLibrary library)
     {
         Plan plan = new Plan();
@@ -34,62 +48,94 @@ public static class SequencePlanner
         float time = 0;
         bool grounded = GroundProbe.IsOnFloor(position);
 
-        foreach (SequenceStep step in state.steps)
+        ClipState current = null;
+        ClipState previous = null;
+        float fadeTimer = 0;
+        float fadeDuration = 0;
+
+        for (int index = 0; index < state.steps.Count && time < MaxDuration; index++)
         {
-            AnimationLibraryEntry entry = library.Get(step.clip.name);
+            SequenceStep step = state.steps[index];
             StepPlan stepPlan = new StepPlan { animation = step.clip.name, startTime = time, startPosition = position, startYaw = yaw };
 
-            if (step.hasTarget)
+            // BeginStep: the previous clip fades out over this step's fade; the first step cuts in
+            float fade = index == 0 ? 0 : (step.fade >= 0 ? step.fade : MixamoAnimationPlayer.DefaultCrossfadeDuration);
+            previous = current;
+            current = new ClipState { entry = library.Get(step.clip.name), clip = step.clip };
+            fadeDuration = previous != null ? fade : 0;
+            fadeTimer = 0;
+
+            if (step.vertical)
+                grounded = false;
+
+            float stepTime = 0;
+            float timeout = step.hasTarget
+                ? FlatDistance(position, step.target) / Mathf.Max(step.travelSpeed * step.speed, 0.1f) * 2 + 5
+                : 0;
+
+            while (time < MaxDuration)
             {
-                Vector3 toTarget = step.target - position;
-                toTarget.y = 0;
+                // MixamoAnimationPlayer.Update: the whole mixer advances at the current step's speed
+                float deltaTime = FrameTime * step.speed;
 
-                float speed = Mathf.Max((entry != null ? entry.averageSpeed : 0) * step.speed, 0.1f);
-                float walkTime = toTarget.magnitude / speed;
-                time += walkTime;
-
-                if (toTarget.magnitude > 0.001f)
-                    yaw = Quaternion.LookRotation(toTarget).eulerAngles.y;
-
-                // Walking up or down stairs: the clip's climb rate over the walk; the target's y is ignored
-                float climb = step.vertical && entry != null ? entry.SampleMotion(walkTime * step.speed).up : 0;
-                position = new Vector3(step.target.x, position.y + climb, step.target.z);
-
-                if (step.vertical)
-                    grounded = false;
-            }
-            else
-            {
-                if (step.vertical)
-                    grounded = false;
-
-                float clipTime = ClipTime(step);
-                time += step.duration > 0 ? step.duration : (step.speed > 0 ? clipTime / step.speed : 0);
-
-                if (entry != null)
+                float weight = 1;
+                if (previous != null)
                 {
-                    MotionSample motion = entry.SampleMotion(clipTime);
-                    position += Quaternion.Euler(0, yaw, 0) * new Vector3(motion.right, 0, motion.forward);
-                    // Height only changes for climbing clips; the others bake it into the pose
-                    if (step.vertical)
-                        position.y += motion.up;
-                    yaw += motion.turn;
+                    fadeTimer += deltaTime;
+                    weight = fadeDuration > 0 ? Mathf.Clamp01(fadeTimer / fadeDuration) : 1;
+                    if (fadeTimer >= fadeDuration)
+                        previous = null;
                 }
 
-                // Turning toward `face` overrides the clip's own rotation by the end of the step
-                if (step.hasFacing)
-                    yaw = step.facing;
-            }
+                current.time += deltaTime;
+                if (previous != null)
+                    previous.time += deltaTime;
 
-            // Same floor following as AvatarSequencer: airborne avatars land only where their feet meet a floor
-            if (!step.vertical)
-            {
-                if (!grounded)
-                    grounded = GroundProbe.IsOnFloor(position);
+                Vector3 move = Vector3.zero;
+                float turn = 0;
+                AddRootMotion(current, weight, ref move, ref turn);
+                AddRootMotion(previous, 1 - weight, ref move, ref turn);
+                position += Quaternion.Euler(0, yaw, 0) * move;
+                yaw += turn;
 
-                float? ground = grounded ? GroundProbe.FindStandingHeight(position) : null;
-                if (ground.HasValue)
-                    position.y = ground.Value;
+                // AvatarSequencer.Tick: floor following, then the step's steering and end condition
+                time += FrameTime;
+                stepTime += FrameTime;
+
+                if (!step.vertical)
+                {
+                    if (!grounded)
+                        grounded = GroundProbe.IsOnFloor(position);
+
+                    float? ground = grounded ? GroundProbe.FindStandingHeight(position) : null;
+                    if (ground.HasValue)
+                        position.y = ground.Value;
+                }
+
+                bool finished;
+                if (step.hasTarget)
+                {
+                    Vector3 toTarget = step.target - position;
+                    toTarget.y = 0;
+
+                    finished = toTarget.magnitude <= AvatarSequencer.DefaultArriveRadius;
+                    if (!finished)
+                        yaw = TurnTowards(yaw, Quaternion.LookRotation(toTarget).eulerAngles.y);
+
+                    finished |= stepTime >= timeout;
+                }
+                else
+                {
+                    if (step.hasFacing)
+                        yaw = TurnTowards(yaw, step.facing);
+
+                    finished = step.duration > 0
+                        ? stepTime >= step.duration
+                        : current.time >= step.clip.length * (step.clip.isLooping ? Mathf.Max(1, step.loops) : 1);
+                }
+
+                if (finished)
+                    break;
             }
 
             yaw = Mathf.Repeat(yaw, 360);
@@ -106,12 +152,27 @@ public static class SequencePlanner
         return plan;
     }
 
-    // Clip time a step plays, matching AvatarSequencer's end condition
-    static float ClipTime(SequenceStep step)
+    // Same as MixamoAnimationPlayer.AddRootMotion: the clip's baked motion since the last frame, weighted
+    static void AddRootMotion(ClipState state, float weight, ref Vector3 move, ref float turn)
     {
-        if (step.duration > 0)
-            return step.duration * step.speed;
+        if (state == null || state.entry == null) return;
 
-        return step.clip.length * (step.clip.isLooping ? Mathf.Max(1, step.loops) : 1);
+        MotionSample delta = state.entry.MotionBetween(state.lastTime, state.time);
+        state.lastTime = state.time;
+
+        move += new Vector3(delta.right, delta.up, delta.forward) * weight;
+        turn += delta.turn * weight;
+    }
+
+    static float TurnTowards(float yaw, float targetYaw)
+    {
+        return Mathf.MoveTowardsAngle(yaw, targetYaw, AvatarSequencer.DefaultTurnSpeed * FrameTime);
+    }
+
+    static float FlatDistance(Vector3 a, Vector3 b)
+    {
+        a.y = 0;
+        b.y = 0;
+        return Vector3.Distance(a, b);
     }
 }

@@ -410,6 +410,8 @@ public static class AvatarCommands
             color = AvatarRegistry.GetColor(avatar),
             name = avatar.name,
             position = ToArray(avatar.transform.position),
+            // Where the body is, e.g. on a bed while the avatar's root stays on the floor beside it
+            body_position = ToArray(avatar.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Hips).position),
             yaw = Round(avatar.transform.eulerAngles.y),
             animation = player.CurrentClip != null ? player.CurrentClip.name : null,
             sequence = state.steps.Select(step => step.clip.name).ToList(),

@@ -193,8 +193,8 @@ def plan_sequence(
     start_yaw: StartYaw = None,
 ) -> dict:
     """Dry run of set_sequence: start / end time, position, yaw and grounded state of every step, plus loop_gap
-    (distance from the last step's end back to the anchor). Changes nothing. walk_to steps are approximated as
-    straight walks."""
+    (distance from the last step's end back to the anchor). Changes nothing. The sequence is replayed frame by frame
+    like VRoxel plays it (crossfades, steering, floors), so the plan matches what the avatar will do."""
     return call("plan_sequence", avatar_id=avatar_id, **_sequence_args(steps, end, start, start_position, start_yaw))
 
 

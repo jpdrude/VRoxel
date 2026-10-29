@@ -57,9 +57,22 @@ public class AnimationLibraryEntry
     // Correction for Mixamo stair descents, whose feet are pinned to a flat floor; empty for other clips
     public StairDescentFix stairFix = new StairDescentFix();
 
-    // Meters the body is raised while this clip plays, so a pose clip lines up with the transition into it
-    // (Mixamo's lying idle lies on the floor, its lie-down ends on a bed); 0 for most clips
-    public float heightOffset;
+    // Shift of the body relative to the root while this clip plays (x right, y up, z forward, meters), so its pose
+    // lines up with the clips before and after it: Mixamo's lying idle lies on the floor and 14 cm further back than its
+    // lie-down ends; a reversed clip's body sits about its own travel off the root. Blended from start to end over
+    // the clip; zero for most clips.
+    public Vector3 poseOffsetStart;
+    public Vector3 poseOffsetEnd;
+
+    public bool HasPoseOffset { get { return poseOffsetStart.sqrMagnitude > 1e-6f || poseOffsetEnd.sqrMagnitude > 1e-6f; } }
+
+    public Vector3 PoseOffsetAt(float time)
+    {
+        if (loop || length <= 0)
+            return poseOffsetStart;
+
+        return Vector3.Lerp(poseOffsetStart, poseOffsetEnd, Mathf.Clamp01(time / length));
+    }
 
     // Pose change after clip time t (seconds, unscaled by playback speed). Looping clips repeat their cycle.
     public MotionSample SampleMotion(float t)
@@ -81,9 +94,35 @@ public class AnimationLibraryEntry
         return result;
     }
 
+    // Root offset from clip time t0 to t1, in the avatar's frame at t0. Used to drive the avatar's root at runtime.
+    public MotionSample MotionBetween(float t0, float t1)
+    {
+        // Whole cycles of a loop are a rigid move, so shifting both times by them keeps the offset and SampleMotion cheap
+        if (loop && length > 0)
+        {
+            float shift = Mathf.Floor(t0 / length) * length;
+            t0 -= shift;
+            t1 -= shift;
+        }
+
+        MotionSample a = SampleMotion(t0);
+        MotionSample b = SampleMotion(t1);
+        Vector3 offset = Quaternion.Euler(0, -a.turn, 0) * new Vector3(b.right - a.right, 0, b.forward - a.forward);
+
+        return new MotionSample { time = t1 - t0, right = offset.x, forward = offset.z, up = b.up - a.up, turn = b.turn - a.turn };
+    }
+
     MotionSample Interpolate(float t)
     {
-        int next = motion.FindIndex(sample => sample.time >= t);
+        // Samples are evenly spaced, so start the search next to t instead of at the beginning
+        float interval = motion.Count > 1 ? motion[1].time - motion[0].time : 0;
+        int next = interval > 0 ? Mathf.Clamp(Mathf.FloorToInt(t / interval), 0, motion.Count - 1) : 0;
+        while (next > 0 && motion[next - 1].time >= t)
+            next--;
+        while (next < motion.Count && motion[next].time < t)
+            next++;
+        if (next >= motion.Count)
+            next = -1;
         if (next <= 0)
             return next == 0 ? motion[0] : motion[motion.Count - 1];
 

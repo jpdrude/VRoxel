@@ -19,7 +19,9 @@ public class MixamoAnimationPlayer : MonoBehaviour
     [Space]
     [Header("Playback")]
     [SerializeField]
-    float crossfadeDuration = 0.3f;
+    float crossfadeDuration = DefaultCrossfadeDuration;
+    // SequencePlanner plans with the default
+    public const float DefaultCrossfadeDuration = 0.3f;
     public float CrossfadeDuration { get { return crossfadeDuration; } set { crossfadeDuration = Mathf.Max(0, value); } }
     [SerializeField]
     float speed = 1;
@@ -55,14 +57,27 @@ public class MixamoAnimationPlayer : MonoBehaviour
 
     // Stair descents corrected at runtime (see StairDescentFix), registered from the AnimationLibrary
     static readonly Dictionary<AnimationClip, StairDescentFix> stairFixes = new Dictionary<AnimationClip, StairDescentFix>();
-    // Body lifts that line pose clips up with their transitions (AnimationLibraryEntry.heightOffset)
-    static readonly Dictionary<AnimationClip, float> heightOffsets = new Dictionary<AnimationClip, float>();
+    // Body shifts that line clips' poses up with their neighbours (AnimationLibraryEntry.poseOffsetStart / End)
+    static readonly Dictionary<AnimationClip, AnimationLibraryEntry> poseOffsets = new Dictionary<AnimationClip, AnimationLibraryEntry>();
     AnimationClip previousClip;
+
+    // Root motion of library clips comes from their baked trajectories (AnimationLibraryEntry.motion), not from Unity:
+    // during a crossfade Unity blends the clips' root positions, which shifted avatars by up to 0.4 m. Blending each
+    // clip's own motion since the last frame, as Animator state machines do, can't jump, and matches SequencePlanner.
+    static readonly Dictionary<AnimationClip, AnimationLibraryEntry> motions = new Dictionary<AnimationClip, AnimationLibraryEntry>();
+
+    class RootMotionState
+    {
+        public AnimationLibraryEntry entry;
+        public double lastTime;
+    }
+
+    RootMotionState currentMotion;
+    RootMotionState previousMotion;
 
     class FixState
     {
         public StairDescentFix fix;
-        public float appliedSink;
     }
 
     FixState currentFix;
@@ -122,7 +137,8 @@ public class MixamoAnimationPlayer : MonoBehaviour
 
         UpdateCrossfade(deltaTime);
         graph.Evaluate(deltaTime);
-        hips.position += transform.up * (FloorOffset + HeightOffset());
+        ApplyRootMotion();
+        hips.position += transform.up * FloorOffset + PoseOffset();
         ApplyStairFixes();
 
         Evaluated?.Invoke(frameTime);
@@ -163,6 +179,10 @@ public class MixamoAnimationPlayer : MonoBehaviour
         StairDescentFix fix;
         currentFix = stairFixes.TryGetValue(clip, out fix) ? new FixState { fix = fix } : null;
 
+        previousMotion = currentMotion;
+        AnimationLibraryEntry entry;
+        currentMotion = motions.TryGetValue(clip, out entry) ? new RootMotionState { entry = entry } : null;
+
         fadeDuration = previousPlayable.IsValid() ? fade : 0;
         fadeTimer = 0;
         ApplyFadeWeights();
@@ -181,45 +201,78 @@ public class MixamoAnimationPlayer : MonoBehaviour
 
             if (entry.stairFix != null && entry.stairFix.IsValid)
                 stairFixes[entry.clip] = entry.stairFix;
-            if (Mathf.Abs(entry.heightOffset) > 0.001f)
-                heightOffsets[entry.clip] = entry.heightOffset;
+            if (entry.HasPoseOffset)
+                poseOffsets[entry.clip] = entry;
+            if (entry.motion != null && entry.motion.Count > 1)
+                motions[entry.clip] = entry;
         }
 
-        Debug.Log("MixamoAnimationPlayer: " + stairFixes.Count + " stair descent fixes (" + string.Join(", ", stairFixes.Keys.Select(clip => clip.name)) +
-            "), " + heightOffsets.Count + " height offsets (" + string.Join(", ", heightOffsets.Select(pair => pair.Key.name + " " + pair.Value.ToString("+0.00;-0.00"))) + ") registered");
+        Debug.Log("MixamoAnimationPlayer: root motion of " + motions.Count + " clips, " + stairFixes.Count + " stair descent fixes (" + string.Join(", ", stairFixes.Keys.Select(clip => clip.name)) +
+            "), " + poseOffsets.Count + " pose offsets (" + string.Join(", ", poseOffsets.Keys.Select(clip => clip.name)) + ") registered");
     }
 
-    // Lift of the current and fading-out clip, weighted by the crossfade
-    float HeightOffset()
+    // Moves the root by each playing clip's baked motion since the last frame, weighted by the crossfade
+    void ApplyRootMotion()
     {
-        float offset = 0;
-        float lift;
+        Vector3 move = Vector3.zero;
+        float turn = 0;
 
-        if (CurrentClip != null && heightOffsets.TryGetValue(CurrentClip, out lift))
-            offset += lift * mixer.GetInputWeight(0);
-        if (previousPlayable.IsValid() && previousClip != null && heightOffsets.TryGetValue(previousClip, out lift))
-            offset += lift * mixer.GetInputWeight(1);
+        AddRootMotion(currentMotion, currentPlayable, mixer.GetInputWeight(0), ref move, ref turn);
+        AddRootMotion(previousMotion, previousPlayable, previousPlayable.IsValid() ? mixer.GetInputWeight(1) : 0, ref move, ref turn);
 
-        return offset;
+        // The offsets are in the avatar's frame before this frame's turn
+        transform.position += transform.rotation * move;
+        transform.rotation = Quaternion.AngleAxis(turn, transform.up) * transform.rotation;
     }
 
-    // Lowers the root by the clip's sink and raises the hips by the same amount, so the body keeps its path
-    // but the root follows the descent; then moves the feet down the stairs with IK. Weighted by the crossfade.
+    static void AddRootMotion(RootMotionState state, AnimationClipPlayable playable, float weight, ref Vector3 move, ref float turn)
+    {
+        if (state == null || !playable.IsValid()) return;
+
+        double time = playable.GetTime();
+        MotionSample delta = state.entry.MotionBetween((float)state.lastTime, (float)time);
+        state.lastTime = time;
+
+        move += new Vector3(delta.right, delta.up, delta.forward) * weight;
+        turn += delta.turn * weight;
+    }
+
+    // Having this callback stops the Animator from moving the root itself. Clips outside the library (e.g. test
+    // clips) keep Unity's root motion. The library bake removes this component, as the callback doesn't run in the editor.
+    void OnAnimatorMove()
+    {
+        if (currentMotion == null)
+            GetComponent<Animator>().ApplyBuiltinRootMotion();
+    }
+
+    // Body shift of the current and fading-out clip in world space, weighted by the crossfade
+    Vector3 PoseOffset()
+    {
+        Vector3 offset = Vector3.zero;
+        AnimationLibraryEntry entry;
+
+        if (CurrentClip != null && currentPlayable.IsValid() && poseOffsets.TryGetValue(CurrentClip, out entry))
+            offset += entry.PoseOffsetAt((float)currentPlayable.GetTime()) * mixer.GetInputWeight(0);
+        if (previousPlayable.IsValid() && previousClip != null && poseOffsets.TryGetValue(previousClip, out entry))
+            offset += entry.PoseOffsetAt((float)previousPlayable.GetTime()) * mixer.GetInputWeight(1);
+
+        return transform.rotation * offset;
+    }
+
+    // The root follows the descent through the baked motion, whose height includes the clip's sink; the hips are
+    // raised by the sink so the body keeps its path, then the feet move down the stairs with IK. Weighted by the crossfade.
     void ApplyStairFixes()
     {
-        float rootDrop = 0;
         float hipsRaise = 0;
         float leftDrop = 0;
         float rightDrop = 0;
 
-        ApplyStairFix(currentFix, currentPlayable, mixer.GetInputWeight(0), ref rootDrop, ref hipsRaise, ref leftDrop, ref rightDrop);
-        ApplyStairFix(previousFix, previousPlayable, previousPlayable.IsValid() ? mixer.GetInputWeight(1) : 0, ref rootDrop, ref hipsRaise, ref leftDrop, ref rightDrop);
+        ApplyStairFix(currentFix, currentPlayable, mixer.GetInputWeight(0), ref hipsRaise, ref leftDrop, ref rightDrop);
+        ApplyStairFix(previousFix, previousPlayable, previousPlayable.IsValid() ? mixer.GetInputWeight(1) : 0, ref hipsRaise, ref leftDrop, ref rightDrop);
 
-        if (rootDrop == 0 && hipsRaise == 0 && leftDrop == 0 && rightDrop == 0)
+        if (hipsRaise == 0 && leftDrop == 0 && rightDrop == 0)
             return;
 
-        // Moving the root moves the whole skeleton, so the hips are raised back afterwards
-        transform.position -= transform.up * rootDrop;
         hips.position += transform.up * hipsRaise;
 
         if (leftDrop > 0.001f)
@@ -229,15 +282,11 @@ public class MixamoAnimationPlayer : MonoBehaviour
     }
 
     static void ApplyStairFix(FixState state, AnimationClipPlayable playable, float weight,
-        ref float rootDrop, ref float hipsRaise, ref float leftDrop, ref float rightDrop)
+        ref float hipsRaise, ref float leftDrop, ref float rightDrop)
     {
         if (state == null || !playable.IsValid()) return;
 
         double time = playable.GetTime();
-        float totalSink = state.fix.TotalSink(time);
-        rootDrop += (totalSink - state.appliedSink) * weight;
-        state.appliedSink = totalSink;
-
         hipsRaise += state.fix.SinkAt(time) * weight;
         leftDrop += state.fix.LeftFootDropAt(time) * weight;
         rightDrop += state.fix.RightFootDropAt(time) * weight;
@@ -248,8 +297,11 @@ public class MixamoAnimationPlayer : MonoBehaviour
     {
         Play(clip, 0);
         currentPlayable.SetTime(time);
+        // The pose is shown where the avatar stands; root motion continues from here
+        if (currentMotion != null)
+            currentMotion.lastTime = time;
         graph.Evaluate(0);
-        hips.position += transform.up * (FloorOffset + HeightOffset());
+        hips.position += transform.up * FloorOffset + PoseOffset();
 
         pauseAnimation = true;
     }
@@ -270,6 +322,8 @@ public class MixamoAnimationPlayer : MonoBehaviour
         }
 
         CurrentClip = null;
+        currentMotion = null;
+        previousMotion = null;
     }
 
     void UpdateCrossfade(float deltaTime)
@@ -339,6 +393,8 @@ public class MixamoAnimationPlayer : MonoBehaviour
     {
         if (currentPlayable.IsValid())
             currentPlayable.SetTime(0);
+        if (currentMotion != null)
+            currentMotion.lastTime = 0;
 
         return 0;
     }

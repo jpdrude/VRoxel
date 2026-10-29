@@ -8,10 +8,14 @@ using UnityEngine;
 [RequireComponent(typeof(MixamoAnimationPlayer))]
 public class AvatarSequencer : MonoBehaviour
 {
+    // SequencePlanner plans with the defaults
+    public const float DefaultTurnSpeed = 180;
+    public const float DefaultArriveRadius = 0.2f;
+
     [SerializeField]
-    float turnSpeed = 180;
+    float turnSpeed = DefaultTurnSpeed;
     [SerializeField]
-    float arriveRadius = 0.2f;
+    float arriveRadius = DefaultArriveRadius;
     [Tooltip("Keep grounded avatars on floors found by GroundProbe")]
     [SerializeField]
     bool followGround = true;
