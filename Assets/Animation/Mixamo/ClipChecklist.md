@@ -88,6 +88,10 @@ pre-selected. The library builder logs which manifest clips are still missing.
 
 ## vert: stairs, ladders, steps, jumps (9)
 
+The library builder scales the rise of stairs and ladders so whole cycles climb a 3.2 m storey (`StoreyHeight`):
+7 stair cycles up or down (14 steps of 23 cm), or the ladder's start, 2 climbing cycles and top-out (rungs 23 cm
+apart). Only the root's height changes, not the poses.
+
 - [x] ★ `vert_stairsUp_loop` | "Ascending Stairs" / "Walking Up Stairs" | loop it along a staircase
 - [x] ★ `vert_stairsDown_loop` | "Descending Stairs" / "Walking Down Stairs" | Mixamo pins the feet to a flat floor; the library builder bakes a StairDescentFix that lowers the feet at runtime
 - [x] `vert_stairsUpRun_loop` | "Running Up Stairs" |

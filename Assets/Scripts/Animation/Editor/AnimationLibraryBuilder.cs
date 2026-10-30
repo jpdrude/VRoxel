@@ -80,6 +80,17 @@ public class AnimationLibraryBuilder : AssetPostprocessor
     };
     // Pose differences below this are left alone
     const float PoseMatchThreshold = 0.02f;
+    // Storey height of a house. Stairs and ladders are scaled to climb it in whole cycles, so an avatar arrives at the
+    // next floor: stairs in StairCycles cycles (Mixamo's cycle is two steps, so 14 steps of 23 cm) up and down alike,
+    // ladders in their start, LadderCycles climbing cycles and the top-out (rungs 23 cm apart)
+    const float StoreyHeight = 3.2f;
+    const int StairCycles = 7;
+    const int LadderCycles = 2;
+    static readonly string[] stairClips = { "vert_stairsUp_loop", "vert_stairsUpRun_loop", "vert_stairsDown_loop" };
+    static readonly string[] ladderClips =
+    {
+        "vert_ladderStart", "vert_ladderClimb_loop", "vert_ladderTopOut", "vert_ladderEnd", "vert_ladderClimbDown_loop", "vert_ladderTopIn",
+    };
     // Actions whose reverse is the other one of the pair; the only way loops get reversed
     static readonly string[][] oppositeActions =
     {
@@ -172,6 +183,8 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         {
             foreach (AnimationLibraryEntry entry in entries.Where(entry => stairDescentPattern.IsMatch(entry.name)))
                 ApplyStairFix(avatarPrefab, entry);
+
+            ScaleToStorey(entries);
 
             MatchPoses(avatarPrefab, entries);
             MatchFacing(avatarPrefab, entries);
@@ -499,6 +512,55 @@ public class AnimationLibraryBuilder : AssetPostprocessor
         a.y = 0;
         b.y = 0;
         return Vector3.Distance(a, b);
+    }
+
+    // Scales the rise of stairs and ladders so they climb StoreyHeight in whole cycles; poses stay as they are
+    static void ScaleToStorey(List<AnimationLibraryEntry> entries)
+    {
+        foreach (AnimationLibraryEntry entry in entries.Where(entry => stairClips.Contains(entry.name)))
+        {
+            float rise = Mathf.Abs(CycleRise(entry));
+            if (rise > 1e-3f)
+                ScaleRise(entry, StoreyHeight / StairCycles / rise);
+        }
+
+        AnimationLibraryEntry start = entries.FirstOrDefault(entry => entry.name == "vert_ladderStart");
+        AnimationLibraryEntry climb = entries.FirstOrDefault(entry => entry.name == "vert_ladderClimb_loop");
+        AnimationLibraryEntry topOut = entries.FirstOrDefault(entry => entry.name == "vert_ladderTopOut");
+        if (start == null || climb == null || topOut == null)
+            return;
+
+        // The generated descents are the ascents played backwards and get the same scale
+        float ascent = CycleRise(start) + LadderCycles * CycleRise(climb) + CycleRise(topOut);
+        float factor = StoreyHeight / ascent;
+        foreach (AnimationLibraryEntry entry in entries.Where(entry => ladderClips.Contains(entry.name)))
+            ScaleRise(entry, factor);
+    }
+
+    static float CycleRise(AnimationLibraryEntry entry)
+    {
+        return entry.motion.Count > 0 ? entry.motion[entry.motion.Count - 1].up : 0;
+    }
+
+    // The root's height change and a stair descent's foot drop; the hips' raise stays, as it cancels Mixamo's own sink
+    static void ScaleRise(AnimationLibraryEntry entry, float factor)
+    {
+        float before = CycleRise(entry);
+        for (int i = 0; i < entry.motion.Count; i++)
+        {
+            MotionSample sample = entry.motion[i];
+            sample.up *= factor;
+            entry.motion[i] = sample;
+        }
+
+        if (entry.stairFix != null && entry.stairFix.IsValid)
+        {
+            entry.stairFix.leftFootDrop = entry.stairFix.leftFootDrop.Select(drop => drop * factor).ToArray();
+            entry.stairFix.rightFootDrop = entry.stairFix.rightFootDrop.Select(drop => drop * factor).ToArray();
+        }
+
+        Debug.Log("AnimationLibraryBuilder: " + entry.name + " rises " + CycleRise(entry).ToString("+0.000;-0.000") + " m per cycle (was " +
+            before.ToString("+0.000;-0.000") + "), so it climbs a " + StoreyHeight.ToString("0.0") + " m storey in whole cycles");
     }
 
     static void MatchPoses(GameObject avatarPrefab, List<AnimationLibraryEntry> entries)
