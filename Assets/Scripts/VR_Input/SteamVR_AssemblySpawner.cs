@@ -86,6 +86,9 @@ public class SteamVR_AssemblySpawner : SpawnerActions
         }
     }
 
+    // Sphere, box, cylinder and capsule strokes; the mesh brush has its own query (GetBlocksInMesh)
+    readonly BlockBrush brush = new BlockBrush();
+
     private void Awake()
     {
         cloudSelector    = GetComponent<SteamVR_PointCloudSelector>();
@@ -204,6 +207,7 @@ public class SteamVR_AssemblySpawner : SpawnerActions
 
     public override void OnTriggerUp()
     {
+        brush.EndStroke();
         BlockContainer.Container.FinishStroke(modeType);
     }
 
@@ -402,58 +406,42 @@ public class SteamVR_AssemblySpawner : SpawnerActions
 
     void SpawnBlocksInSphere()
     {
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sphere.transform.position, radius, out blockDictKeys);
-        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
+        brush.Add(Bond.BrushShape.Sphere(sphere.transform.position, radius));
     }
 
     void RemoveBlocksInSphere()
     {
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sphere.transform.position, radius, out blockDictKeys);
-        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
+        brush.Remove(Bond.BrushShape.Sphere(sphere.transform.position, radius));
     }
 
     void SpawnBlocksInBox()
     {
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInBox(cubeBehaviour.Min, cubeBehaviour.Max, out blockDictKeys);
-        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
+        brush.Add(Bond.BrushShape.Box(cubeBehaviour.Min, cubeBehaviour.Max));
     }
 
     void RemoveBlocksInBox()
     {
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInBox(cubeBehaviour.Min, cubeBehaviour.Max, out blockDictKeys);
-        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
+        brush.Remove(Bond.BrushShape.Box(cubeBehaviour.Min, cubeBehaviour.Max));
     }
 
     void SpawnBlocksInCylinder()
     {
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCylinder(cylinder.transform.position, cylinderRadius, cylinderHeight, out blockDictKeys);
-        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
+        brush.Add(Bond.BrushShape.Cylinder(cylinder.transform.position, cylinderRadius, cylinderHeight));
     }
 
     void RemoveBlocksInCylinder()
     {
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCylinder(cylinder.transform.position, cylinderRadius, cylinderHeight, out blockDictKeys);
-        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
+        brush.Remove(Bond.BrushShape.Cylinder(cylinder.transform.position, cylinderRadius, cylinderHeight));
     }
 
     void SpawnBlocksInCapsule()
     {
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(capsuleBehaviour.PositionA, capsuleBehaviour.PositionB, capsuleBehaviour.Radius, out blockDictKeys);
-        BlockContainer.Container.AddBlocks(blocks, blockDictKeys);
+        brush.Add(Bond.BrushShape.Capsule(capsuleBehaviour.PositionA, capsuleBehaviour.PositionB, capsuleBehaviour.Radius));
     }
 
     void RemoveBlocksInCapsule()
     {
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(capsuleBehaviour.PositionA, capsuleBehaviour.PositionB, capsuleBehaviour.Radius, out blockDictKeys);
-        BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys);
+        brush.Remove(Bond.BrushShape.Capsule(capsuleBehaviour.PositionA, capsuleBehaviour.PositionB, capsuleBehaviour.Radius));
     }
 
     void SpawnBlocksInBrush()
