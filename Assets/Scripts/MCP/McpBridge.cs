@@ -61,6 +61,7 @@ public class McpBridge : MonoBehaviour
         Register("ping", args => new { scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name, avatars = AvatarRegistry.Count });
         AvatarCommands.Register(this);
         SceneCommands.Register(this);
+        BlockCommands.Register(this);
         AnimationFileCommands.Register(this);
     }
 

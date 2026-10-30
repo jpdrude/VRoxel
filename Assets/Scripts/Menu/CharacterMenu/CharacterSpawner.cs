@@ -17,6 +17,11 @@ public class CharacterSpawner : MonoBehaviour
 
     [SerializeField]
     int historyBatchSize = 25;
+
+    // Thickness of the brush relative to the body colliders: above 1 the avatar adds or removes a wider swath
+    [SerializeField]
+    float brushSize = 1;
+    public float BrushSize { get { return brushSize; } set { brushSize = Mathf.Max(0.1f, value); } }
     int strokeCounter = 0;
 
     DoAddStroke currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
@@ -161,7 +166,7 @@ public class CharacterSpawner : MonoBehaviour
         float maxScale = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
 
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sc.transform.TransformPoint(sc.center), sc.radius * maxScale, out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sc.transform.TransformPoint(sc.center), sc.radius * maxScale * brushSize, out blockDictKeys);
         
         if (add)
         {
@@ -192,7 +197,7 @@ public class CharacterSpawner : MonoBehaviour
             : Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
 
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(positionA, positionB, cc.radius * across, out blockDictKeys);
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(positionA, positionB, cc.radius * across * brushSize, out blockDictKeys);
 
         if (add)
         {

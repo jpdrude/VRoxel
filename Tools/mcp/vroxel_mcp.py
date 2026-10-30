@@ -279,13 +279,38 @@ def set_avatar_color(
 @mcp.tool()
 def set_avatar_brush(
     avatar_id: AvatarId,
-    mode: Annotated[Literal["add", "remove", "off"], Field(description="'add' fills blocks wherever its body moves, 'remove' carves them away, 'off' stops")],
+    mode: Annotated[Optional[Literal["add", "remove", "off"]], Field(description="'add' fills blocks wherever its body moves, 'remove' carves them away, 'off' stops; default keeps the current mode")] = None,
+    size: Annotated[Optional[float], Field(ge=0.25, le=5, description="Thickness of the brush relative to the body (1); 2 adds or removes a swath twice as thick, e.g. a wider path. Default keeps the current size")] = None,
 ) -> dict:
     """Let an avatar's body add or remove VRoxel blocks wherever it moves, e.g. carve a path or a seat by walking or
     sitting through blocks. The blocks are the user's design edits: they go on the user's undo, while undo here only
     switches the brush back. While any avatar brushes, animation advances at most 1/30 s per frame, so if brushing
     lowers the frame rate, all avatars slow down rather than leave gaps in the stroke."""
-    return call("set_avatar_brush", avatar_id=avatar_id, mode=mode)
+    return call("set_avatar_brush", avatar_id=avatar_id, mode=mode, size=size)
+
+
+Point = Annotated[Optional[list[float]], Field(min_length=3, max_length=3, description="Box, sphere or cylinder center [x, y, z]")]
+
+
+@mcp.tool()
+def create_block_volume(
+    shape: Annotated[Literal["box", "sphere", "cylinder", "capsule"], Field(description="box: center + size (axis aligned); sphere: center + radius; cylinder: center + radius + height (vertical); capsule: axis_start + axis_end + radius")],
+    mode: Annotated[Literal["add", "remove"], Field(description="'add' fills the volume with building blocks, 'remove' empties it")] = "add",
+    center: Point = None,
+    size: Annotated[Optional[list[float]], Field(min_length=3, max_length=3, description="Box size [x, y, z] in meters")] = None,
+    radius: Annotated[Optional[float], Field(gt=0, description="Radius in meters")] = None,
+    height: Annotated[Optional[float], Field(gt=0, description="Cylinder height in meters")] = None,
+    axis_start: Annotated[Optional[list[float]], Field(min_length=3, max_length=3, description="Capsule axis start [x, y, z]")] = None,
+    axis_end: Annotated[Optional[list[float]], Field(min_length=3, max_length=3, description="Capsule axis end [x, y, z]")] = None,
+    estimate_only: Annotated[bool, Field(description="Only count the blocks the volume would hold")] = False,
+    confirm: Annotated[bool, Field(description="Set only after the user explicitly agreed to a volume over 200,000 blocks")] = False,
+) -> dict:
+    """Add or remove a volume of building blocks on the active bond's grid; the blocks are the user's design edits and
+    go on the user's undo (one step per volume). The block count is estimated first: over 200,000 blocks nothing is
+    generated and the result says needs_confirmation, so ask the user, and over 1,000,000 also advise against it
+    (VRoxel gets slow); call again with confirm=true only if the user agrees. get_assembly_bounds shows the design."""
+    return call("create_block_volume", shape=shape, mode=mode, center=center, size=size, radius=radius, height=height,
+                axis_start=axis_start, axis_end=axis_end, estimate_only=estimate_only, confirm=confirm)
 
 
 @mcp.tool()

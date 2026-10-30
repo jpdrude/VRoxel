@@ -367,22 +367,30 @@ public static class AvatarCommands
         string id = ResolveId(args["avatar_id"]);
         GameObject avatar = GetAvatar(id);
 
-        string mode = ((string)args["mode"] ?? "").Trim().ToLowerInvariant();
+        string oldMode = BrushMode(avatar);
+        float oldSize = BrushSize(avatar);
+
+        string mode = ((string)args["mode"] ?? oldMode).Trim().ToLowerInvariant();
         if (mode != "add" && mode != "remove" && mode != "off")
             throw new McpException("mode must be 'add', 'remove' or 'off'");
 
-        string oldMode = BrushMode(avatar);
-        ApplyBrush(avatar, mode);
-        McpHistory.Push(new DoSetAvatarBrush(DoAction.DoType.SetAvatarBrush, avatar, oldMode, mode));
+        float size = (float?)args["size"] ?? oldSize;
+        if (size < 0.25f || size > 5)
+            throw new McpException("size must be between 0.25 and 5 (1 is the body itself)");
+
+        ApplyBrush(avatar, mode, size);
+        McpHistory.Push(new DoSetAvatarBrush(DoAction.DoType.SetAvatarBrush, avatar, oldMode, oldSize, mode, size));
 
         return DescribeAvatar(id, avatar);
     }
 
-    internal static void ApplyBrush(GameObject avatar, string mode)
+    internal static void ApplyBrush(GameObject avatar, string mode, float size)
     {
         CharacterSpawner spawner = avatar.GetComponent<CharacterSpawner>();
         if (spawner == null)
             throw new McpException("This avatar has no CharacterSpawner, so it can't brush blocks");
+
+        spawner.BrushSize = size;
 
         if (mode == "add")
             spawner.AddCharacterBrush();
@@ -390,6 +398,12 @@ public static class AvatarCommands
             spawner.RemoveCharacterBrush();
         else
             spawner.DisableCharacterBrush();
+    }
+
+    static float BrushSize(GameObject avatar)
+    {
+        CharacterSpawner spawner = avatar.GetComponent<CharacterSpawner>();
+        return spawner != null ? spawner.BrushSize : 1;
     }
 
     static string BrushMode(GameObject avatar)
@@ -521,6 +535,7 @@ public static class AvatarCommands
             body = DescribeBody(avatar),
             // add / remove: its body adds or removes blocks wherever it moves
             brush = BrushMode(avatar),
+            brush_size = Round(BrushSize(avatar)),
             // Leg length relative to the 181 cm model: steps, and so cycle_motion and speed of non-climbing clips, scale by it
             body_scale = Round(player.BodyScale),
             yaw = Round(avatar.transform.eulerAngles.y),
