@@ -50,7 +50,10 @@ public static class BlockCommands
         }
 
         PositionKey[][] keys;
-        Matrix4x4[][] blocks = Blocks(shape, args, bond, out keys);
+        // Only the blocks that change: free cells when adding, placed blocks when removing
+        System.Collections.Generic.Dictionary<PositionKey, PositionEntry> placed = BlockContainer.Container.BlockDictionary;
+        Matrix4x4[][] blocks = bond.GetBlocksInShapes(new[] { Shape(shape, args) },
+            mode == "add" ? (key => !placed.ContainsKey(key)) : (System.Func<PositionKey, bool>)(key => placed.ContainsKey(key)), out keys);
 
         int changed;
         if (mode == "add")
@@ -72,8 +75,7 @@ public static class BlockCommands
         {
             done = true,
             mode = mode,
-            // Blocks in the volume, and how many of them were actually added (free cells) or removed (occupied ones)
-            blocks_in_volume = blocks.Sum(part => part.Length),
+            // How many blocks were added (free cells of the volume) or removed (placed ones)
             changed = changed,
             estimated_blocks = estimate
         };
@@ -101,20 +103,20 @@ public static class BlockCommands
         }
     }
 
-    static Matrix4x4[][] Blocks(string shape, JObject args, Bond bond, out PositionKey[][] keys)
+    static Bond.BrushShape Shape(string shape, JObject args)
     {
         switch (shape)
         {
             case "box":
                 Vector3 center = Point(args, "center");
                 Vector3 half = Size(args) / 2;
-                return bond.GetBlocksInBox(center - half, center + half, out keys);
+                return Bond.BrushShape.Box(center - half, center + half);
             case "sphere":
-                return bond.GetBlocksInSphere(Point(args, "center"), Radius(args), out keys);
+                return Bond.BrushShape.Sphere(Point(args, "center"), Radius(args));
             case "cylinder":
-                return bond.GetBlocksInCylinder(Point(args, "center"), Radius(args), Positive(args, "height"), out keys);
+                return Bond.BrushShape.Cylinder(Point(args, "center"), Radius(args), Positive(args, "height"));
             default:
-                return bond.GetBlocksInCapsule(Point(args, "axis_start"), Point(args, "axis_end"), Radius(args), out keys);
+                return Bond.BrushShape.Capsule(Point(args, "axis_start"), Point(args, "axis_end"), Radius(args));
         }
     }
 
