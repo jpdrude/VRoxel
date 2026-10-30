@@ -133,6 +133,7 @@ public class Bond : MonoBehaviour
 
         for (int i = 0; i < bondBlocks.Length; ++i)
             blocks[i] = bondBlocks[i].blocks;
+        cellBlockPositions = null;
 
         offset = defaultOffset;
 
@@ -577,6 +578,287 @@ public class Bond : MonoBehaviour
         }
 
         return _blockTransforms;
+    }
+
+    // A volume for GetBlocksInShapes: a sphere around a, a capsule from a to b, a vertical cylinder around a (radius,
+    // height), or an axis-aligned box from a (min) to b (max). Blittable, so Burst jobs test it directly.
+    public struct BrushShape
+    {
+        public enum Kind { Sphere, Capsule, Cylinder, Box }
+
+        public Kind kind;
+        public Vector3 a;
+        public Vector3 b;
+        public float radius;
+        public float height;
+        // Bounding box, so most shapes are skipped for a block with a few comparisons
+        public Vector3 min;
+        public Vector3 max;
+
+        public static BrushShape Sphere(Vector3 center, float radius)
+        {
+            return new BrushShape { kind = Kind.Sphere, a = center, b = center, radius = radius, min = center - Vector3.one * radius, max = center + Vector3.one * radius };
+        }
+
+        public static BrushShape Capsule(Vector3 a, Vector3 b, float radius)
+        {
+            return new BrushShape { kind = Kind.Capsule, a = a, b = b, radius = radius, min = Vector3.Min(a, b) - Vector3.one * radius, max = Vector3.Max(a, b) + Vector3.one * radius };
+        }
+
+        public static BrushShape Cylinder(Vector3 center, float radius, float height)
+        {
+            Vector3 extent = new Vector3(radius, height / 2, radius);
+            return new BrushShape { kind = Kind.Cylinder, a = center, b = center, radius = radius, height = height, min = center - extent, max = center + extent };
+        }
+
+        public static BrushShape Box(Vector3 min, Vector3 max)
+        {
+            return new BrushShape { kind = Kind.Box, a = min, b = max, min = min, max = max };
+        }
+
+        // The same tests as the single-volume queries, with squared distances; a capsule's nearest point is clamped to its axis
+        public bool Contains(float3 p)
+        {
+            if (p.x < min.x || p.y < min.y || p.z < min.z || p.x > max.x || p.y > max.y || p.z > max.z)
+                return false;
+
+            float3 start = a;
+            switch (kind)
+            {
+                case Kind.Sphere:
+                    return math.lengthsq(p - start) < radius * radius;
+                case Kind.Capsule:
+                    float3 axis = (float3)b - start;
+                    float lengthSquared = math.lengthsq(axis);
+                    float t = lengthSquared > 1e-12f ? math.saturate(math.dot(p - start, axis) / lengthSquared) : 0;
+                    return math.lengthsq(p - (start + axis * t)) < radius * radius;
+                case Kind.Cylinder:
+                    float2 across = p.xz - start.xz;
+                    return math.lengthsq(across) < radius * radius;
+                default:
+                    return true;
+            }
+        }
+    }
+
+    // Positions, rotations and grid keys of one cell's blocks relative to the cell's base, read once from the bond's
+    // transforms: reading them in the inner loop is what made the single-volume queries slow for brushes
+    Vector3[][] cellBlockPositions;
+    Quaternion[][] cellBlockRotations;
+    Vector3Int[][] cellBlockKeys;
+
+    void CacheCellBlocks()
+    {
+        if (cellBlockPositions != null && cellBlockPositions.Length == blocks.Length)
+            return;
+
+        cellBlockPositions = new Vector3[blocks.Length][];
+        cellBlockRotations = new Quaternion[blocks.Length][];
+        cellBlockKeys = new Vector3Int[blocks.Length][];
+
+        for (int i = 0; i < blocks.Length; ++i)
+        {
+            cellBlockPositions[i] = new Vector3[blocks[i].Length];
+            cellBlockRotations[i] = new Quaternion[blocks[i].Length];
+            cellBlockKeys[i] = new Vector3Int[blocks[i].Length];
+
+            for (int j = 0; j < blocks[i].Length; ++j)
+            {
+                Transform block = blocks[i][j];
+                cellBlockPositions[i][j] = block.localPosition * scale;
+                cellBlockRotations[i][j] = block.localRotation;
+                cellBlockKeys[i][j] = new Vector3Int(Mathf.RoundToInt(block.localPosition.x * scale * containerRes), Mathf.RoundToInt(block.localPosition.y * scale * containerRes), Mathf.RoundToInt(block.localPosition.z * scale * containerRes));
+            }
+        }
+    }
+
+    // Blocks inside any of several shapes, e.g. all colliders of a character brush or one VR brush volume. Each shape's
+    // bounding box gives a range of grid cells (the same as the single-volume queries); a Burst job tests the cells in
+    // parallel, each cell once, for the first shape whose range covers it. Blocks inside one of `previous` (the shapes of
+    // the stroke's last frame) were handled then and are skipped, so a brush only processes the volume it newly sweeps.
+    // keep filters by grid key before a block's matrix is built: removing keeps only placed blocks, adding only free cells.
+    public Matrix4x4[][] GetBlocksInShapes(IList<BrushShape> shapes, System.Func<PositionKey, bool> keep, out PositionKey[][] _blockDictKeys, IList<BrushShape> previous = null)
+    {
+        CacheCellBlocks();
+
+        List<Matrix4x4>[] blockTransforms = new List<Matrix4x4>[blocks.Length];
+        List<PositionKey>[] blockDictKeys = new List<PositionKey>[blocks.Length];
+        for (int i = 0; i < blocks.Length; ++i)
+        {
+            blockTransforms[i] = new List<Matrix4x4>();
+            blockDictKeys[i] = new List<PositionKey>();
+        }
+
+        int3 step = new int3(xSize * xIntSpacing, ySize * yIntSpacing, zSize * zIntSpacing);
+
+        // Each shape's cell range and where its cells start in the job's index space
+        NativeArray<BrushShape> shapeArray = new NativeArray<BrushShape>(shapes.Count, Allocator.TempJob);
+        NativeArray<int3> rangeMin = new NativeArray<int3>(shapes.Count, Allocator.TempJob);
+        NativeArray<int3> rangeCount = new NativeArray<int3>(shapes.Count, Allocator.TempJob);
+        NativeArray<int> rangeStart = new NativeArray<int>(shapes.Count, Allocator.TempJob);
+        long cells = 0;
+        for (int s = 0; s < shapes.Count; ++s)
+        {
+            shapeArray[s] = shapes[s];
+
+            Vector3Int minInt = GetBondBaseInt(shapes[s].min);
+            Vector3 maxScaled = (shapes[s].max - offset) * containerRes;
+
+            if (maxScaled.x - minInt.x < step.x)
+                maxScaled.x = minInt.x + step.x * 1.1f;
+            if (maxScaled.y - minInt.y < step.y)
+                maxScaled.y = minInt.y + step.y * 1.1f;
+            if (maxScaled.z - minInt.z < step.z)
+                maxScaled.z = minInt.z + step.z * 1.1f;
+
+            maxScaled += new Vector3(step.x * maxExtend.x, step.y * maxExtend.y, step.z * maxExtend.z);
+
+            rangeMin[s] = new int3(minInt.x, minInt.y, minInt.z);
+            int3 count = new int3(Mathf.CeilToInt((maxScaled.x - minInt.x) / step.x), Mathf.CeilToInt((maxScaled.y - minInt.y) / step.y), Mathf.CeilToInt((maxScaled.z - minInt.z) / step.z));
+            rangeCount[s] = math.max(count, 0);
+            rangeStart[s] = (int)cells;
+            cells += (long)rangeCount[s].x * rangeCount[s].y * rangeCount[s].z;
+        }
+
+        if (cells > int.MaxValue)
+        {
+            shapeArray.Dispose(); rangeMin.Dispose(); rangeCount.Dispose(); rangeStart.Dispose();
+            throw new System.ArgumentException("The shapes cover more than " + int.MaxValue + " grid cells");
+        }
+
+        // The bond's blocks, flattened: offset within the cell and part type / index
+        int blockCount = 0;
+        foreach (Vector3[] positions in cellBlockPositions)
+            blockCount += positions.Length;
+        NativeArray<float3> blockOffsets = new NativeArray<float3>(blockCount, Allocator.TempJob);
+        int[] blockType = new int[blockCount];
+        int[] blockIndex = new int[blockCount];
+        int flat = 0;
+        for (int i = 0; i < cellBlockPositions.Length; ++i)
+            for (int j = 0; j < cellBlockPositions[i].Length; ++j, ++flat)
+            {
+                blockOffsets[flat] = cellBlockPositions[i][j];
+                blockType[flat] = i;
+                blockIndex[flat] = j;
+            }
+
+        NativeArray<BrushShape> previousArray = new NativeArray<BrushShape>(previous != null ? previous.Count : 0, Allocator.TempJob);
+        for (int s = 0; s < previousArray.Length; ++s)
+            previousArray[s] = previous[s];
+
+        NativeQueue<int4> hits = new NativeQueue<int4>(Allocator.TempJob);
+        try
+        {
+            ShapeBlocksJob job = new ShapeBlocksJob
+            {
+                shapes = shapeArray,
+                previous = previousArray,
+                rangeMin = rangeMin,
+                rangeCount = rangeCount,
+                rangeStart = rangeStart,
+                blockOffsets = blockOffsets,
+                step = step,
+                inverseRes = 1f / containerRes,
+                offset = offset,
+                hits = hits.AsParallelWriter()
+            };
+            job.Schedule((int)cells, 64).Complete();
+
+            Vector3 blockScale = Vector3.one * scale;
+            while (hits.TryDequeue(out int4 hit))
+            {
+                int i = blockType[hit.w];
+                int j = blockIndex[hit.w];
+                Vector3Int cell = new Vector3Int(hit.x, hit.y, hit.z);
+
+                PositionKey key = new PositionKey(cellBlockKeys[i][j] + cell);
+                if (keep != null && !keep(key))
+                    continue;
+
+                Vector3 blockPosition = (Vector3)cell / containerRes + offset + cellBlockPositions[i][j];
+                blockTransforms[i].Add(Matrix4x4.TRS(blockPosition, cellBlockRotations[i][j], blockScale));
+                blockDictKeys[i].Add(key);
+            }
+        }
+        finally
+        {
+            shapeArray.Dispose();
+            previousArray.Dispose();
+            rangeMin.Dispose();
+            rangeCount.Dispose();
+            rangeStart.Dispose();
+            blockOffsets.Dispose();
+            hits.Dispose();
+        }
+
+        Matrix4x4[][] _blockTransforms = new Matrix4x4[blocks.Length][];
+        _blockDictKeys = new PositionKey[blocks.Length][];
+        for (int i = 0; i < blocks.Length; ++i)
+        {
+            _blockTransforms[i] = blockTransforms[i].ToArray();
+            _blockDictKeys[i] = blockDictKeys[i].ToArray();
+        }
+
+        return _blockTransforms;
+    }
+
+    // One job index per candidate cell: the cell's blocks inside a shape (and not inside a previous one) are hits,
+    // given as cell base (grid units) and flattened block index
+    [BurstCompile]
+    struct ShapeBlocksJob : IJobParallelFor
+    {
+        [ReadOnly] public NativeArray<BrushShape> shapes;
+        [ReadOnly] public NativeArray<BrushShape> previous;
+        [ReadOnly] public NativeArray<int3> rangeMin;
+        [ReadOnly] public NativeArray<int3> rangeCount;
+        [ReadOnly] public NativeArray<int> rangeStart;
+        [ReadOnly] public NativeArray<float3> blockOffsets;
+        public int3 step;
+        public float inverseRes;
+        public float3 offset;
+
+        public NativeQueue<int4>.ParallelWriter hits;
+
+        public void Execute(int index)
+        {
+            // The shape whose range holds this index
+            int s = 0;
+            int high = rangeStart.Length - 1;
+            while (s < high)
+            {
+                int middle = (s + high + 1) / 2;
+                if (rangeStart[middle] <= index) s = middle;
+                else high = middle - 1;
+            }
+
+            int local = index - rangeStart[s];
+            int3 count = rangeCount[s];
+            int3 cell = rangeMin[s] + new int3(local % count.x, (local / count.x) % count.y, local / (count.x * count.y)) * step;
+
+            // A cell an earlier shape's range covers is tested there
+            for (int t = 0; t < s; ++t)
+            {
+                int3 end = rangeMin[t] + rangeCount[t] * step;
+                if (math.all(cell >= rangeMin[t]) && math.all(cell < end))
+                    return;
+            }
+
+            float3 cellBase = (float3)cell * inverseRes + offset;
+            for (int b = 0; b < blockOffsets.Length; ++b)
+            {
+                float3 position = cellBase + blockOffsets[b];
+                if (Inside(shapes, position) && !Inside(previous, position))
+                    hits.Enqueue(new int4(cell, b));
+            }
+        }
+
+        static bool Inside(NativeArray<BrushShape> list, float3 position)
+        {
+            for (int s = 0; s < list.Length; ++s)
+                if (list[s].Contains(position))
+                    return true;
+            return false;
+        }
     }
 
     public static Vector3 NearestPointOnLine(Vector3 lineStart, Vector3 lineEnd, Vector3 pnt)

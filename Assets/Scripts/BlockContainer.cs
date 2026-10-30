@@ -350,9 +350,14 @@ public class BlockContainer
             }
         }
 
+        // Uploading the transform arrays costs as much as all placed blocks, so skip it when nothing was added (brushes
+        // call this every frame, mostly over blocks that are already there)
         if (!asPointCloud)
-            for (int i = 0; i < parts.Length; ++i)
-                GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
+        {
+            if (addcounter > 0)
+                for (int i = 0; i < parts.Length; ++i)
+                    GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
+        }
         else
             PointCloudIO.ModulesToCloud(toCloudTransforms);
 
@@ -465,9 +470,10 @@ public class BlockContainer
         if (!skipHistory && deleteCounter > 0)
             currentRemoveStroke.AppendPartialStroke(blockTransforms, blockDictKeys, blockMask, blockTimes);
 
-
-        for (int i = 0; i < parts.Length; ++i)
-            GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
+        // Skipped when nothing was removed, see AddBlocks
+        if (deleteCounter > 0)
+            for (int i = 0; i < parts.Length; ++i)
+                GPUInstancerAPI.UpdateVisibilityBufferWithMatrix4x4Array(manager, parts[i].prefabPrototype, transformArray[i]);
 
         return (blockMask, blockTimes);
     }
