@@ -361,6 +361,16 @@ def load_animation(
 
 
 @mcp.tool()
+def set_microphone(
+    microphone: Annotated[Optional[str], Field(description="The microphone's name or a unique part of it, or 'default' for the system's default; leave out to only list them")] = None,
+) -> dict:
+    """List the microphones and the one VRoxel's speech input (push to talk, transcribed by Whisper) records from, or
+    switch to another. The choice is kept for later sessions and takes effect from the next recording. Needs speech to
+    text to be installed."""
+    return call("set_microphone", microphone=microphone)
+
+
+@mcp.tool()
 def undo() -> dict:
     """Undo the last spawn, removal, sequence or colour change, or animation load, made through these tools."""
     return call("undo")

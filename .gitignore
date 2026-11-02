@@ -109,3 +109,6 @@ __pycache__/
 /Assets/Animation/Mixamo/Reports~/
 /Assets/Animation/Mixamo/Generated/
 /Assets/Animation/Mixamo/Generated.meta
+
+# Whisper (speech to text): whisper.cpp server and model, downloaded locally
+/Whisper/

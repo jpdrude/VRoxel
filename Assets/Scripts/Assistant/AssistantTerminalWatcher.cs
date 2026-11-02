@@ -11,7 +11,7 @@ public class AssistantTerminalWatcher : MonoBehaviour
         if (instance != null)
             return;
 
-        GameObject go = new GameObject("AssistantTerminalWatcher") { hideFlags = HideFlags.HideAndDontSave };
+        GameObject go = new GameObject("AssistantTerminalWatcher") { hideFlags = HideFlags.HideInHierarchy };
         DontDestroyOnLoad(go);
         instance = go.AddComponent<AssistantTerminalWatcher>();
     }

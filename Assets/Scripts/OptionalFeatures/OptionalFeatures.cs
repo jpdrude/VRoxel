@@ -8,9 +8,10 @@ using UnityEngine;
 [Serializable]
 public class OptionalFeatures
 {
-    public enum Feature { AssistantTerminal }
+    public enum Feature { AssistantTerminal, SpeechToText }
 
     public AssistantTerminal.Settings assistantTerminal = new AssistantTerminal.Settings();
+    public SpeechToText.Settings speechToText = new SpeechToText.Settings();
 
     public const string FileName = "optionalFeatures.json";
 
@@ -34,6 +35,8 @@ public class OptionalFeatures
         {
             case Feature.AssistantTerminal:
                 return Current.assistantTerminal.installed;
+            case Feature.SpeechToText:
+                return Current.speechToText.installed;
             default:
                 return false;
         }

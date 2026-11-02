@@ -15,7 +15,9 @@ using Valve.VR;
 // Without SteamVR (e.g. the player's fallback without a headset), desktopPreview shows the terminal on a quad in its
 // place instead, to check the setup in the Game and Scene view.
 // It is hidden while the terminal isn't open or is minimized. The window is captured on a background thread
-// (mirrorFramesPerSecond in OptionalFeatures); the mirror only shows the terminal, typing happens on the keyboard.
+// (mirrorFramesPerSecond in OptionalFeatures), scaled down to mirrorMaxWidth, and only handed to the main thread when
+// enough of it changed (mirrorMinChangedTiles), as uploading it is what costs VRoxel time. The mirror only shows the
+// terminal, typing happens on the keyboard.
 public class AssistantTerminalMirror : MonoBehaviour
 {
     [SerializeField]
@@ -335,8 +337,12 @@ public class AssistantTerminalMirror : MonoBehaviour
             return;
 
         capturing = true;
-        float fps = Mathf.Clamp(AssistantTerminal.Current.mirrorFramesPerSecond, 1, 60);
-        captureThread = new Thread(() => CaptureLoop(fps)) { IsBackground = true, Name = "Assistant terminal capture" };
+        AssistantTerminal.Settings settings = AssistantTerminal.Current;
+        float fps = Mathf.Clamp(settings.mirrorFramesPerSecond, 1, 60);
+        int maxWidth = Mathf.Max(64, settings.mirrorMaxWidth);
+        int minChangedTiles = Mathf.Max(1, settings.mirrorMinChangedTiles);
+        float refreshSeconds = Mathf.Max(0.1f, settings.mirrorRefreshSeconds);
+        captureThread = new Thread(() => CaptureLoop(fps, maxWidth, minChangedTiles, refreshSeconds)) { IsBackground = true, Name = "Assistant terminal capture" };
         captureThread.Start();
     }
 
@@ -350,9 +356,12 @@ public class AssistantTerminalMirror : MonoBehaviour
         captureThread = null;
     }
 
-    void CaptureLoop(float fps)
+    void CaptureLoop(float fps, int maxWidth, int minChangedTiles, float refreshSeconds)
     {
-        WindowCapture capture = new WindowCapture();
+        WindowCapture capture = new WindowCapture(maxWidth);
+        System.Diagnostics.Stopwatch sincePublished = System.Diagnostics.Stopwatch.StartNew();
+        int[] publishedTiles = null;
+        int publishedWidth = 0, publishedHeight = 0;
         try
         {
             int interval = Mathf.RoundToInt(1000 / fps);
@@ -366,6 +375,23 @@ public class AssistantTerminalMirror : MonoBehaviour
                 int width, height;
                 if (target != IntPtr.Zero && capture.Capture(target, out pixels, out width, out height))
                 {
+                    int[] tiles = TileHashes(pixels, width, height);
+                    bool resized = width != publishedWidth || height != publishedHeight;
+                    if (!resized && publishedTiles != null && sincePublished.Elapsed.TotalSeconds < refreshSeconds &&
+                        ChangedTiles(tiles, publishedTiles) < minChangedTiles)
+                    {
+                        // Too little changed to be worth an upload
+                        capture.Recycle(pixels);
+                        Thread.Sleep(interval);
+                        continue;
+                    }
+
+                    publishedTiles = tiles;
+                    publishedWidth = width;
+                    publishedHeight = height;
+                    sincePublished.Reset();
+                    sincePublished.Start();
+
                     lock (frameLock)
                     {
                         // Swap buffers, the capture writes into the one the main thread has finished with
@@ -388,6 +414,36 @@ public class AssistantTerminalMirror : MonoBehaviour
         {
             capture.Dispose();
         }
+    }
+
+    const int Tile = 16;
+
+    // A hash of each tile of 16 x 16 pixels, row by row, of BGRA pixels
+    static int[] TileHashes(byte[] pixels, int width, int height)
+    {
+        int columns = (width + Tile - 1) / Tile;
+        int rows = (height + Tile - 1) / Tile;
+        int[] hashes = new int[columns * rows];
+        for (int y = 0; y < height; ++y)
+        {
+            int rowTiles = (y / Tile) * columns;
+            int index = y * width * 4;
+            for (int x = 0; x < width; ++x, index += 4)
+            {
+                int tile = rowTiles + x / Tile;
+                hashes[tile] = hashes[tile] * 31 + (pixels[index] | pixels[index + 1] << 8 | pixels[index + 2] << 16);
+            }
+        }
+        return hashes;
+    }
+
+    static int ChangedTiles(int[] a, int[] b)
+    {
+        int changed = 0;
+        for (int i = 0; i < a.Length; ++i)
+            if (a[i] != b[i])
+                ++changed;
+        return changed;
     }
 
     // Draws where the mirror goes in the frame, for a 16:10 window
@@ -414,11 +470,12 @@ public class AssistantTerminalMirror : MonoBehaviour
         Gizmos.DrawLine(bottom + up / 2, bottom + up / 2 + rotation * Vector3.forward * (0.05f * scale));
     }
 
-    // Copies a window's client area into BGRA pixels, bottom row first, as Texture2D.LoadRawTextureData takes them.
-    // PrintWindow renders the window even when it is covered; for windows it returns black for, the screen is
-    // copied instead, which works while the window is on top (AssistantTerminal keeps it there).
+    // Copies a window's client area into BGRA pixels, bottom row first, as Texture2D.LoadRawTextureData takes them,
+    // scaled down to at most maxWidth. PrintWindow renders the window even when it is covered; for windows it returns
+    // black for, the screen is copied instead, which works while the window is on top (AssistantTerminal keeps it there).
     class WindowCapture : IDisposable
     {
+        readonly int maxWidth;
         IntPtr screenDC;
         IntPtr memoryDC;
         IntPtr bitmap;
@@ -426,8 +483,20 @@ public class AssistantTerminalMirror : MonoBehaviour
         IntPtr bits;
         int width;
         int height;
+        // The scaled copy, if the window is wider than maxWidth
+        IntPtr scaledDC;
+        IntPtr scaledBitmap;
+        IntPtr previousScaledBitmap;
+        IntPtr scaledBits;
+        int scaledWidth;
+        int scaledHeight;
         bool copyScreen;
         byte[] spare;
+
+        public WindowCapture(int maxWidth)
+        {
+            this.maxWidth = maxWidth;
+        }
 
         public bool Capture(IntPtr window, out byte[] pixels, out int captureWidth, out int captureHeight)
         {
@@ -462,17 +531,31 @@ public class AssistantTerminalMirror : MonoBehaviour
             if (!captured)
                 return false;
 
-            int length = width * height * 4;
+            IntPtr source = bits;
+            int outWidth = width, outHeight = height;
+            if (scaledDC != IntPtr.Zero)
+            {
+                // Halftone averages the pixels, so text stays readable
+                SetStretchBltMode(scaledDC, HALFTONE);
+                SetBrushOrgEx(scaledDC, 0, 0, IntPtr.Zero);
+                StretchBlt(scaledDC, 0, 0, scaledWidth, scaledHeight, memoryDC, 0, 0, width, height, SRCCOPY);
+                GdiFlush();
+                source = scaledBits;
+                outWidth = scaledWidth;
+                outHeight = scaledHeight;
+            }
+
+            int length = outWidth * outHeight * 4;
             pixels = spare != null && spare.Length == length ? spare : new byte[length];
             spare = null;
-            Marshal.Copy(bits, pixels, 0, length);
+            Marshal.Copy(source, pixels, 0, length);
 
             // GDI leaves alpha at 0, the overlay would be transparent
             for (int i = 3; i < length; i += 4)
                 pixels[i] = 255;
 
-            captureWidth = width;
-            captureHeight = height;
+            captureWidth = outWidth;
+            captureHeight = outHeight;
             return true;
         }
 
@@ -515,10 +598,32 @@ public class AssistantTerminalMirror : MonoBehaviour
             };
             bitmap = CreateDIBSection(screenDC, ref header, 0, out bits, IntPtr.Zero, 0);
             previousBitmap = SelectObject(memoryDC, bitmap);
+
+            if (width > maxWidth)
+            {
+                scaledWidth = maxWidth;
+                scaledHeight = Mathf.Max(1, Mathf.RoundToInt((float)height * maxWidth / width));
+                scaledDC = CreateCompatibleDC(screenDC);
+                header.biWidth = scaledWidth;
+                header.biHeight = scaledHeight;
+                scaledBitmap = CreateDIBSection(screenDC, ref header, 0, out scaledBits, IntPtr.Zero, 0);
+                previousScaledBitmap = SelectObject(scaledDC, scaledBitmap);
+            }
         }
 
         void Release()
         {
+            if (scaledDC != IntPtr.Zero)
+            {
+                SelectObject(scaledDC, previousScaledBitmap);
+                DeleteDC(scaledDC);
+                scaledDC = IntPtr.Zero;
+            }
+            if (scaledBitmap != IntPtr.Zero)
+            {
+                DeleteObject(scaledBitmap);
+                scaledBitmap = IntPtr.Zero;
+            }
             if (memoryDC != IntPtr.Zero)
             {
                 SelectObject(memoryDC, previousBitmap);
@@ -581,5 +686,9 @@ public class AssistantTerminalMirror : MonoBehaviour
         [DllImport("gdi32.dll")] static extern bool DeleteObject(IntPtr gdiObject);
         [DllImport("gdi32.dll")] static extern bool BitBlt(IntPtr destination, int x, int y, int width, int height, IntPtr source, int sourceX, int sourceY, int operation);
         [DllImport("gdi32.dll")] static extern bool GdiFlush();
+        [DllImport("gdi32.dll")] static extern bool StretchBlt(IntPtr destination, int x, int y, int width, int height, IntPtr source, int sourceX, int sourceY, int sourceWidth, int sourceHeight, int operation);
+        [DllImport("gdi32.dll")] static extern int SetStretchBltMode(IntPtr dc, int mode);
+        [DllImport("gdi32.dll")] static extern bool SetBrushOrgEx(IntPtr dc, int x, int y, IntPtr previous);
+        const int HALFTONE = 4;
     }
 }

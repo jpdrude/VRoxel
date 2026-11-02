@@ -13,6 +13,9 @@ using UnityEngine;
 // Localhost bridge for the VRoxel MCP server (Tools/mcp/vroxel_mcp.py).
 // Protocol: one JSON object per line. Request {"id", "command", "args"}, response {"id", "ok", "result" | "error"}.
 // Requests arrive on background threads and run on the main thread in Update.
+// The port is closed whenever the bridge stops, also before scripts are reloaded in Play mode: a listener left open
+// would keep the port, accept connections and never answer them. If the port is taken anyway, the bridge says so and
+// keeps trying.
 public class McpBridge : MonoBehaviour
 {
     [SerializeField]
@@ -45,6 +48,13 @@ public class McpBridge : MonoBehaviour
     TcpListener listener;
     Thread listenerThread;
     volatile bool running;
+    readonly List<TcpClient> clients = new List<TcpClient>();
+    float nextBindAttempt;
+    bool bindWarned;
+    bool bindWarningShown;
+
+    // The listener of this script domain, closed before a new one opens
+    static TcpListener openListener;
 
     // Main-thread requests must not wait forever if the app stops updating
     const int RequestTimeoutMs = 30000;
@@ -63,24 +73,80 @@ public class McpBridge : MonoBehaviour
         SceneCommands.Register(this);
         BlockCommands.Register(this);
         AnimationFileCommands.Register(this);
+        SpeechCommands.Register(this);
     }
 
     void OnEnable()
     {
-        running = true;
-        listener = new TcpListener(IPAddress.Loopback, port);
-        listener.Start();
-
-        listenerThread = new Thread(ListenLoop) { IsBackground = true, Name = "McpBridge" };
-        listenerThread.Start();
-
-        Debug.Log("McpBridge: listening on 127.0.0.1:" + port);
+#if UNITY_EDITOR
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += StopListening;
+#endif
+        Application.quitting += StopListening;
+        bindWarned = bindWarningShown = false;
+        TryListen();
     }
 
     void OnDisable()
     {
+#if UNITY_EDITOR
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= StopListening;
+#endif
+        Application.quitting -= StopListening;
+        StopListening();
+    }
+
+    // False while the port is taken; Update tries again
+    bool TryListen()
+    {
+        if (openListener != null)
+        {
+            openListener.Stop();
+            openListener = null;
+        }
+
+        TcpListener candidate = new TcpListener(IPAddress.Loopback, port);
+        try
+        {
+            candidate.Start();
+        }
+        catch (SocketException e)
+        {
+            nextBindAttempt = Time.realtimeSinceStartup + 2;
+            if (!bindWarned)
+            {
+                bindWarned = true;
+                Debug.LogWarning("McpBridge: port " + port + " is taken (" + e.Message + "), retrying. If it stays taken, an earlier session left it open: restart Unity.");
+            }
+            return false;
+        }
+
+        listener = openListener = candidate;
+        running = true;
+        listenerThread = new Thread(ListenLoop) { IsBackground = true, Name = "McpBridge" };
+        listenerThread.Start();
+
+        Debug.Log("McpBridge: listening on 127.0.0.1:" + port);
+        return true;
+    }
+
+    // Closes the port and every connection, so nothing is left accepting requests no one answers
+    void StopListening()
+    {
         running = false;
-        listener?.Stop();
+        if (listener != null)
+        {
+            listener.Stop();
+            if (openListener == listener)
+                openListener = null;
+            listener = null;
+        }
+
+        lock (clients)
+        {
+            foreach (TcpClient client in clients)
+                client.Close();
+            clients.Clear();
+        }
     }
 
     public void Register(string command, Func<JObject, object> handler)
@@ -90,6 +156,13 @@ public class McpBridge : MonoBehaviour
 
     void Update()
     {
+        if (listener == null && Time.realtimeSinceStartup >= nextBindAttempt && !TryListen() && !bindWarningShown)
+        {
+            // Not from OnEnable: the message system is ready only once the scene has started
+            bindWarningShown = true;
+            MessageSystem.DisplayWarning("MCP bridge: port " + port + " is taken, restart Unity if this persists");
+        }
+
         PendingRequest item;
         while (pending.TryDequeue(out item))
         {
@@ -155,6 +228,8 @@ public class McpBridge : MonoBehaviour
                 return;
             }
 
+            lock (clients)
+                clients.Add(client);
             new Thread(() => HandleClient(client)) { IsBackground = true, Name = "McpBridgeClient" }.Start();
         }
     }
@@ -180,7 +255,14 @@ public class McpBridge : MonoBehaviour
             {
                 // Client disconnected
             }
+            catch (ObjectDisposedException)
+            {
+                // Closed by StopListening
+            }
         }
+
+        lock (clients)
+            clients.Remove(client);
     }
 
     string Dispatch(string line)
