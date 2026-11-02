@@ -59,7 +59,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   action:
     m_PersistentCalls:

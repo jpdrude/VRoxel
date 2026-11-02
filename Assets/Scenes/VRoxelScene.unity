@@ -16411,22 +16411,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   up:
-    actionPath: /actions/LegoPlacement/in/Up
+    actionPath: /actions/VRoxel/in/Up
     needsReinit: 0
   down:
-    actionPath: /actions/LegoPlacement/in/Down
+    actionPath: /actions/VRoxel/in/Down
     needsReinit: 0
   left:
-    actionPath: /actions/LegoPlacement/in/Left
+    actionPath: /actions/VRoxel/in/Left
     needsReinit: 0
   right:
-    actionPath: /actions/LegoPlacement/in/Right
+    actionPath: /actions/VRoxel/in/Right
     needsReinit: 0
   quickOptionSwitch:
-    actionPath: /actions/LegoPlacement/in/QuickSwitch
+    actionPath: /actions/VRoxel/in/QuickSwitch
     needsReinit: 0
   mainInputSource: 2
   spawner: {fileID: 961489917}
@@ -23365,7 +23365,7 @@ MonoBehaviour:
   moveSpeed: 0.3
   rotSpeed: 30
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
 --- !u!120 &278079447
 LineRenderer:
@@ -36588,7 +36588,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   spawner: {fileID: 961489917}
   tolerance: 0.1
@@ -53080,7 +53080,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 758965450}
   actionSet:
-    actionSetPath: /actions/LegoPlacement
+    actionSetPath: /actions/VRoxel
   vrMenu: {fileID: 6634426053651415017}
   fpsController: {fileID: 1367364906}
   cadController: {fileID: 1849531019}
@@ -83727,22 +83727,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   up:
-    actionPath: /actions/LegoPlacement/in/Up
+    actionPath: /actions/VRoxel/in/Up
     needsReinit: 0
   down:
-    actionPath: /actions/LegoPlacement/in/Down
+    actionPath: /actions/VRoxel/in/Down
     needsReinit: 0
   left:
-    actionPath: /actions/LegoPlacement/in/Left
+    actionPath: /actions/VRoxel/in/Left
     needsReinit: 0
   right:
-    actionPath: /actions/LegoPlacement/in/Right
+    actionPath: /actions/VRoxel/in/Right
     needsReinit: 0
   quickOptionSwitch:
-    actionPath: /actions/LegoPlacement/in/QuickSwitch
+    actionPath: /actions/VRoxel/in/QuickSwitch
     needsReinit: 0
   mainInputSource: 2
   sphere: {fileID: 2144019902}
@@ -83764,22 +83764,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   up:
-    actionPath: /actions/LegoPlacement/in/Up
+    actionPath: /actions/VRoxel/in/Up
     needsReinit: 0
   down:
-    actionPath: /actions/LegoPlacement/in/Down
+    actionPath: /actions/VRoxel/in/Down
     needsReinit: 0
   left:
-    actionPath: /actions/LegoPlacement/in/Left
+    actionPath: /actions/VRoxel/in/Left
     needsReinit: 0
   right:
-    actionPath: /actions/LegoPlacement/in/Right
+    actionPath: /actions/VRoxel/in/Right
     needsReinit: 0
   quickOptionSwitch:
-    actionPath: /actions/LegoPlacement/in/QuickSwitch
+    actionPath: /actions/VRoxel/in/QuickSwitch
     needsReinit: 0
   mainInputSource: 2
   sphere: {fileID: 603725847}
@@ -83800,22 +83800,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   up:
-    actionPath: /actions/LegoPlacement/in/Up
+    actionPath: /actions/VRoxel/in/Up
     needsReinit: 0
   down:
-    actionPath: /actions/LegoPlacement/in/Down
+    actionPath: /actions/VRoxel/in/Down
     needsReinit: 0
   left:
-    actionPath: /actions/LegoPlacement/in/Left
+    actionPath: /actions/VRoxel/in/Left
     needsReinit: 0
   right:
-    actionPath: /actions/LegoPlacement/in/Right
+    actionPath: /actions/VRoxel/in/Right
     needsReinit: 0
   quickOptionSwitch:
-    actionPath: /actions/LegoPlacement/in/QuickSwitch
+    actionPath: /actions/VRoxel/in/QuickSwitch
     needsReinit: 0
   mainInputSource: 2
   pointer: {fileID: 616551566}
@@ -83832,22 +83832,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   up:
-    actionPath: /actions/LegoPlacement/in/Up
+    actionPath: /actions/VRoxel/in/Up
     needsReinit: 0
   down:
-    actionPath: /actions/LegoPlacement/in/Down
+    actionPath: /actions/VRoxel/in/Down
     needsReinit: 0
   left:
-    actionPath: /actions/LegoPlacement/in/Left
+    actionPath: /actions/VRoxel/in/Left
     needsReinit: 0
   right:
-    actionPath: /actions/LegoPlacement/in/Right
+    actionPath: /actions/VRoxel/in/Right
     needsReinit: 0
   quickOptionSwitch:
-    actionPath: /actions/LegoPlacement/in/QuickSwitch
+    actionPath: /actions/VRoxel/in/QuickSwitch
     needsReinit: 0
   mainInputSource: 2
   pointer: {fileID: 278079444}
@@ -102252,7 +102252,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 4e2e92cc1d981044390f44be77945f8c, type: 2}
     - target: {fileID: 11445746, guid: 7a135b1a2cb9c8f488d4dd00c55ab283, type: 3}
       propertyPath: teleportAction.actionPath
-      value: /actions/LegoPlacement/in/Teleport
+      value: /actions/VRoxel/in/Teleport
       objectReference: {fileID: 0}
     - target: {fileID: 11445746, guid: 7a135b1a2cb9c8f488d4dd00c55ab283, type: 3}
       propertyPath: teleportAction.needsReinit
@@ -103207,7 +103207,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   spawner: {fileID: 961489917}
   tolerance: 0.1
@@ -114265,7 +114265,7 @@ MonoBehaviour:
   - {fileID: 2514194576724669821, guid: 684dd8b49384dd249ae3947e371ae7aa, type: 3}
   - {fileID: 5993157350244862429, guid: e3641811064c4164fb693b3e816f9966, type: 3}
   actionSet:
-    actionSetPath: /actions/LegoPlacement
+    actionSetPath: /actions/VRoxel
 --- !u!4 &1262178274
 Transform:
   m_ObjectHideFlags: 0
@@ -124584,7 +124584,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   spawner: {fileID: 961489917}
   tolerance: 0.1
@@ -194480,7 +194480,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   spawner: {fileID: 961489917}
   tolerance: 0.1

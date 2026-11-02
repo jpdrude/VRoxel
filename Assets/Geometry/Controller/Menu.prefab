@@ -259,7 +259,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -636,7 +636,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -720,7 +720,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -871,7 +871,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -1204,7 +1204,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -1473,7 +1473,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -1557,7 +1557,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -1813,7 +1813,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -1897,7 +1897,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -2064,7 +2064,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -2628,7 +2628,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -2795,7 +2795,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -2996,7 +2996,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -3080,7 +3080,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -3176,7 +3176,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -3343,7 +3343,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -3544,7 +3544,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -3711,7 +3711,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -3795,7 +3795,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -3962,7 +3962,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -4088,7 +4088,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -4184,7 +4184,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -4792,7 +4792,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -4877,7 +4877,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -5995,7 +5995,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -6411,7 +6411,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -6578,7 +6578,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -7228,7 +7228,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -7312,7 +7312,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -7930,22 +7930,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   up:
-    actionPath: /actions/LegoPlacement/in/Up
+    actionPath: /actions/VRoxel/in/Up
     needsReinit: 0
   down:
-    actionPath: /actions/LegoPlacement/in/Down
+    actionPath: /actions/VRoxel/in/Down
     needsReinit: 0
   left:
-    actionPath: /actions/LegoPlacement/in/Left
+    actionPath: /actions/VRoxel/in/Left
     needsReinit: 0
   right:
-    actionPath: /actions/LegoPlacement/in/Right
+    actionPath: /actions/VRoxel/in/Right
     needsReinit: 0
   quickOptionSwitch:
-    actionPath: /actions/LegoPlacement/in/QuickSwitch
+    actionPath: /actions/VRoxel/in/QuickSwitch
     needsReinit: 0
   mainInputSource: 1
   menu: {fileID: 6084534104676108952}
@@ -8027,7 +8027,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -8360,7 +8360,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -8610,7 +8610,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -8817,7 +8817,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -9134,7 +9134,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -9218,7 +9218,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:
@@ -9303,7 +9303,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   inputSource: 2
   action:

@@ -14,14 +14,14 @@ namespace Valve.VR
     using UnityEngine;
     
     
-    public class SteamVR_Input_ActionSet_LegoPlacement : Valve.VR.SteamVR_ActionSet
+    public class SteamVR_Input_ActionSet_VRoxel : Valve.VR.SteamVR_ActionSet
     {
         
         public virtual SteamVR_Action_Boolean Trigger
         {
             get
             {
-                return SteamVR_Actions.legoPlacement_Trigger;
+                return SteamVR_Actions.vRoxel_Trigger;
             }
         }
         
@@ -29,7 +29,7 @@ namespace Valve.VR
         {
             get
             {
-                return SteamVR_Actions.legoPlacement_Left;
+                return SteamVR_Actions.vRoxel_Left;
             }
         }
         
@@ -37,7 +37,7 @@ namespace Valve.VR
         {
             get
             {
-                return SteamVR_Actions.legoPlacement_Right;
+                return SteamVR_Actions.vRoxel_Right;
             }
         }
         
@@ -45,7 +45,7 @@ namespace Valve.VR
         {
             get
             {
-                return SteamVR_Actions.legoPlacement_Up;
+                return SteamVR_Actions.vRoxel_Up;
             }
         }
         
@@ -53,7 +53,7 @@ namespace Valve.VR
         {
             get
             {
-                return SteamVR_Actions.legoPlacement_Down;
+                return SteamVR_Actions.vRoxel_Down;
             }
         }
         
@@ -61,7 +61,7 @@ namespace Valve.VR
         {
             get
             {
-                return SteamVR_Actions.legoPlacement_Teleport;
+                return SteamVR_Actions.vRoxel_Teleport;
             }
         }
         
@@ -69,7 +69,15 @@ namespace Valve.VR
         {
             get
             {
-                return SteamVR_Actions.legoPlacement_QuickSwitch;
+                return SteamVR_Actions.vRoxel_QuickSwitch;
+            }
+        }
+        
+        public virtual SteamVR_Action_Boolean PushToTalk
+        {
+            get
+            {
+                return SteamVR_Actions.vRoxel_PushToTalk;
             }
         }
     }

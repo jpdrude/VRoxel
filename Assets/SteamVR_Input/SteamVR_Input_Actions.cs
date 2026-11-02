@@ -55,19 +55,21 @@ namespace Valve.VR
         
         private static SteamVR_Action_Pose p_mixedreality_ExternalCamera;
         
-        private static SteamVR_Action_Boolean p_legoPlacement_Trigger;
+        private static SteamVR_Action_Boolean p_vRoxel_Trigger;
         
-        private static SteamVR_Action_Boolean p_legoPlacement_Left;
+        private static SteamVR_Action_Boolean p_vRoxel_Left;
         
-        private static SteamVR_Action_Boolean p_legoPlacement_Right;
+        private static SteamVR_Action_Boolean p_vRoxel_Right;
         
-        private static SteamVR_Action_Boolean p_legoPlacement_Up;
+        private static SteamVR_Action_Boolean p_vRoxel_Up;
         
-        private static SteamVR_Action_Boolean p_legoPlacement_Down;
+        private static SteamVR_Action_Boolean p_vRoxel_Down;
         
-        private static SteamVR_Action_Boolean p_legoPlacement_Teleport;
+        private static SteamVR_Action_Boolean p_vRoxel_Teleport;
         
-        private static SteamVR_Action_Boolean p_legoPlacement_QuickSwitch;
+        private static SteamVR_Action_Boolean p_vRoxel_QuickSwitch;
+        
+        private static SteamVR_Action_Boolean p_vRoxel_PushToTalk;
         
         public static SteamVR_Action_Boolean default_InteractUI
         {
@@ -221,59 +223,67 @@ namespace Valve.VR
             }
         }
         
-        public static SteamVR_Action_Boolean legoPlacement_Trigger
+        public static SteamVR_Action_Boolean vRoxel_Trigger
         {
             get
             {
-                return SteamVR_Actions.p_legoPlacement_Trigger.GetCopy<SteamVR_Action_Boolean>();
+                return SteamVR_Actions.p_vRoxel_Trigger.GetCopy<SteamVR_Action_Boolean>();
             }
         }
         
-        public static SteamVR_Action_Boolean legoPlacement_Left
+        public static SteamVR_Action_Boolean vRoxel_Left
         {
             get
             {
-                return SteamVR_Actions.p_legoPlacement_Left.GetCopy<SteamVR_Action_Boolean>();
+                return SteamVR_Actions.p_vRoxel_Left.GetCopy<SteamVR_Action_Boolean>();
             }
         }
         
-        public static SteamVR_Action_Boolean legoPlacement_Right
+        public static SteamVR_Action_Boolean vRoxel_Right
         {
             get
             {
-                return SteamVR_Actions.p_legoPlacement_Right.GetCopy<SteamVR_Action_Boolean>();
+                return SteamVR_Actions.p_vRoxel_Right.GetCopy<SteamVR_Action_Boolean>();
             }
         }
         
-        public static SteamVR_Action_Boolean legoPlacement_Up
+        public static SteamVR_Action_Boolean vRoxel_Up
         {
             get
             {
-                return SteamVR_Actions.p_legoPlacement_Up.GetCopy<SteamVR_Action_Boolean>();
+                return SteamVR_Actions.p_vRoxel_Up.GetCopy<SteamVR_Action_Boolean>();
             }
         }
         
-        public static SteamVR_Action_Boolean legoPlacement_Down
+        public static SteamVR_Action_Boolean vRoxel_Down
         {
             get
             {
-                return SteamVR_Actions.p_legoPlacement_Down.GetCopy<SteamVR_Action_Boolean>();
+                return SteamVR_Actions.p_vRoxel_Down.GetCopy<SteamVR_Action_Boolean>();
             }
         }
         
-        public static SteamVR_Action_Boolean legoPlacement_Teleport
+        public static SteamVR_Action_Boolean vRoxel_Teleport
         {
             get
             {
-                return SteamVR_Actions.p_legoPlacement_Teleport.GetCopy<SteamVR_Action_Boolean>();
+                return SteamVR_Actions.p_vRoxel_Teleport.GetCopy<SteamVR_Action_Boolean>();
             }
         }
         
-        public static SteamVR_Action_Boolean legoPlacement_QuickSwitch
+        public static SteamVR_Action_Boolean vRoxel_QuickSwitch
         {
             get
             {
-                return SteamVR_Actions.p_legoPlacement_QuickSwitch.GetCopy<SteamVR_Action_Boolean>();
+                return SteamVR_Actions.p_vRoxel_QuickSwitch.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean vRoxel_PushToTalk
+        {
+            get
+            {
+                return SteamVR_Actions.p_vRoxel_PushToTalk.GetCopy<SteamVR_Action_Boolean>();
             }
         }
         
@@ -299,13 +309,14 @@ namespace Valve.VR
                     SteamVR_Actions.buggy_Brake,
                     SteamVR_Actions.buggy_Reset,
                     SteamVR_Actions.mixedreality_ExternalCamera,
-                    SteamVR_Actions.legoPlacement_Trigger,
-                    SteamVR_Actions.legoPlacement_Left,
-                    SteamVR_Actions.legoPlacement_Right,
-                    SteamVR_Actions.legoPlacement_Up,
-                    SteamVR_Actions.legoPlacement_Down,
-                    SteamVR_Actions.legoPlacement_Teleport,
-                    SteamVR_Actions.legoPlacement_QuickSwitch};
+                    SteamVR_Actions.vRoxel_Trigger,
+                    SteamVR_Actions.vRoxel_Left,
+                    SteamVR_Actions.vRoxel_Right,
+                    SteamVR_Actions.vRoxel_Up,
+                    SteamVR_Actions.vRoxel_Down,
+                    SteamVR_Actions.vRoxel_Teleport,
+                    SteamVR_Actions.vRoxel_QuickSwitch,
+                    SteamVR_Actions.vRoxel_PushToTalk};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -325,13 +336,14 @@ namespace Valve.VR
                     SteamVR_Actions.buggy_Brake,
                     SteamVR_Actions.buggy_Reset,
                     SteamVR_Actions.mixedreality_ExternalCamera,
-                    SteamVR_Actions.legoPlacement_Trigger,
-                    SteamVR_Actions.legoPlacement_Left,
-                    SteamVR_Actions.legoPlacement_Right,
-                    SteamVR_Actions.legoPlacement_Up,
-                    SteamVR_Actions.legoPlacement_Down,
-                    SteamVR_Actions.legoPlacement_Teleport,
-                    SteamVR_Actions.legoPlacement_QuickSwitch};
+                    SteamVR_Actions.vRoxel_Trigger,
+                    SteamVR_Actions.vRoxel_Left,
+                    SteamVR_Actions.vRoxel_Right,
+                    SteamVR_Actions.vRoxel_Up,
+                    SteamVR_Actions.vRoxel_Down,
+                    SteamVR_Actions.vRoxel_Teleport,
+                    SteamVR_Actions.vRoxel_QuickSwitch,
+                    SteamVR_Actions.vRoxel_PushToTalk};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[] {
                     SteamVR_Actions.default_Haptic};
             Valve.VR.SteamVR_Input.actionsVibration = new Valve.VR.SteamVR_Action_Vibration[] {
@@ -350,13 +362,14 @@ namespace Valve.VR
                     SteamVR_Actions.platformer_Jump,
                     SteamVR_Actions.buggy_Brake,
                     SteamVR_Actions.buggy_Reset,
-                    SteamVR_Actions.legoPlacement_Trigger,
-                    SteamVR_Actions.legoPlacement_Left,
-                    SteamVR_Actions.legoPlacement_Right,
-                    SteamVR_Actions.legoPlacement_Up,
-                    SteamVR_Actions.legoPlacement_Down,
-                    SteamVR_Actions.legoPlacement_Teleport,
-                    SteamVR_Actions.legoPlacement_QuickSwitch};
+                    SteamVR_Actions.vRoxel_Trigger,
+                    SteamVR_Actions.vRoxel_Left,
+                    SteamVR_Actions.vRoxel_Right,
+                    SteamVR_Actions.vRoxel_Up,
+                    SteamVR_Actions.vRoxel_Down,
+                    SteamVR_Actions.vRoxel_Teleport,
+                    SteamVR_Actions.vRoxel_QuickSwitch,
+                    SteamVR_Actions.vRoxel_PushToTalk};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.default_Squeeze,
                     SteamVR_Actions.buggy_Throttle};
@@ -382,13 +395,14 @@ namespace Valve.VR
                     SteamVR_Actions.buggy_Throttle,
                     SteamVR_Actions.buggy_Brake,
                     SteamVR_Actions.buggy_Reset,
-                    SteamVR_Actions.legoPlacement_Trigger,
-                    SteamVR_Actions.legoPlacement_Left,
-                    SteamVR_Actions.legoPlacement_Right,
-                    SteamVR_Actions.legoPlacement_Up,
-                    SteamVR_Actions.legoPlacement_Down,
-                    SteamVR_Actions.legoPlacement_Teleport,
-                    SteamVR_Actions.legoPlacement_QuickSwitch};
+                    SteamVR_Actions.vRoxel_Trigger,
+                    SteamVR_Actions.vRoxel_Left,
+                    SteamVR_Actions.vRoxel_Right,
+                    SteamVR_Actions.vRoxel_Up,
+                    SteamVR_Actions.vRoxel_Down,
+                    SteamVR_Actions.vRoxel_Teleport,
+                    SteamVR_Actions.vRoxel_QuickSwitch,
+                    SteamVR_Actions.vRoxel_PushToTalk};
         }
         
         private static void PreInitActions()
@@ -412,13 +426,14 @@ namespace Valve.VR
             SteamVR_Actions.p_buggy_Brake = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/buggy/in/Brake")));
             SteamVR_Actions.p_buggy_Reset = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/buggy/in/Reset")));
             SteamVR_Actions.p_mixedreality_ExternalCamera = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/mixedreality/in/ExternalCamera")));
-            SteamVR_Actions.p_legoPlacement_Trigger = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Trigger")));
-            SteamVR_Actions.p_legoPlacement_Left = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Left")));
-            SteamVR_Actions.p_legoPlacement_Right = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Right")));
-            SteamVR_Actions.p_legoPlacement_Up = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Up")));
-            SteamVR_Actions.p_legoPlacement_Down = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Down")));
-            SteamVR_Actions.p_legoPlacement_Teleport = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/Teleport")));
-            SteamVR_Actions.p_legoPlacement_QuickSwitch = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/LegoPlacement/in/QuickSwitch")));
+            SteamVR_Actions.p_vRoxel_Trigger = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/VRoxel/in/Trigger")));
+            SteamVR_Actions.p_vRoxel_Left = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/VRoxel/in/Left")));
+            SteamVR_Actions.p_vRoxel_Right = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/VRoxel/in/Right")));
+            SteamVR_Actions.p_vRoxel_Up = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/VRoxel/in/Up")));
+            SteamVR_Actions.p_vRoxel_Down = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/VRoxel/in/Down")));
+            SteamVR_Actions.p_vRoxel_Teleport = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/VRoxel/in/Teleport")));
+            SteamVR_Actions.p_vRoxel_QuickSwitch = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/VRoxel/in/QuickSwitch")));
+            SteamVR_Actions.p_vRoxel_PushToTalk = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/VRoxel/in/PushToTalk")));
         }
     }
 }

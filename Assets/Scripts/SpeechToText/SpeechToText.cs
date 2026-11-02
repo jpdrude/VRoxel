@@ -41,7 +41,7 @@ public class SpeechToText : MonoBehaviour
         // A key name (F1 to F24, RightControl, RightAlt, ScrollLock, Pause, Insert, ...) or a Windows virtual key code
         public string pushToTalkKey = "F8";
         // A boolean SteamVR action; empty for none
-        public string vrAction = "/actions/LegoPlacement/in/PushToTalk";
+        public string vrAction = "/actions/VRoxel/in/PushToTalk";
         // What a double click presses to clear the terminal's input line (Claude Code: Ctrl+U, with the cursor at the end)
         public string clearKeys = "ctrl+u";
         // Held at least this long it records; shorter it is a click
