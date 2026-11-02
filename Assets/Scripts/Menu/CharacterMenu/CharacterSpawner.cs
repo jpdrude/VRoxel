@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class CharacterSpawner : MonoBehaviour
@@ -22,6 +23,10 @@ public class CharacterSpawner : MonoBehaviour
     DoAddStroke currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
     DoRemoveStroke currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
 
+    readonly List<Bond.BrushShape> shapes = new List<Bond.BrushShape>();
+    // The colliders of the last brushed frame: what they covered is done, so each frame only processes the newly swept volume
+    readonly List<Bond.BrushShape> previousShapes = new List<Bond.BrushShape>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -33,12 +38,14 @@ public class CharacterSpawner : MonoBehaviour
     {
         if (removeBlocks)
         {
-            UndoStack.Push(currentRemoveStroke);
+            if (currentRemoveStroke.StrokeLength > 0)
+                UndoStack.Push(currentRemoveStroke);
             currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
         }
 
         addBlocks = true;
         removeBlocks = false;
+        previousShapes.Clear();
 
         AnimationIO.constantAnimationTime = true;
         enabled = true;
@@ -48,13 +55,15 @@ public class CharacterSpawner : MonoBehaviour
     {
         if (addBlocks)
         {
-            UndoStack.Push(currentAddStroke);
+            if (currentAddStroke.StrokeLength > 0)
+                UndoStack.Push(currentAddStroke);
             currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
         }
 
 
         removeBlocks = true;
         addBlocks = false;
+        previousShapes.Clear();
 
         AnimationIO.constantAnimationTime = true;
         enabled = true;
@@ -66,17 +75,20 @@ public class CharacterSpawner : MonoBehaviour
 
         if (removeBlocks)
         {
-            UndoStack.Push(currentRemoveStroke);
+            if (currentRemoveStroke.StrokeLength > 0)
+                UndoStack.Push(currentRemoveStroke);
             currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
         }
         else if (addBlocks)
         {
-            UndoStack.Push(currentAddStroke);
+            if (currentAddStroke.StrokeLength > 0)
+                UndoStack.Push(currentAddStroke);
             currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
         }
 
         addBlocks = false;
         removeBlocks = false;
+        previousShapes.Clear();
         AnimationIO.constantAnimationTime = false;
         enabled = false;
     }
@@ -84,59 +96,53 @@ public class CharacterSpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (addBlocks)
+        if (!addBlocks && !removeBlocks)
+            return;
+
+        AnimationIO.constantAnimationTime = true;
+
+        BrushBlocks(addBlocks);
+
+        ++strokeCounter;
+
+        if (strokeCounter >= historyBatchSize)
         {
-            AnimationIO.constantAnimationTime = true;
-
-            foreach (SphereCollider sc in sphereColliders)
+            if (addBlocks)
             {
-                AddRemoveFromSphere(sc, true);
-            }
-            foreach (CapsuleCollider cc in capsuleColliders)
-            {
-                AddRemoveFromCapsule(cc, true);
-            }
-
-            ++strokeCounter;
-
-            if (strokeCounter >= historyBatchSize)
-            {
-                UndoStack.Push(currentAddStroke);
+                if (currentAddStroke.StrokeLength > 0)
+                    UndoStack.Push(currentAddStroke);
                 currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
             }
-        }
-        else if (removeBlocks)
-        {
-            AnimationIO.constantAnimationTime = true;
-
-            foreach (SphereCollider sc in sphereColliders)
+            else
             {
-                AddRemoveFromSphere(sc, false);
-            }
-            foreach (CapsuleCollider cc in capsuleColliders)
-            {
-                AddRemoveFromCapsule(cc, false);
-            }
-
-            ++strokeCounter;
-
-            if (strokeCounter >= historyBatchSize)
-            {
-                UndoStack.Push(currentRemoveStroke);
+                if (currentRemoveStroke.StrokeLength > 0)
+                    UndoStack.Push(currentRemoveStroke);
                 currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
             }
+            strokeCounter = 0;
         }
     }
 
-    void AddRemoveFromSphere(SphereCollider sc, bool add)
+    // All colliders in one query (Bond.GetBlocksInShapes) and one add or remove: cells shared by overlapping colliders are
+    // tested once, only blocks that change are built, and the blocks are uploaded to the GPU at most once per frame
+    void BrushBlocks(bool add)
     {
-        float maxScale = sc.transform.localScale.x;
-        if (sc.transform.localScale.y > maxScale) maxScale = sc.transform.localScale.y;
-        if (sc.transform.localScale.z > maxScale) maxScale = sc.transform.localScale.z;
+        shapes.Clear();
+        foreach (SphereCollider sc in sphereColliders)
+            shapes.Add(SphereShape(sc));
+        foreach (CapsuleCollider cc in capsuleColliders)
+            shapes.Add(CapsuleShape(cc));
 
+        Dictionary<PositionKey, PositionEntry> placed = BlockContainer.Container.BlockDictionary;
         PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInSphere(sc.transform.position + sc.transform.rotation * sc.center, sc.radius * maxScale, out blockDictKeys);
-        
+        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInShapes(shapes, add ? (key => !placed.ContainsKey(key)) : (System.Func<PositionKey, bool>)(key => placed.ContainsKey(key)), out blockDictKeys, previousShapes);
+
+        previousShapes.Clear();
+        previousShapes.AddRange(shapes);
+
+        if (blocks.All(part => part.Length == 0))
+            return;
+
         if (add)
         {
             bool[][] blockMask = BlockContainer.Container.AddBlocks(blocks, blockDictKeys, null, false, true);
@@ -147,10 +153,18 @@ public class CharacterSpawner : MonoBehaviour
             var blockMaskAndTimes = BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys, true);
             currentRemoveStroke.AppendPartialStroke(blocks, blockDictKeys, blockMaskAndTimes.blockMask, blockMaskAndTimes.blockTimes);
         }
-
     }
 
-    void AddRemoveFromCapsule(CapsuleCollider cc, bool add)
+    Bond.BrushShape SphereShape(SphereCollider sc)
+    {
+        float maxScale = sc.transform.localScale.x;
+        if (sc.transform.localScale.y > maxScale) maxScale = sc.transform.localScale.y;
+        if (sc.transform.localScale.z > maxScale) maxScale = sc.transform.localScale.z;
+
+        return Bond.BrushShape.Sphere(sc.transform.position + sc.transform.rotation * sc.center, sc.radius * maxScale);
+    }
+
+    Bond.BrushShape CapsuleShape(CapsuleCollider cc)
     {
         Vector3 capsuleDirection = Vector3.right;
         if (cc.direction == 1) capsuleDirection = Vector3.up;
@@ -159,19 +173,7 @@ public class CharacterSpawner : MonoBehaviour
         Vector3 positionA = cc.transform.position + cc.transform.rotation * (cc.center - capsuleDirection * (cc.height / 2) + capsuleDirection * cc.radius);
         Vector3 positionB = cc.transform.position + cc.transform.rotation * (cc.center + capsuleDirection * (cc.height / 2) - capsuleDirection * cc.radius);
 
-        PositionKey[][] blockDictKeys;
-        Matrix4x4[][] blocks = GameManager.Bond.GetBlocksInCapsule(positionA, positionB, cc.radius, out blockDictKeys);
-
-        if (add)
-        {
-            bool[][] blockMask = BlockContainer.Container.AddBlocks(blocks, blockDictKeys, null, false, true);
-            currentAddStroke.AppendPartialStroke(blocks, blockDictKeys, blockMask, null, (uint)(GameManager.gameTime * 10));
-        }
-        else
-        {
-            var blockMaskAndTimes = BlockContainer.Container.RemoveBlocks(blocks, blockDictKeys, true);
-            currentRemoveStroke.AppendPartialStroke(blocks, blockDictKeys, blockMaskAndTimes.blockMask, blockMaskAndTimes.blockTimes);
-        }
+        return Bond.BrushShape.Capsule(positionA, positionB, cc.radius);
     }
 
     private void OnDestroy()
