@@ -640,7 +640,7 @@ public static class AvatarCommands
         return speed;
     }
 
-    static Vector3 ReadVector3(JToken token, Vector3 fallback)
+    internal static Vector3 ReadVector3(JToken token, Vector3 fallback)
     {
         if (token == null || token.Type == JTokenType.Null)
             return fallback;

@@ -82,6 +82,7 @@ public class McpBridge : MonoBehaviour
         BlockCommands.Register(this);
         AnimationFileCommands.Register(this);
         SpeechCommands.Register(this);
+        PlayerCommands.Register(this);
     }
 
     void OnEnable()
