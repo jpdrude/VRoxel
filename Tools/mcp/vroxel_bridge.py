@@ -32,7 +32,7 @@ def call(command, **args):
                 line = reader.readline()
     except ConnectionRefusedError:
         raise BridgeError(
-            f"VRoxel is not reachable on {HOST}:{PORT}. Start Play mode in a scene with an McpBridge component."
+            f"VRoxel is not reachable on {HOST}:{PORT}. Start VRoxel (in the Unity editor: Play mode), with its MCP server installed."
         ) from None
     except socket.timeout:
         raise BridgeError("VRoxel did not answer in time. Is Play mode paused?") from None

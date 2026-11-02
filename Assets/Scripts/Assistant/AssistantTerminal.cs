@@ -54,7 +54,8 @@ public static class AssistantTerminal
 
     public static Settings Current { get { return OptionalFeatures.Current.assistantTerminal; } }
 
-    public static bool Installed { get { return Current.installed; } }
+    // Needs the MCP server too (OptionalFeatures)
+    public static bool Installed { get { return OptionalFeatures.IsInstalled(OptionalFeatures.Feature.AssistantTerminal); } }
 
     public static string ToolName(Tool tool)
     {
@@ -205,6 +206,7 @@ public static class AssistantTerminal
         try
         {
             Directory.CreateDirectory(dir);
+            WriteMcpConfiguration(dir);
             Process.Start(new ProcessStartInfo(Environment.ExpandEnvironmentVariables(s.terminal),
                 s.terminalArguments.Replace("{title}", title).Replace("{dir}", dir).Replace("{command}", command))
             {
@@ -225,6 +227,38 @@ public static class AssistantTerminal
         if (Application.isPlaying)
             AssistantTerminalWatcher.Watch();
         return true;
+    }
+
+    // In a build, the tools started in the working folder find VRoxel's MCP server (installed in MCP next to VRoxel.exe)
+    // through the project configuration they read there: .mcp.json for Claude Code, .gemini/settings.json for Gemini CLI.
+    // Written only where missing, so the user's own configuration stays; the editor has the project's .mcp.json.
+    static void WriteMcpConfiguration(string dir)
+    {
+        if (Application.isEditor || !OptionalFeatures.IsInstalled(OptionalFeatures.Feature.McpServer))
+            return;
+
+        string server = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "MCP", "vroxel-mcp.exe"));
+        if (!File.Exists(server))
+            return;
+
+        string json = "{\n  \"mcpServers\": {\n    \"vroxel\": {\n      \"command\": \"" + server.Replace("\\", "\\\\") + "\"\n    }\n  }\n}\n";
+        try
+        {
+            string claude = Path.Combine(dir, ".mcp.json");
+            if (!File.Exists(claude))
+                File.WriteAllText(claude, json);
+
+            string gemini = Path.Combine(dir, ".gemini", "settings.json");
+            if (!File.Exists(gemini))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(gemini));
+                File.WriteAllText(gemini, json);
+            }
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogWarning("Assistant terminal: MCP configuration not written to " + dir + ": " + e.Message);
+        }
     }
 
     public static bool LaunchPending { get { return pendingTitle != null; } }

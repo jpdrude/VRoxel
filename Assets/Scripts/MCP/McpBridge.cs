@@ -13,6 +13,8 @@ using UnityEngine;
 // Localhost bridge for the VRoxel MCP server (Tools/mcp/vroxel_mcp.py).
 // Protocol: one JSON object per line. Request {"id", "command", "args"}, response {"id", "ok", "result" | "error"}.
 // Requests arrive on background threads and run on the main thread in Update.
+// It opens its port only when the MCP server is installed (OptionalFeatures); without, it stays in the scene for the
+// avatars and animation library it holds, which the character menu's animation import uses too.
 // The port is closed whenever the bridge stops, also before scripts are reloaded in Play mode: a listener left open
 // would keep the port, accept connections and never answer them. If the port is taken anyway, the bridge says so and
 // keeps trying.
@@ -52,6 +54,7 @@ public class McpBridge : MonoBehaviour
     float nextBindAttempt;
     bool bindWarned;
     bool bindWarningShown;
+    bool serving;
 
     // The listener of this script domain, closed before a new one opens
     static TcpListener openListener;
@@ -68,7 +71,12 @@ public class McpBridge : MonoBehaviour
         GroundProbe.Layers = groundLayers;
         MixamoAnimationPlayer.RegisterClipFixes(animationLibrary);
 
-        Register("ping", args => new { scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name, avatars = AvatarRegistry.Count });
+        Register("ping", args => new
+        {
+            scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+            avatars = AvatarRegistry.Count,
+            speech_to_text = OptionalFeatures.IsInstalled(OptionalFeatures.Feature.SpeechToText)
+        });
         AvatarCommands.Register(this);
         SceneCommands.Register(this);
         BlockCommands.Register(this);
@@ -83,7 +91,9 @@ public class McpBridge : MonoBehaviour
 #endif
         Application.quitting += StopListening;
         bindWarned = bindWarningShown = false;
-        TryListen();
+        serving = OptionalFeatures.IsInstalled(OptionalFeatures.Feature.McpServer);
+        if (serving)
+            TryListen();
     }
 
     void OnDisable()
@@ -156,7 +166,7 @@ public class McpBridge : MonoBehaviour
 
     void Update()
     {
-        if (listener == null && Time.realtimeSinceStartup >= nextBindAttempt && !TryListen() && !bindWarningShown)
+        if (serving && listener == null && Time.realtimeSinceStartup >= nextBindAttempt && !TryListen() && !bindWarningShown)
         {
             // Not from OnEnable: the message system is ready only once the scene has started
             bindWarningShown = true;

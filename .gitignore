@@ -112,3 +112,8 @@ __pycache__/
 
 # Whisper (speech to text): whisper.cpp server and model, downloaded locally
 /Whisper/
+
+# Installer (Installer/README.md): prepared packages, PyInstaller work files and the compiled setup
+/Installer/packages/
+/Installer/build/
+/Installer/Output/

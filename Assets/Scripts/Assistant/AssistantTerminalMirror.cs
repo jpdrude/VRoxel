@@ -92,7 +92,7 @@ public class AssistantTerminalMirror : MonoBehaviour
         AssistantTerminal.Settings settings = AssistantTerminal.Current;
         // Without SteamVR (desktop mode, or VR without a headset) there is no overlay, only the preview
         CVROverlay overlay = SteamVR.active ? OpenVR.Overlay : null;
-        if (!settings.installed || !settings.mirrorInVR || (overlay == null && !desktopPreview) || stretchableFrame == null || !stretchableFrame.HasSizes)
+        if (!AssistantTerminal.Installed || !settings.mirrorInVR || (overlay == null && !desktopPreview) || stretchableFrame == null || !stretchableFrame.HasSizes)
         {
             StopCapture();
             DestroyOverlay();

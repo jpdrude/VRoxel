@@ -2,6 +2,11 @@
 
 Thin layer: every tool forwards to the McpBridge component in Unity (see vroxel_bridge.py).
 Run with: python Tools/mcp/vroxel_mcp.py   (stdio transport, started by the MCP client)
+
+Installed with VRoxel it is MCP/vroxel-mcp.exe (built by Installer/build_mcp_server.py), and also:
+  vroxel-mcp --register claude-desktop     adds VRoxel to Claude Desktop's MCP servers (--unregister removes it)
+  vroxel-mcp --print-config                the mcpServers entry for other clients (Cursor, Gemini CLI, ...)
+  vroxel-mcp --list-tools                  checks the server starts and lists its tools and examples
 """
 
 from pathlib import Path
@@ -13,6 +18,9 @@ from mcp.server.mcpserver.resources import TextResource
 from pydantic import BaseModel, Field
 
 import vroxel_bridge
+import json
+import os
+import sys
 
 
 def call(command, **args):
@@ -382,5 +390,52 @@ def redo() -> dict:
     return call("redo")
 
 
+def server_command():
+    """How an MCP client starts this server: the installed exe, or Python with this script during development."""
+    if getattr(sys, "frozen", False):
+        return {"command": sys.executable}
+    return {"command": sys.executable, "args": [str(Path(__file__).resolve())]}
+
+
+def claude_desktop_configs():
+    """Claude Desktop's config files: the regular install, and the Microsoft Store one, which keeps its own copy."""
+    paths = [Path(os.environ.get("APPDATA", "")) / "Claude" / "claude_desktop_config.json"]
+    packages = Path(os.environ.get("LOCALAPPDATA", "")) / "Packages"
+    if packages.is_dir():
+        paths += [package / "LocalCache" / "Roaming" / "Claude" / "claude_desktop_config.json"
+                  for package in packages.glob("*Claude*")]
+    return paths
+
+
+def register_claude_desktop(add):
+    """Adds or removes the vroxel entry in Claude Desktop's mcpServers, keeping everything else in the file. Every
+    existing config is updated; without one, registering creates the regular one."""
+    paths = claude_desktop_configs()
+    existing = [path for path in paths if path.exists()]
+    for path in existing or (paths[:1] if add else []):
+        config = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        servers = config.setdefault("mcpServers", {})
+        if add:
+            servers["vroxel"] = server_command()
+        elif "vroxel" in servers:
+            del servers["vroxel"]
+        else:
+            continue
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+        print(("Registered in " if add else "Removed from ") + str(path) + ". Restart Claude Desktop to apply it.")
+
+
 if __name__ == "__main__":
-    mcp.run()
+    if "--register" in sys.argv or "--unregister" in sys.argv:
+        register_claude_desktop("--register" in sys.argv)
+    elif "--print-config" in sys.argv:
+        print(json.dumps({"mcpServers": {"vroxel": server_command()}}, indent=2))
+    elif "--list-tools" in sys.argv:
+        import asyncio
+        tools = asyncio.run(mcp.list_tools())
+        resources = asyncio.run(mcp.list_resources())
+        print(len(tools), "tools:", ", ".join(tool.name for tool in tools))
+        print(len(resources), "examples:", ", ".join(str(resource.uri) for resource in resources))
+    else:
+        mcp.run()

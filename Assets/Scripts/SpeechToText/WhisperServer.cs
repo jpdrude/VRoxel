@@ -32,6 +32,10 @@ public class WhisperServer
             return true;
 
         string server = SpeechToText.ResolvePath(settings.serverPath);
+        // The installer unpacks whisper.cpp's zip as it is, with the server in a Release folder
+        string unpacked = Path.Combine(Path.GetDirectoryName(server), "Release", Path.GetFileName(server));
+        if (!File.Exists(server) && File.Exists(unpacked))
+            server = unpacked;
         string model = SpeechToText.ResolvePath(settings.modelPath);
         if (!File.Exists(server))
         {
