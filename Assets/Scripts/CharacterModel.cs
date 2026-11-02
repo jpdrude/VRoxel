@@ -70,6 +70,9 @@ public class CharacterModel : MonoBehaviour
     [Space]
     [SerializeField]
     AvatarDimensions avatarDimensions = new AvatarDimensions();
+    public AvatarDimensions NativeDimensions { get { return avatarDimensions; } }
+    // The dimensions passed to InitializeAvatar
+    public AvatarDimensions Dimensions { get { return bodyDimensions; } }
 
     [Space]
     [Header("Blend Shapes")]
@@ -150,6 +153,11 @@ public class CharacterModel : MonoBehaviour
 
         SetBodyMultipliers();
 
+        // Humanoid playback ignores the rescaled legs when placing the hips, so the Mixamo player scales the body and its travel
+        MixamoAnimationPlayer mixamoPlayer = GetComponent<MixamoAnimationPlayer>();
+        if (mixamoPlayer != null)
+            mixamoPlayer.UpdateBodyScale();
+
         SetColor(colorSet);
     }
 
@@ -161,7 +169,9 @@ public class CharacterModel : MonoBehaviour
         foreach (Renderer renderer in joints)
             renderer.material = colorSet.secondaryColor;
 
-        animationPlayer.FadeMaterial = colorSet.fadeColor;
+        // Mixamo avatars are driven by MixamoAnimationPlayer and have no CustomAnimationPlayer
+        if (animationPlayer != null)
+            animationPlayer.FadeMaterial = colorSet.fadeColor;
 
         foreach (LineRenderer lr in trailBrushes)
             lr.material = colorSet.strokeColor;
@@ -451,5 +461,23 @@ public class AvatarDimensions
     public float breastSize = 0;
     public float chestSize = 0;
     public float neckSize = 0;
+
+    // Average proportions for the current bodyHeight
+    public void SetProportionsFromBodyHeight()
+    {
+        footLength = bodyHeight * 0.14f;
+
+        shoulderHeight = bodyHeight * 0.845f;
+        shoulderWidth = bodyHeight * 0.229f;
+        elbowSpan = bodyHeight * 0.521f;
+        wristSpan = bodyHeight * 0.815f;
+        armSpan = bodyHeight * 1.059f;
+
+        hipHeight = bodyHeight * 0.54f;
+        hipWidth = bodyHeight * 0.157f;
+        kneeHeight = bodyHeight * 0.289f;
+        ankleHeight = bodyHeight * 0.058f;
+        extraShowSoleThickness = 0;
+    }
 
 }

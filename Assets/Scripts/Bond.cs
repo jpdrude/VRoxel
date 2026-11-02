@@ -107,7 +107,22 @@ public class Bond : MonoBehaviour
     public int XIntSpacing { get { return Mathf.RoundToInt(scaledXSpacing * containerRes); } }
     public int YIntSpacing { get { return Mathf.RoundToInt(scaledYSpacing * containerRes); } }
     public int ZIntSpacing { get { return Mathf.RoundToInt(scaledZSpacing * containerRes); } }
-    
+
+    // Blocks a filled cubic meter holds: the GetBlocksIn... queries step through cells of xSize x ySize x zSize spacings,
+    // each holding all of the bond's blocks. Used to estimate a volume's block count before generating it.
+    public float BlocksPerCubicMeter
+    {
+        get
+        {
+            int perCell = 0;
+            foreach (Transform[] cellBlocks in blocks)
+                perCell += cellBlocks.Length;
+
+            float cell = xSize * xIntSpacing * ySize * yIntSpacing * (float)zSize * zIntSpacing / ((float)containerRes * containerRes * containerRes);
+            return cell > 0 ? perCell / cell : 0;
+        }
+    }
+
     public GPUInstancerPrefab[] PartPrefabs { get { return partPrefabs; } }
 
     public string BondName { get { return bondName; } }

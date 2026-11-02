@@ -289,19 +289,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger:
-    actionPath: /actions/LegoPlacement/in/Trigger
+    actionPath: /actions/VRoxel/in/Trigger
     needsReinit: 0
   up:
-    actionPath: /actions/LegoPlacement/in/Up
+    actionPath: /actions/VRoxel/in/Up
     needsReinit: 0
   down:
-    actionPath: /actions/LegoPlacement/in/Down
+    actionPath: /actions/VRoxel/in/Down
     needsReinit: 0
   left:
-    actionPath: /actions/LegoPlacement/in/Left
+    actionPath: /actions/VRoxel/in/Left
     needsReinit: 0
   right:
-    actionPath: /actions/LegoPlacement/in/Right
+    actionPath: /actions/VRoxel/in/Right
     needsReinit: 0
   sphere: {fileID: 1238548152692533517}
   box: {fileID: 1238548153268882661}

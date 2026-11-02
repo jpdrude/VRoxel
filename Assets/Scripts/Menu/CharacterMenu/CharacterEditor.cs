@@ -210,7 +210,8 @@ public class CharacterEditor : MonoBehaviour
 
     public void StartImportDialog()
     {
-        FileBrowser.SetFilters(true, new FileBrowser.Filter("FBX", ".fbx"));
+        // Animations saved through the MCP bridge load as an alternative to motion capture
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("FBX", ".fbx"), new FileBrowser.Filter("VRoxel Avatar Animation", AnimationFileCommands.Extension));
         FileBrowser.SetDefaultFilter(".fbx");
 
         FileBrowser.ShowLoadDialog(OnImportSuccess, OnCancel, FileBrowser.PickMode.Files, false);
@@ -257,8 +258,29 @@ public class CharacterEditor : MonoBehaviour
 
     void OnImportSuccess(string[] args)
     {
-        AnimationIO.ImportMotionCapture(args[0], characterOptions);
+        if (Path.GetExtension(args[0]).ToLowerInvariant() == AnimationFileCommands.Extension)
+            LoadAvatarAnimation(args[0]);
+        else
+            AnimationIO.ImportMotionCapture(args[0], characterOptions);
+
         Resume.Invoke();
+    }
+
+    // Adds the saved avatars to the scene, next to those already there
+    void LoadAvatarAnimation(string path)
+    {
+        try
+        {
+            AnimationFileCommands.LoadResult result = AnimationFileCommands.LoadFile(path, false);
+            MessageSystem.DisplayMessage("Loaded " + Path.GetFileNameWithoutExtension(path) + " with " + result.avatars.Count + " avatars");
+
+            if (result.warnings.Count > 0)
+                MessageSystem.DisplayWarning(string.Join("\n", result.warnings));
+        }
+        catch (McpException e)
+        {
+            MessageSystem.DisplayWarning(e.Message);
+        }
     }
 
     void OnWheelchairImportSuccess(string[] args)
@@ -576,39 +598,18 @@ public class CharacterEditor : MonoBehaviour
 
     void SetSimpleDimensionValues()
     {
-        float bodyHeight = characterOptions.bodyDimensions.bodyHeight;
+        characterOptions.bodyDimensions.SetProportionsFromBodyHeight();
 
-        characterOptions.bodyDimensions.footLength = bodyHeight * 0.14f;
         inputFootLength.text = characterOptions.bodyDimensions.footLength.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.shoulderHeight = bodyHeight * 0.845f;
         inputShoulderHeight.text = characterOptions.bodyDimensions.shoulderHeight.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.shoulderWidth = bodyHeight * 0.229f;
         inputShoulderWidth.text = characterOptions.bodyDimensions.shoulderWidth.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.elbowSpan = bodyHeight * 0.521f;
         inputElbowSpan.text = characterOptions.bodyDimensions.elbowSpan.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.wristSpan = bodyHeight * 0.815f;
         inputWristSpan.text = characterOptions.bodyDimensions.wristSpan.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.armSpan = bodyHeight * 1.059f;
         inputArmSpan.text = characterOptions.bodyDimensions.armSpan.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.hipHeight = bodyHeight * 0.54f;
         inputHipHeight.text = characterOptions.bodyDimensions.hipHeight.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.hipWidth = bodyHeight * 0.157f;
         inputHipWidth.text = characterOptions.bodyDimensions.hipWidth.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.kneeHeight = bodyHeight * 0.289f;
         inputKneeHeight.text = characterOptions.bodyDimensions.kneeHeight.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.ankleHeight = bodyHeight * 0.058f;
         inputAnkleHeight.text = characterOptions.bodyDimensions.ankleHeight.ToString("F1") + " cm";
-
-        characterOptions.bodyDimensions.extraShowSoleThickness = 0;
         inputSoleThickness.text = "0.0 cm";
     }
 

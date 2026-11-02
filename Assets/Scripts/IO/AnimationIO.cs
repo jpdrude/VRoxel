@@ -53,8 +53,25 @@ public class AnimationIO : MonoBehaviour
     static DateTime importStep;
     static bool isImporting = false;
 
+    // Recording: every frame advances animation by exactly 1 / animationFrameRate
     public static bool constantAnimationTime = false;
+    // Character brushes: frames advance in real time, but at most 1 / animationFrameRate, so when brushing drops the
+    // frame rate the animation slows down instead of skipping blocks
+    public static bool cappedAnimationTime = false;
     public static int animationFrameRate = 30;
+
+    // Animation time this frame advances by, for every player and trail
+    public static float FrameTime
+    {
+        get
+        {
+            if (constantAnimationTime)
+                return 1f / animationFrameRate;
+            if (cappedAnimationTime)
+                return Mathf.Min(Time.deltaTime, 1f / animationFrameRate);
+            return Time.deltaTime;
+        }
+    }
 
     static WheelchairMovement wheelchairMovement;
 

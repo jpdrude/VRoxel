@@ -18,20 +18,32 @@ public class CharacterSpawner : MonoBehaviour
 
     [SerializeField]
     int historyBatchSize = 25;
+
+    // Thickness of the brush relative to the body colliders: above 1 the avatar adds or removes a wider swath
+    [SerializeField]
+    float brushSize = 1;
+    public float BrushSize { get { return brushSize; } set { brushSize = Mathf.Max(0.1f, value); } }
     int strokeCounter = 0;
 
     DoAddStroke currentAddStroke = new DoAddStroke(DoAction.DoType.AddStrocke);
     DoRemoveStroke currentRemoveStroke = new DoRemoveStroke(DoAction.DoType.RemoveStroke);
 
-    readonly List<Bond.BrushShape> shapes = new List<Bond.BrushShape>();
-    // The colliders of the last brushed frame: what they covered is done, so each frame only processes the newly swept volume
-    readonly List<Bond.BrushShape> previousShapes = new List<Bond.BrushShape>();
+    // Brushing caps the animation's frame time (AnimationIO.cappedAnimationTime), so strokes have no gaps when frames drop.
+    // Several avatars can brush at once; the cap stays on until the last of them stops.
+    static int activeBrushes = 0;
+    bool counted = false;
+
+    // A Mixamo avatar brushes only once its body is animated, not with its T-pose right after spawning
+    MixamoAnimationPlayer mixamoPlayer;
+
+    public bool Brushing { get { return addBlocks || removeBlocks; } }
 
     // Start is called before the first frame update
     void Start()
     {
         sphereColliders = GetComponentsInChildren<SphereCollider>();
         capsuleColliders = GetComponentsInChildren<CapsuleCollider>();
+        mixamoPlayer = GetComponent<MixamoAnimationPlayer>();
     }
 
     public void AddCharacterBrush()
@@ -45,9 +57,8 @@ public class CharacterSpawner : MonoBehaviour
 
         addBlocks = true;
         removeBlocks = false;
-        previousShapes.Clear();
 
-        AnimationIO.constantAnimationTime = true;
+        CountBrush(true);
         enabled = true;
     }
 
@@ -63,9 +74,8 @@ public class CharacterSpawner : MonoBehaviour
 
         removeBlocks = true;
         addBlocks = false;
-        previousShapes.Clear();
 
-        AnimationIO.constantAnimationTime = true;
+        CountBrush(true);
         enabled = true;
     }
 
@@ -88,18 +98,32 @@ public class CharacterSpawner : MonoBehaviour
 
         addBlocks = false;
         removeBlocks = false;
-        previousShapes.Clear();
-        AnimationIO.constantAnimationTime = false;
+        CountBrush(false);
         enabled = false;
+    }
+
+    void CountBrush(bool active)
+    {
+        // A new stroke, or the other mode: nothing of it is done yet
+        previousShapes.Clear();
+
+        if (active != counted)
+        {
+            activeBrushes += active ? 1 : -1;
+            counted = active;
+        }
+
+        AnimationIO.cappedAnimationTime = activeBrushes > 0;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!addBlocks && !removeBlocks)
+        if (mixamoPlayer != null && !mixamoPlayer.Posed)
             return;
 
-        AnimationIO.constantAnimationTime = true;
+        if (!addBlocks && !removeBlocks)
+            return;
 
         BrushBlocks(addBlocks);
 
@@ -122,6 +146,10 @@ public class CharacterSpawner : MonoBehaviour
             strokeCounter = 0;
         }
     }
+
+    readonly List<Bond.BrushShape> shapes = new List<Bond.BrushShape>();
+    // The colliders of the last brushed frame: what they covered is done, so each frame only processes the newly swept volume
+    readonly List<Bond.BrushShape> previousShapes = new List<Bond.BrushShape>();
 
     // All colliders in one query (Bond.GetBlocksInShapes) and one add or remove: cells shared by overlapping colliders are
     // tested once, only blocks that change are built, and the blocks are uploaded to the GPU at most once per frame
@@ -155,13 +183,14 @@ public class CharacterSpawner : MonoBehaviour
         }
     }
 
+    // Collider sizes follow the scale of the bones they sit on (lossyScale), so the brush fits CharacterModel's body:
+    // height, proportions and limb widths
     Bond.BrushShape SphereShape(SphereCollider sc)
     {
-        float maxScale = sc.transform.localScale.x;
-        if (sc.transform.localScale.y > maxScale) maxScale = sc.transform.localScale.y;
-        if (sc.transform.localScale.z > maxScale) maxScale = sc.transform.localScale.z;
+        Vector3 scale = sc.transform.lossyScale;
+        float maxScale = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z));
 
-        return Bond.BrushShape.Sphere(sc.transform.position + sc.transform.rotation * sc.center, sc.radius * maxScale);
+        return Bond.BrushShape.Sphere(sc.transform.TransformPoint(sc.center), sc.radius * maxScale * brushSize);
     }
 
     Bond.BrushShape CapsuleShape(CapsuleCollider cc)
@@ -170,10 +199,16 @@ public class CharacterSpawner : MonoBehaviour
         if (cc.direction == 1) capsuleDirection = Vector3.up;
         else if (cc.direction == 2) capsuleDirection = Vector3.forward;
 
-        Vector3 positionA = cc.transform.position + cc.transform.rotation * (cc.center - capsuleDirection * (cc.height / 2) + capsuleDirection * cc.radius);
-        Vector3 positionB = cc.transform.position + cc.transform.rotation * (cc.center + capsuleDirection * (cc.height / 2) - capsuleDirection * cc.radius);
+        Vector3 positionA = cc.transform.TransformPoint(cc.center - capsuleDirection * (cc.height / 2) + capsuleDirection * cc.radius);
+        Vector3 positionB = cc.transform.TransformPoint(cc.center + capsuleDirection * (cc.height / 2) - capsuleDirection * cc.radius);
 
-        return Bond.BrushShape.Capsule(positionA, positionB, cc.radius);
+        // The radius scales with the widest axis across the capsule
+        Vector3 scale = cc.transform.lossyScale;
+        float across = cc.direction == 0 ? Mathf.Max(Mathf.Abs(scale.y), Mathf.Abs(scale.z))
+            : cc.direction == 1 ? Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.z))
+            : Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+
+        return Bond.BrushShape.Capsule(positionA, positionB, cc.radius * across * brushSize);
     }
 
     private void OnDestroy()

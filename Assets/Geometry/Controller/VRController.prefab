@@ -1267,7 +1267,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 4e2e92cc1d981044390f44be77945f8c, type: 2}
     - target: {fileID: 11445746, guid: 7a135b1a2cb9c8f488d4dd00c55ab283, type: 3}
       propertyPath: teleportAction.actionPath
-      value: /actions/LegoPlacement/in/Teleport
+      value: /actions/VRoxel/in/Teleport
       objectReference: {fileID: 0}
     - target: {fileID: 11445746, guid: 7a135b1a2cb9c8f488d4dd00c55ab283, type: 3}
       propertyPath: teleportAction.needsReinit

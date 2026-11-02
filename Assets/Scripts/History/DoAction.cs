@@ -24,6 +24,13 @@ public class DoAction
         ToBlocks,
         LoadAsPointCloud,
         ChangeObjectPos,
-        ChangeAnimationPos
+        ChangeAnimationPos,
+        SpawnAvatar,
+        RemoveAvatar,
+        SetSequence,
+        SetAvatarColor,
+        SetAvatarBody,
+        SetAvatarBrush,
+        LoadAnimation
     }
 }
