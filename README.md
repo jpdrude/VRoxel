@@ -5,7 +5,7 @@ Further info at https://drude.io/en-vroxel
 
 Users compose spatial assemblies from discrete block types in VR, save and load them in the `.vrxl` format, import external meshes and point clouds, and animate characters within the scene. The project is research software developed at [your institution].
 
-Current version: **0.500**
+Current version: **0.510**
 
 ## Features beyond block editing
 

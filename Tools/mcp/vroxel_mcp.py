@@ -379,6 +379,63 @@ def set_microphone(
 
 
 @mcp.tool()
+def get_player_pose() -> dict:
+    """Where the VR player is: feet on the floor, heading (the way they look), head position and pitch, and both
+    controllers' positions and headings (null if not tracked), with the world scale. Only in VR mode."""
+    return call("get_player_pose")
+
+
+@mcp.tool()
+def teleport_player(
+    position: Annotated[list[float], Field(min_length=3, max_length=3, description="Where the player's feet go [x, y, z]; y is the floor (get_ground_height)")],
+    yaw: Annotated[Optional[float], Field(description="Heading to face in degrees; default keeps the current one")] = None,
+) -> dict:
+    """Move the VR player, e.g. to an avatar's starting point before it carves, so the user sees it from there. Lowers
+    VRoxel's elevation platform, as a teleport does. Only in VR mode; tell the user before moving them."""
+    return call("teleport_player", position=position, yaw=yaw)
+
+
+@mcp.tool()
+def save_scene(
+    name: Annotated[Optional[str], Field(description="Saves to VRoxel's Scenes folder under this name (letters, digits, spaces, - and _)")] = None,
+    path: Annotated[Optional[str], Field(description="A .vrxl file to save to instead of a name")] = None,
+    overwrite: Annotated[bool, Field(description="Replace an existing file")] = False,
+    include_inactive: Annotated[bool, Field(description="Also save blocks turned into point clouds (default, as the Esc menu's Save all)")] = True,
+) -> dict:
+    """Save the VRoxel design (the blocks) as a .vrxl file, as the Esc menu's Save does; avatars aren't part of it.
+    To keep a scene's avatars too, also call save_animation, ideally with the same name."""
+    return call("save_scene", name=name, path=path, overwrite=overwrite, include_inactive=include_inactive)
+
+
+@mcp.tool()
+def list_saved_scenes() -> list:
+    """Scenes saved in VRoxel's Scenes folder (by save_scene), with save time and size."""
+    return call("list_saved_scenes")
+
+
+@mcp.tool()
+def load_scene(
+    name: Annotated[Optional[str], Field(description="A scene in VRoxel's Scenes folder (list_saved_scenes)")] = None,
+    path: Annotated[Optional[str], Field(description="A .vrxl (or exported .json) file to load instead of a name")] = None,
+    replace: Annotated[bool, Field(description="Clear the current design first (default); false adds the file's blocks to it")] = True,
+    as_point_cloud: Annotated[bool, Field(description="Load the blocks as an inactive point cloud, as a reference")] = False,
+) -> dict:
+    """Load a saved VRoxel design (blocks), as the Esc menu's Load does. Replacing clears the user's current design
+    and their undo history, so ask before replacing unsaved work. A file of another building system switches VRoxel to
+    it, but only while the design has under 1000 blocks. It loads in the background: check with get_assembly_bounds.
+    To bring back the scene's avatars too, also call load_animation with the same name."""
+    return call("load_scene", name=name, path=path, replace=replace, as_point_cloud=as_point_cloud)
+
+
+@mcp.tool()
+def quit_program() -> dict:
+    """End Play mode in the Unity editor, or close VRoxel, cleanly: the bridge, speech to text and its server stop, the
+    assistant terminal stays open. Unsaved work is lost, so save first (save_scene, save_animation) and only quit
+    when the user asks; afterwards these tools can't reach VRoxel until it runs again."""
+    return call("quit_program")
+
+
+@mcp.tool()
 def undo() -> dict:
     """Undo the last spawn, removal, sequence or colour change, or animation load, made through these tools."""
     return call("undo")
