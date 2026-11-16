@@ -7963,10 +7963,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stretchableFrame: {fileID: 4709174048356630129}
-  framePadding: {x: 0.005, y: 0.005}
-  depthOffset: -0.002
+  framePadding: {x: 0, y: 0}
+  depthOffset: 0.002
+  faceViewer: 1
   flipSide: 1
-  desktopPreview: 1
+  anisotropicFiltering: 8
 --- !u!1 &6912464719480247976
 GameObject:
   m_ObjectHideFlags: 0
@@ -9818,6 +9819,10 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: a8e93b8586b49b54cb6a1499d8bc40fc, type: 2}
+    - target: {fileID: 6049344195451356983, guid: 4620bdf320f1c084f86b59fe16a610ca, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9658361c9fe3cf84ea902bd0c08223f0, type: 2}
     - target: {fileID: 6690309793818984216, guid: 4620bdf320f1c084f86b59fe16a610ca, type: 3}
       propertyPath: m_Name
       value: ul1
@@ -10065,6 +10070,8 @@ MonoBehaviour:
   columnWidths: {x: 0.010012135, y: 0, z: 0.01001212}
   rowHeights: {x: 0.010012187, y: 0, z: 0.0100121945}
   modelledGap: {x: 0.24000001, y: 0.14999998}
+  centreFront: 0
+  centreBack: 0
 --- !u!4 &6224793238705738364 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8118514826565552536, guid: 4620bdf320f1c084f86b59fe16a610ca, type: 3}

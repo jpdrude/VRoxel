@@ -66,7 +66,8 @@ VRoxel is a Unity 2021.3.45f2 VR application for 3D block-based assembly and geo
 
 **Assistant terminal (`Scripts/Assistant/`)**
 - `AssistantTerminal` opens an LLM command line tool (Claude Code, Codex, Gemini CLI, Copilot CLI, OpenCode or a custom command) in Windows Terminal, pinned on top, and remembers its window; `AssistantMenu` is the Esc menu panel. In a build it works in `persistentDataPath/Assistant` and writes the MCP configuration there
-- `AssistantTerminalMirror` (on the VR menu) shows the terminal in VR as a SteamVR overlay set into a `StretchableFrame` (9-slice mesh frame read from its pieces' bounding boxes); without SteamVR it shows a preview quad
+- `AssistantTerminalMirror` (on the VR menu) shows the terminal on a quad set into a `StretchableFrame` (9-slice mesh frame read from its pieces' bounding boxes), on the side facing the player's head; a Unity quad, not a SteamVR overlay, so the headset and the follow camera both see it
+- `AssistantTerminal.KeepOnTop` re-pins the terminal whenever it loses its always-on-top state (`AssistantTerminalWatcher` in Play mode, `AssistantTerminalMenu` in the editor)
 - `TerminalKeyboard` types into the terminal (paste, keys) and switches the focus on a thread of its own
 
 **Speech to text (`Scripts/SpeechToText/`)**
@@ -117,4 +118,4 @@ GPU Instancer (v1.8.21) renders all blocks. Transforms are stored as `Matrix4x4[
 
 ## Installer
 
-`Installer/VRoxel.iss` (Inno Setup 6.5+) installs VRoxel with the optional features as components (each `checkablealone`, so it can be installed without its sub-components); Whisper (builds and model) is downloaded while installing and hash-checked, CUDA or processor chosen as a task, and Microsoft's Visual C++ runtime is installed where whisper.cpp would miss it. It is a 32-bit setup (like the earlier ones, so it finds and updates them in the 32-bit registry) installing to the 64-bit Program Files. `..\Build\Setup\VRoxel_CreateSetup.iss` compiles it from the build folder. The version is set there (`MyAppVersion`) and in Player Settings (`bundleVersion`), currently 0.510. See `Installer/README.md` for the build steps.
+`Installer/VRoxel.iss` (Inno Setup 6.5+) installs VRoxel with the optional features as components (each `checkablealone`, so it can be installed without its sub-components); Whisper (builds and model) is downloaded while installing and hash-checked, CUDA or processor chosen as a task, and Microsoft's Visual C++ runtime is installed where whisper.cpp would miss it. It is a 32-bit setup (like the earlier ones, so it finds and updates them in the 32-bit registry) installing to the 64-bit Program Files. `..\Build\Setup\VRoxel_CreateSetup.iss` compiles it from the build folder. The version is set in `Installer/VRoxel.iss` (`MyAppVersion`) and in Player Settings (`bundleVersion`), currently 0.511. See `Installer/README.md` for the build steps.

@@ -74,6 +74,7 @@ public static class AssistantMirrorDebug
         {
             name = mirror.name,
             active = mirror.isActiveAndEnabled,
+            flipped = (bool)typeof(AssistantTerminalMirror).GetField("flipped", Private).GetValue(mirror),
             frame = frame != null ? new
             {
                 name = frame.name,
