@@ -8,13 +8,15 @@ Needs Python with the server's requirements (Tools/mcp/requirements.txt) and PyI
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 installer = Path(__file__).resolve().parent
 root = installer.parent
 server = root / "Tools" / "mcp" / "vroxel_mcp.py"
-work = installer / "build" / "pyinstaller"
-dist = installer / "build" / "dist"
+# PyInstaller's work files outside the repository, which may be synced (OneDrive locks them)
+work = Path(tempfile.gettempdir()) / "vroxel-mcp-build" / "work"
+dist = Path(tempfile.gettempdir()) / "vroxel-mcp-build" / "dist"
 target = installer / "packages" / "mcp"
 
 try:
@@ -31,9 +33,10 @@ subprocess.run([
     str(server),
 ], check=True)
 
+# The old build's files go; a synced folder may keep empty directories locked, which the new build is copied into
 if target.exists():
-    shutil.rmtree(target)
-shutil.copytree(dist / "vroxel-mcp", target)
+    shutil.rmtree(target, ignore_errors=True)
+shutil.copytree(dist / "vroxel-mcp", target, dirs_exist_ok=True)
 
 # The built server has to start and find its tools and examples
 check = subprocess.run([str(target / "vroxel-mcp.exe"), "--list-tools"], capture_output=True, text=True)

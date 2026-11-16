@@ -1,10 +1,18 @@
 using UnityEngine;
 
-// Waits for a terminal AssistantTerminal started in Play mode to open its window, then pins it on top. A hidden object
-// of its own, so it keeps running when the menu that started the terminal closes; it removes itself when done.
+// Pins the assistant terminal on top in Play mode and in builds: a terminal started there once its window opens, and
+// any open terminal again whenever it lost that (AssistantTerminal.KeepOnTop). A hidden object of its own, so it keeps
+// running when the menu that started the terminal closes; it starts with the scene while the assistant is installed.
 public class AssistantTerminalWatcher : MonoBehaviour
 {
     static AssistantTerminalWatcher instance;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    static void StartWithScene()
+    {
+        if (AssistantTerminal.Installed)
+            Watch();
+    }
 
     public static void Watch()
     {
@@ -19,7 +27,6 @@ public class AssistantTerminalWatcher : MonoBehaviour
     void Update()
     {
         AssistantTerminal.CheckPendingLaunch();
-        if (!AssistantTerminal.LaunchPending)
-            Destroy(gameObject);
+        AssistantTerminal.KeepOnTop();
     }
 }

@@ -3,17 +3,18 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEngine;
 using Valve.VR;
+using Valve.VR.InteractionSystem;
 
-// Shows the assistant terminal's window in VR as a SteamVR overlay set into a StretchableFrame. Put it on the VR menu
-// (it is then only active in VR) and place the frame where the mirror should be, e.g. above the menu. Everything else
-// comes from the frame, read at start as it is in the scene (Read Sizes From Bounds): the mirror is as wide as the
-// space between the frame's corners less framePadding on each side, lies in the frame's plane facing the way the
-// frame faces (flipSide turns it to the other side), depthOffset in front of its centre piece, framePadding above the
-// frame's bottom row. Its height follows the terminal window's shape; the frame keeps its width and is laid out every
-// frame to reach framePadding above the mirror. The frame is shown and hidden with the mirror.
-// The overlay is attached to the controller the frame is under, so SteamVR moves it with the latest controller pose.
-// Without SteamVR (e.g. the player's fallback without a headset), desktopPreview shows the terminal on a quad in its
-// place instead, to check the setup in the Game and Scene view.
+// Shows the assistant terminal's window on a quad set into a StretchableFrame, seen by every camera: the headset and
+// the follow camera the audience sees alike. Put it on the VR menu and place the frame where the mirror should be,
+// e.g. above the menu. Everything else comes from the frame, read at start as it is in the scene (Read Sizes From
+// Bounds): the mirror is as wide as the space between the frame's corners less framePadding on each side, lies in the
+// frame's plane on the side the player's head is on (faceViewer; otherwise the way the frame faces, flipSide turning
+// it to the other side), depthOffset in front of its centre piece, framePadding above the frame's bottom row. Its
+// height follows the terminal window's shape; the frame keeps its width and is laid out every frame to reach
+// framePadding above the mirror. The frame is shown and hidden with the mirror.
+// The quad is put under the frame's parent (the controller), so it moves with the frame. The window is copied into a
+// texture with mipmaps, so its text stays readable at a distance and at an angle.
 // It is hidden while the terminal isn't open or is minimized. The window is captured on a background thread
 // (mirrorFramesPerSecond in OptionalFeatures), scaled down to mirrorMaxWidth, and only handed to the main thread when
 // enough of it changed (mirrorMinChangedTiles), as uploading it is what costs VRoxel time. The mirror only shows the
@@ -30,19 +31,25 @@ public class AssistantTerminalMirror : MonoBehaviour
         "depth axis, in meters")]
     [SerializeField]
     float depthOffset = 0.002f;
-    [Tooltip("Shows the mirror on the frame's other side, facing the other way: if it appears behind or below the frame")]
+    [Tooltip("Shows the mirror on the side of the frame the player's head (the camera) is on, so it can't end up on " +
+        "the frame's back")]
+    [SerializeField]
+    bool faceViewer = true;
+    [Tooltip("Without Face Viewer, or while there is no head to face: shows the mirror on the frame's other side, " +
+        "facing the other way")]
     [SerializeField]
     bool flipSide = false;
-    [Tooltip("Without SteamVR (no headset), shows the terminal on a quad where the mirror would be")]
-    [SerializeField]
-    bool desktopPreview = true;
+    [Tooltip("Sharper text when the mirror is seen at an angle (1 to 16)")]
+    [SerializeField, Range(1, 16)]
+    int anisotropicFiltering = 8;
 
-    ulong handle = OpenVR.k_ulOverlayHandleInvalid;
+    // The captured window, and the copy with mipmaps the quad shows
     Texture2D texture;
+    RenderTexture display;
     GameObject preview;
     Material previewMaterial;
-    SteamVR_Behaviour_Pose pose;
-    Transform poseOf;
+    // The side the mirror is on, flipped from the frame's front
+    bool flipped;
 
     // Captured on the capture thread, uploaded on the main thread
     readonly object frameLock = new object();
@@ -59,6 +66,7 @@ public class AssistantTerminalMirror : MonoBehaviour
     // The frame as it is in the scene gives the mirror's width, place and plane
     void Start()
     {
+        flipped = flipSide;
         if (stretchableFrame != null)
             stretchableFrame.ReadSizesFromBounds();
     }
@@ -66,7 +74,6 @@ public class AssistantTerminalMirror : MonoBehaviour
     void OnDisable()
     {
         StopCapture();
-        DestroyOverlay();
         ShowPreview(false);
         ShowFrame(false);
     }
@@ -75,6 +82,10 @@ public class AssistantTerminalMirror : MonoBehaviour
     {
         if (texture != null)
             Destroy(texture);
+        if (display != null)
+            display.Release();
+        if (display != null)
+            Destroy(display);
         if (preview != null)
             Destroy(preview);
         if (previewMaterial != null)
@@ -90,12 +101,9 @@ public class AssistantTerminalMirror : MonoBehaviour
     bool UpdateMirror()
     {
         AssistantTerminal.Settings settings = AssistantTerminal.Current;
-        // Without SteamVR (desktop mode, or VR without a headset) there is no overlay, only the preview
-        CVROverlay overlay = SteamVR.active ? OpenVR.Overlay : null;
-        if (!AssistantTerminal.Installed || !settings.mirrorInVR || (overlay == null && !desktopPreview) || stretchableFrame == null || !stretchableFrame.HasSizes)
+        if (!AssistantTerminal.Installed || !settings.mirrorInVR || stretchableFrame == null || !stretchableFrame.HasSizes)
         {
             StopCapture();
-            DestroyOverlay();
             ShowPreview(false);
             return false;
         }
@@ -110,50 +118,64 @@ public class AssistantTerminalMirror : MonoBehaviour
 
         if (window == IntPtr.Zero || AssistantTerminal.IsIconic(window))
         {
-            if (overlay != null && handle != OpenVR.k_ulOverlayHandleInvalid)
-                overlay.HideOverlay(handle);
             ShowPreview(false);
             return false;
         }
 
         StartCapture();
-        if (!UploadFrame() && texture == null)
+        if (!UploadFrame() && display == null)
             return false;
 
-        float aspect = (float)texture.height / texture.width;
-        if (overlay == null)
-        {
-            DestroyOverlay();
-            PlacePreview(aspect);
-            return true;
-        }
-
-        ShowPreview(false);
-        if (handle == OpenVR.k_ulOverlayHandleInvalid && !CreateOverlay(overlay))
-            return false;
-
-        if (!PlaceOverlay(overlay, aspect))
-            return false;
-
-        overlay.ShowOverlay(handle);
+        UpdateSide();
+        PlacePreview((float)display.height / display.width);
         return true;
     }
 
-    // The terminal on a quad where the overlay would be, laid out the same way; a Unity quad is seen from -Z, as the
-    // mirror is
+    // Puts the mirror on the side of the frame the player's head is on: the HMD in VR, the fallback camera without a
+    // headset. It only changes sides once the head is clearly on the other one, so it doesn't flicker edge-on.
+    void UpdateSide()
+    {
+        Transform head = Player.instance != null && Player.instance.hmdTransform != null ? Player.instance.hmdTransform :
+            Camera.main != null ? Camera.main.transform : null;
+        if (!faceViewer || head == null)
+        {
+            flipped = flipSide;
+            return;
+        }
+
+        // The front side's normal, towards a viewer of the unflipped mirror
+        Vector3 front = FrameRotation * Vector3.back;
+        float distance = Vector3.Dot(head.position - stretchableFrame.transform.position, front);
+        float margin = 0.01f * Mathf.Abs(stretchableFrame.transform.lossyScale.x);
+        if (distance < -margin)
+            flipped = true;
+        else if (distance > margin)
+            flipped = false;
+    }
+
+    // The terminal on a quad in the frame; a Unity quad is seen from -Z, as the mirror is. It is put under the frame's
+    // parent (the controller), so it moves with it until the frame is rendered.
     void PlacePreview(float aspect)
     {
         if (preview == null)
         {
             preview = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            preview.name = "Assistant terminal preview";
+            preview.name = "Assistant terminal mirror";
             preview.hideFlags = HideFlags.DontSave;
+            preview.layer = stretchableFrame.gameObject.layer;
             Destroy(preview.GetComponent<Collider>());
 
             Shader shader = Shader.Find("Unlit/Texture") ?? Shader.Find("Sprites/Default");
             previewMaterial = new Material(shader);
-            preview.GetComponent<MeshRenderer>().sharedMaterial = previewMaterial;
+            MeshRenderer renderer = preview.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = previewMaterial;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
         }
+
+        Transform parent = stretchableFrame.transform.parent;
+        if (preview.transform.parent != parent)
+            preview.transform.SetParent(parent, false);
 
         SteamVR_Behaviour_Pose framePose = FramePose();
         float scale = framePose != null && Mathf.Abs(framePose.transform.lossyScale.x) > 1e-6f ? Mathf.Abs(framePose.transform.lossyScale.x) : 1;
@@ -162,8 +184,9 @@ public class AssistantTerminalMirror : MonoBehaviour
 
         Quaternion rotation = MirrorRotation;
         preview.transform.SetPositionAndRotation(MirrorBottom(rotation, scale) + rotation * Vector3.up * (height / 2), rotation);
-        preview.transform.localScale = new Vector3(width, height, 1);
-        previewMaterial.mainTexture = texture;
+        float parentScale = parent != null && Mathf.Abs(parent.lossyScale.x) > 1e-6f ? Mathf.Abs(parent.lossyScale.x) : 1;
+        preview.transform.localScale = new Vector3(width, height, 1) / parentScale;
+        previewMaterial.mainTexture = display;
         ShowPreview(true);
 
         LayOutFrame(height, scale);
@@ -187,51 +210,8 @@ public class AssistantTerminalMirror : MonoBehaviour
             stretchableFrame.gameObject.SetActive(show);
     }
 
-    bool CreateOverlay(CVROverlay overlay)
-    {
-        string key = "vroxel.assistant." + GetInstanceID();
-        EVROverlayError error = overlay.CreateOverlay(key, "VRoxel Assistant", ref handle);
-        if (error != EVROverlayError.None)
-        {
-            Debug.LogWarning("Assistant terminal mirror: " + overlay.GetOverlayErrorNameFromEnum(error));
-            handle = OpenVR.k_ulOverlayHandleInvalid;
-            enabled = false;
-            return false;
-        }
-
-        // Unity textures start at the bottom row
-        VRTextureBounds_t bounds = new VRTextureBounds_t { uMin = 0, uMax = 1, vMin = 1, vMax = 0 };
-        overlay.SetOverlayTextureBounds(handle, ref bounds);
-        SetTexture(overlay);
-        return true;
-    }
-
-    void DestroyOverlay()
-    {
-        if (handle == OpenVR.k_ulOverlayHandleInvalid)
-            return;
-
-        CVROverlay overlay = OpenVR.Overlay;
-        if (overlay != null)
-            overlay.DestroyOverlay(handle);
-        handle = OpenVR.k_ulOverlayHandleInvalid;
-    }
-
-    void SetTexture(CVROverlay overlay)
-    {
-        if (handle == OpenVR.k_ulOverlayHandleInvalid || texture == null)
-            return;
-
-        Texture_t overlayTexture = new Texture_t
-        {
-            handle = texture.GetNativeTexturePtr(),
-            eType = SteamVR.instance.textureType,
-            eColorSpace = EColorSpace.Auto
-        };
-        overlay.SetOverlayTexture(handle, ref overlayTexture);
-    }
-
-    // The newest captured frame into the texture; false if there was none
+    // The newest captured frame into the texture and on into the mipmapped copy (made on the graphics card); false if
+    // there was none
     bool UploadFrame()
     {
         lock (frameLock)
@@ -249,10 +229,27 @@ public class AssistantTerminalMirror : MonoBehaviour
             texture.LoadRawTextureData(frame);
             frameReady = false;
         }
-
         texture.Apply(false);
-        if (handle != OpenVR.k_ulOverlayHandleInvalid)
-            SetTexture(OpenVR.Overlay);
+
+        if (display == null || display.width != texture.width || display.height != texture.height)
+        {
+            if (display != null)
+            {
+                display.Release();
+                Destroy(display);
+            }
+            display = new RenderTexture(texture.width, texture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
+            {
+                useMipMap = true,
+                autoGenerateMips = true,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = anisotropicFiltering,
+                wrapMode = TextureWrapMode.Clamp,
+                name = "Assistant terminal mirror"
+            };
+            display.Create();
+        }
+        Graphics.Blit(texture, display);
         return true;
     }
 
@@ -260,12 +257,16 @@ public class AssistantTerminalMirror : MonoBehaviour
     // from -Z; flipped, it is seen from the frame's other side
     Quaternion MirrorRotation
     {
-        get
-        {
-            Quaternion rotation = stretchableFrame.transform.rotation * Quaternion.Inverse(stretchableFrame.ContentRotation);
-            return flipSide ? rotation * Quaternion.Euler(0, 180, 0) : rotation;
-        }
+        get { return Flipped ? FrameRotation * Quaternion.Euler(0, 180, 0) : FrameRotation; }
     }
+
+    Quaternion FrameRotation
+    {
+        get { return stretchableFrame.transform.rotation * Quaternion.Inverse(stretchableFrame.ContentRotation); }
+    }
+
+    // While playing, the side UpdateSide chose; in the editor, the one set
+    bool Flipped { get { return Application.isPlaying ? flipped : flipSide; } }
 
     // The mirror's bottom centre: above the frame's bottom row by the padding, depthOffset in front of the centre
     // piece's surface on the side it is seen from
@@ -273,7 +274,7 @@ public class AssistantTerminalMirror : MonoBehaviour
     {
         Vector3 up = rotation * Vector3.up;
         Vector3 towardsViewer = rotation * Vector3.back;
-        float surface = flipSide ? stretchableFrame.CentreBackWorld : stretchableFrame.CentreFrontWorld;
+        float surface = Flipped ? stretchableFrame.CentreBackWorld : stretchableFrame.CentreFrontWorld;
         return stretchableFrame.transform.position + up * (stretchableFrame.BottomBorderWorld + framePadding.y * scale) +
             towardsViewer * (surface + depthOffset * scale);
     }
@@ -299,37 +300,8 @@ public class AssistantTerminalMirror : MonoBehaviour
         return pose;
     }
 
-    // Relative to the controller the frame is under if there is one, so SteamVR moves it with the controller, in real
-    // meters, so it keeps its size when the player is scaled; otherwise placed in the tracking space every frame. The
-    // frame is then laid out around it.
-    bool PlaceOverlay(CVROverlay overlay, float aspect)
-    {
-        SteamVR_Behaviour_Pose framePose = FramePose();
-        int device = framePose != null ? framePose.GetDeviceIndex() : -1;
-        Transform reference = device >= 0 ? framePose.transform : SteamVR_Render.Top() != null ? SteamVR_Render.Top().origin : null;
-        if (reference == null)
-            return false;
-
-        float scale = Mathf.Abs(reference.lossyScale.x) > 1e-6f ? Mathf.Abs(reference.lossyScale.x) : 1;
-        float width = MirrorWidthWorld(scale);
-        float height = width * aspect;
-        overlay.SetOverlayWidthInMeters(handle, width / scale);
-
-        Quaternion rotation = MirrorRotation;
-        Vector3 center = MirrorBottom(rotation, scale) + rotation * Vector3.up * (height / 2);
-
-        Quaternion inverse = Quaternion.Inverse(reference.rotation);
-        SteamVR_Utils.RigidTransform offset = new SteamVR_Utils.RigidTransform(inverse * (center - reference.position) / scale, inverse * rotation);
-        HmdMatrix34_t matrix = offset.ToHmdMatrix34();
-
-        if (device >= 0)
-            overlay.SetOverlayTransformTrackedDeviceRelative(handle, (uint)device, ref matrix);
-        else
-            overlay.SetOverlayTransformAbsolute(handle, SteamVR.settings.trackingSpace, ref matrix);
-
-        LayOutFrame(height, scale);
-        return true;
-    }
+    SteamVR_Behaviour_Pose pose;
+    Transform poseOf;
 
     void StartCapture()
     {
@@ -550,7 +522,7 @@ public class AssistantTerminalMirror : MonoBehaviour
             spare = null;
             Marshal.Copy(source, pixels, 0, length);
 
-            // GDI leaves alpha at 0, the overlay would be transparent
+            // GDI leaves alpha at 0
             for (int i = 3; i < length; i += 4)
                 pixels[i] = 255;
 

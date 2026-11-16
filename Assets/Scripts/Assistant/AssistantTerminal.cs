@@ -284,6 +284,31 @@ public static class AssistantTerminal
         }
     }
 
+    // Pins the terminal on top again when it lost that, which Windows Terminal may do on its own, e.g. when the focus
+    // moves to it and back (typing into it after push to talk). Called every frame, in Play mode and in the editor
+    // (AssistantTerminalWatcher, the editor menu); looks a few times a second, without taking the focus. Until a
+    // terminal is known (after a script reload) it is searched for only every few seconds.
+    public static void KeepOnTop()
+    {
+        float now = Time.realtimeSinceStartup;
+        if (now < nextPinCheck || pendingTitle != null)
+            return;
+        nextPinCheck = now + (lastTitle != null ? PinCheckSeconds : PinSearchSeconds);
+
+        if (!Installed || !Current.alwaysOnTop)
+            return;
+
+        IntPtr window = Window;
+        if (window == IntPtr.Zero || IsIconic(window))
+            return;
+        if ((GetWindowLong(window, GWL_EXSTYLE) & WS_EX_TOPMOST) == 0)
+            SetWindowPos(window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+
+    const float PinCheckSeconds = 0.25f;
+    const float PinSearchSeconds = 3;
+    static float nextPinCheck;
+
     // The processes the launch started under the terminal's process (its console host and the tool) get toolPriority;
     // what the tool starts later inherits it. Looked for twice on a pool thread, as the tool may start after the window
     static void LowerToolPriority(IntPtr window)
@@ -415,6 +440,8 @@ public static class AssistantTerminal
     [DllImport("user32.dll")]
     static extern bool SetForegroundWindow(IntPtr window);
     [DllImport("user32.dll")]
+    static extern int GetWindowLong(IntPtr window, int index);
+    [DllImport("user32.dll")]
     static extern bool ShowWindow(IntPtr window, int command);
     [DllImport("user32.dll")]
     internal static extern bool IsIconic(IntPtr window);
@@ -460,5 +487,8 @@ public static class AssistantTerminal
     const uint SWP_NOSIZE = 0x0001;
     const uint SWP_NOMOVE = 0x0002;
     const uint SWP_SHOWWINDOW = 0x0040;
+    const uint SWP_NOACTIVATE = 0x0010;
+    const int GWL_EXSTYLE = -20;
+    const int WS_EX_TOPMOST = 0x8;
     const int SW_RESTORE = 9;
 }

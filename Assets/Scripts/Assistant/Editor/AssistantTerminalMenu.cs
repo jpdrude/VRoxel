@@ -1,10 +1,23 @@
 using UnityEditor;
 
 // VRoxel > Assistant: the same terminals as AssistantMenu, also outside Play mode; greyed out while the assistant is
-// not installed (OptionalFeatures)
+// not installed (OptionalFeatures). Outside Play mode it also keeps an open terminal on top, as
+// AssistantTerminalWatcher does in Play mode.
+[InitializeOnLoad]
 public static class AssistantTerminalMenu
 {
     const string Menu = "VRoxel/Assistant/";
+
+    static AssistantTerminalMenu()
+    {
+        EditorApplication.update += KeepOnTop;
+    }
+
+    static void KeepOnTop()
+    {
+        if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            AssistantTerminal.KeepOnTop();
+    }
 
     [MenuItem(Menu + "Claude Code")] static void ClaudeCode() { Open(AssistantTerminal.Tool.ClaudeCode); }
     [MenuItem(Menu + "Codex")] static void Codex() { Open(AssistantTerminal.Tool.Codex); }
