@@ -116,6 +116,32 @@ public class CADController : MonoBehaviour
 
     }
 
+    // The point the camera orbits around and zooms towards
+    public Vector3 Pivot { get { return target != null ? target.position : transform.position + transform.forward * distance; } }
+
+    // Places the camera at position looking along rotation (no roll), with the orbit pivot pivotDistance ahead, and
+    // takes this view as its state so mouse orbit, pan and zoom carry on from it. Closer than 2 m LateUpdate would push
+    // the pivot away, so it stays at least that far. Also works while the controller is disabled (playback, Esc menu).
+    public void SetView(Vector3 position, Quaternion rotation, float pivotDistance)
+    {
+        if (!target)
+            Init();
+
+        pivotDistance = Mathf.Max(pivotDistance, 2);
+
+        Vector3 euler = rotation.eulerAngles;
+        yDeg = ClampAngle(Mathf.DeltaAngle(0, euler.x), yMinLimit, yMaxLimit);
+        xDeg = euler.y;
+        rotation = Quaternion.Euler(yDeg, xDeg, 0);
+
+        this.rotation = currentRotation = desiredRotation = rotation;
+        currentDistance = desiredDistance = distance = pivotDistance;
+
+        target.position = position + rotation * Vector3.forward * pivotDistance + targetOffset;
+        this.position = position;
+        transform.SetPositionAndRotation(position, rotation);
+    }
+
     private static float ClampAngle(float angle, float min, float max)
     {
         if (angle < -360)

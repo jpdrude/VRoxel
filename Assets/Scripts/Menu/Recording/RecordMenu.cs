@@ -88,6 +88,26 @@ public class RecordMenu : MonoBehaviour
         }
     }
 
+    // Shows the recorder's state on the record and play buttons, also after the MCP tools changed it
+    public void RefreshButtons()
+    {
+        recordButton.image.sprite = recorder.Record ? stopRecordSprite : recordSprite;
+        playbackButton.image.sprite = recorder.Play ? pauseSprite : playSprite;
+    }
+
+    // Exports the recorded path as PNG frames (path_00000.png, ...) without the file browser, for the MCP tools
+    public void ExportVideoTo(string path)
+    {
+        ExportVideo(new[] { path });
+        RefreshButtons();
+    }
+
+    // Saves a JPG screenshot without the file browser, for the MCP tools
+    public void CaptureScreenshotTo(string path)
+    {
+        CaptureScreenshot(new[] { path });
+    }
+
     public void ChangeSamplingWidth(float newSamplingWidth)
     {
         recorder.SetNewSamplingWidth((int)newSamplingWidth);
@@ -130,6 +150,7 @@ public class RecordMenu : MonoBehaviour
         graphicsMenu.ResetLOD();
 
         graphicsMenu.ActivateCulling();
+        RefreshButtons();
     }
 
     public void ExportVideoBrowser()

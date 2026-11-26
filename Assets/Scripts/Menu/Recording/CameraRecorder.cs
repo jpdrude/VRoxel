@@ -436,6 +436,7 @@ public class CameraRecorder : MonoBehaviour
 
     public void SetNewSamplingWidth(int newSamplingWidth)
     {
+        newSamplingWidth = Mathf.Max(1, newSamplingWidth);
         int offset = newSamplingWidth - samplingWidth;
         samplingWidth = newSamplingWidth;
 
@@ -447,6 +448,43 @@ public class CameraRecorder : MonoBehaviour
 
             SmoothenCameraPath();
         }
+        else
+        {
+            // Smoothed again with the new width when playback starts
+            smoothCamPositions = null;
+            smoothCamRotations = null;
+        }
+    }
+
+    // State for the MCP camera commands (CameraCommands)
+    public const int MinPlaybackSamples = 100;
+    public int SamplingWidth { get { return samplingWidth; } }
+    public int FrameRate { get { return frameRate; } }
+    public int SampleCount { get { return camPositions.Count; } }
+    public bool Exporting { get { return export; } }
+    public int ExportedFrames { get { return exportCounter; } }
+    public int PlaybackFrames { get { return smoothCamPositions != null ? smoothCamPositions.Count : camPositions.Count; } }
+    public int PlaybackPosition { get { return playbackPosition; } }
+    public bool CapturesPath { get { return !captureRotation && !captureAnimation; } }
+
+    public void ClearRecording()
+    {
+        record = false;
+        camPositions.Clear();
+        camRotations.Clear();
+        smoothCamPositions = null;
+        smoothCamRotations = null;
+        playbackPosition = 0;
+    }
+
+    // Adds camera poses to the recorded path, one per video frame (FrameRate), as if they had been recorded live
+    public void AppendSamples(IList<Vector3> positions, IList<Quaternion> rotations)
+    {
+        camPositions.AddRange(positions);
+        camRotations.AddRange(rotations);
+        smoothCamPositions = null;
+        smoothCamRotations = null;
+        playbackPosition = 0;
     }
 
     public bool PlayRecording(bool fromStart = false, bool _export = false, string _path = null)
