@@ -730,6 +730,17 @@ public static class CameraCommands
         exportPath = path;
         menu.ExportVideoTo(path);
 
+        // In the same frame the export starts, so frame 0 is the sequences' start: exports advance animation by
+        // exactly one frame (1 / frame_rate) per image, so the avatars stay in step with the camera path
+        bool restart = args["restart_sequences"] != null && args["restart_sequences"].Type == JTokenType.Boolean && (bool)args["restart_sequences"];
+        int restarted = 0;
+        if (restart)
+            foreach (KeyValuePair<string, GameObject> avatar in AvatarRegistry.All())
+            {
+                AvatarCommands.GetSequencer(avatar.Value).Restart();
+                ++restarted;
+            }
+
         return new
         {
             kind,
@@ -737,6 +748,7 @@ public static class CameraCommands
             pattern = name + "_00000.png",
             frames = r.recorder.PlaybackFrames,
             frame_rate = r.recorder.FrameRate,
+            restarted_avatars = restarted,
             note = "Exports in the background, one PNG per recorded pose, with VRoxel's interface hidden; get_desktop_camera shows the progress. " +
                    "Join the frames into a video at frame_rate, e.g. ffmpeg -framerate " + r.recorder.FrameRate + " -i \"" + name + "_%05d.png\" -pix_fmt yuv420p " + name + ".mp4"
         };

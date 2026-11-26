@@ -509,6 +509,19 @@ public static class AvatarCommands
             step.facing = (float)stepArgs["face"];
         }
 
+        if (stepArgs["brush"] != null && stepArgs["brush"].Type != JTokenType.Null)
+        {
+            step.brush = ((string)stepArgs["brush"]).Trim().ToLowerInvariant();
+            if (step.brush != "add" && step.brush != "remove" && step.brush != "off")
+                throw new McpException("steps[" + index + "]: brush must be 'add', 'remove' or 'off'");
+        }
+        if (stepArgs["brush_size"] != null && stepArgs["brush_size"].Type != JTokenType.Null)
+        {
+            step.brushSize = (float)stepArgs["brush_size"];
+            if (step.brushSize < 0.25f || step.brushSize > 5)
+                throw new McpException("steps[" + index + "]: brush_size must be between 0.25 and 5 (1 is the body itself)");
+        }
+
         return step;
     }
 
