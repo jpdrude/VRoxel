@@ -15,7 +15,7 @@
 
 #define MyAppName "VRoxel"
 #ifndef MyAppVersion
-  #define MyAppVersion "0.511"
+  #define MyAppVersion "0.512"
 #endif
 #define MyAppPublisher "dMA"
 #define MyAppURL "https://www.igd.uni-hannover.de/de/dma/"
