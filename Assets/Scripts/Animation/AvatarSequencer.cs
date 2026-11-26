@@ -93,6 +93,27 @@ public class AvatarSequencer : MonoBehaviour
         BeginStep(0, firstFade);
     }
 
+    // In the frame the step begins, so brushing starts and stops exactly with the steps, at any frame rate
+    void ApplyBrush(SequenceStep step)
+    {
+        if (step.brush == null)
+            return;
+
+        CharacterSpawner spawner = GetComponent<CharacterSpawner>();
+        if (spawner == null)
+            return;
+
+        if (step.brushSize > 0)
+            spawner.BrushSize = step.brushSize;
+
+        if (step.brush == "add")
+            spawner.AddCharacterBrush();
+        else if (step.brush == "remove")
+            spawner.RemoveCharacterBrush();
+        else
+            spawner.DisableCharacterBrush();
+    }
+
     void MoveToAnchor()
     {
         transform.SetPositionAndRotation(AnchorPosition, Quaternion.Euler(0, AnchorYaw, 0));
@@ -111,6 +132,7 @@ public class AvatarSequencer : MonoBehaviour
         stepTime = 0;
 
         SequenceStep step = steps[index];
+        ApplyBrush(step);
         player.Speed = step.speed;
         player.Play(step.clip, fade);
         player.PauseAnimation(false);
@@ -246,6 +268,11 @@ public class SequenceStep
 
     public bool hasFacing;
     public float facing;
+
+    // Switches the avatar's block brush (CharacterSpawner) when the step begins: "add", "remove" or "off";
+    // null keeps it. brushSize <= 0 keeps the current size
+    public string brush;
+    public float brushSize;
 }
 
 public class SequenceState

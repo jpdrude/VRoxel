@@ -106,6 +106,10 @@ class SequenceStep(BaseModel):
     face: Optional[float] = Field(None, description="Turn to this yaw (degrees) during the step")
     fade: Optional[float] = Field(None, ge=0, description="Crossfade into this step in seconds")
     speed: Optional[float] = Field(None, ge=0, le=10, description="Playback speed multiplier")
+    brush: Optional[Literal["add", "remove", "off"]] = Field(
+        None, description="Switch the avatar's block brush when the step begins (as set_avatar_brush, but exactly in "
+                          "step, also on replays and in exports); default keeps it")
+    brush_size: Optional[float] = Field(None, ge=0.25, le=5, description="Brush size from this step on; default keeps it")
 
 
 Steps = Annotated[list[SequenceStep], Field(min_length=1, description="Clips to play in order")]
@@ -505,12 +509,15 @@ def export_camera_recording(
     name: Annotated[Optional[str], Field(description="File name (letters, digits, spaces, - and _) in %APPDATA%/VRoxel/Recordings; video frames go into a folder of that name. Default: a timestamp")] = None,
     path: Annotated[Optional[str], Field(description="Full path instead of a name: a .png name for the frames (name_00000.png, ...) or a .jpg file")] = None,
     overwrite: Annotated[bool, Field(description="Replace an existing screenshot or the frames of an earlier export with that name")] = False,
+    restart_sequences: Annotated[bool, Field(description="Video: restart all avatar sequences in the export's first frame, so a scene timed to the camera path (e.g. one orbit per loop) starts with it")] = False,
 ) -> dict:
     """Export from the desktop camera as the record menu does, with VRoxel's interface hidden. A video plays the
     recorded path once and writes one frame per pose, smoothed with the current sampling width; it runs in the
     background and get_desktop_camera shows its progress. Join the frames into a video with ffmpeg at the frame rate
-    given."""
-    return call("export_camera_recording", kind=kind, name=name, path=path, overwrite=overwrite)
+    given. During a video export animation advances exactly one frame per image (1 / frame_rate), so avatars, their
+    brushes and the camera path stay in step whatever the rendering speed."""
+    return call("export_camera_recording", kind=kind, name=name, path=path, overwrite=overwrite,
+                restart_sequences=restart_sequences)
 
 
 @mcp.tool()

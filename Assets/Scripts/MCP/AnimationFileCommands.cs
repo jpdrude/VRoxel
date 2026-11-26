@@ -52,6 +52,8 @@ public static class AnimationFileCommands
         public float speed = 1;
         public float[] walkTo;
         public float? face;
+        public string brush;
+        public float brushSize;
     }
 
     public static void Register(McpBridge bridge)
@@ -223,7 +225,9 @@ public static class AnimationFileCommands
                 fade = step.fade,
                 speed = step.speed,
                 walkTo = step.hasTarget ? AvatarCommands.ToArray(step.target) : null,
-                face = step.hasFacing ? step.facing : (float?)null
+                face = step.hasFacing ? step.facing : (float?)null,
+                brush = step.brush,
+                brushSize = step.brushSize
             }).ToList()
         };
     }
@@ -239,6 +243,8 @@ public static class AnimationFileCommands
         step.loops = Mathf.Max(1, record.loops);
         step.fade = record.fade;
         step.speed = record.speed;
+        step.brush = record.brush;
+        step.brushSize = record.brushSize;
 
         if (record.walkTo != null)
         {
