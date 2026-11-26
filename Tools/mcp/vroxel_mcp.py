@@ -64,6 +64,9 @@ mcp = MCPServer(
         "Saving: save_animation stores the avatars with their colours, sizes and sequences under a name; "
         "load_animation brings a saved one back (replacing the current avatars unless replace=false) and replays it "
         "from the start. Check list_saved_animations before saving so you don't overwrite the user's work.\n"
+        "Desktop camera: in desktop mode, set_desktop_camera frames views and move_desktop_camera flies or orbits the CAD "
+        "camera; with record they write the camera recording, which camera_recording plays back and "
+        "export_camera_recording renders to frames. Tell the user before taking over their camera.\n"
         "undo / redo only affect changes made through these tools, never the user's own edits."
     ),
 )
@@ -393,6 +396,121 @@ def teleport_player(
     """Move the VR player, e.g. to an avatar's starting point before it carves, so the user sees it from there. Lowers
     VRoxel's elevation platform, as a teleport does. Only in VR mode; tell the user before moving them."""
     return call("teleport_player", position=position, yaw=yaw)
+
+
+Vec3 = Annotated[Optional[list[float]], Field(min_length=3, max_length=3)]
+CamPosition = Annotated[Vec3, Field(description="Camera position [x, y, z]")]
+LookAt = Annotated[Vec3, Field(description="Point to look at [x, y, z]; it becomes the orbit pivot for the mouse")]
+CamYaw = Annotated[Optional[float], Field(description="View heading in degrees (0 faces +Z, 90 faces +X)")]
+CamPitch = Annotated[Optional[float], Field(ge=-80, le=80, description="View pitch in degrees, negative looks down")]
+CamDistance = Annotated[Optional[float], Field(gt=0, description="Distance between camera and the point looked at, in meters")]
+RecordMode = Annotated[
+    Literal["off", "new", "append"],
+    Field(description="Write the move into the camera recording, one pose per video frame: 'new' replaces the recorded "
+                      "path, 'append' adds to it (to chain moves into one take), 'off' just moves the camera"),
+]
+
+
+class CameraKeyframe(BaseModel):
+    duration: float = Field(ge=0.1, description="Seconds to get here from the previous keyframe (or the start view)")
+    position: CamPosition = None
+    look_at: LookAt = None
+    yaw: CamYaw = None
+    pitch: CamPitch = None
+    distance: CamDistance = None
+
+
+class CameraOrbit(BaseModel):
+    degrees: float = Field(description="How far to circle; positive is clockwise seen from above, 360 a full turn")
+    duration: float = Field(ge=0.1, le=600, description="Seconds for the orbit")
+    center: Vec3 = Field(None, description="Point circled and looked at; default the current look-at point")
+    radius: Optional[float] = Field(None, gt=0, description="Horizontal distance from the center; default the current one")
+    height: Optional[float] = Field(None, description="Camera height above the center (negative below); default the current one")
+    start_angle: Optional[float] = Field(None, description="Bearing from the center to the camera at the start, as a yaw; default where the camera is now")
+
+
+@mcp.tool()
+def get_desktop_camera() -> dict:
+    """The desktop (CAD) camera: its view (position, look_at point it orbits around, yaw, pitch, distance), field of
+    view, a running scripted move, and the camera recording (live recording, playback, recorded seconds, whether it is
+    long enough to play, smoothing, export progress). Only in desktop mode, not VR."""
+    return call("get_desktop_camera")
+
+
+@mcp.tool()
+def set_desktop_camera(
+    position: CamPosition = None,
+    look_at: LookAt = None,
+    yaw: CamYaw = None,
+    pitch: CamPitch = None,
+    distance: CamDistance = None,
+    field_of_view: Annotated[Optional[float], Field(ge=5, le=120, description="Vertical field of view in degrees (not recorded)")] = None,
+) -> dict:
+    """Place the desktop (CAD) camera at once. With a position it looks at look_at, else along yaw / pitch, else keeps
+    looking at the same point. Without a position it orbits: it looks at look_at (default the current point) along
+    yaw / pitch from distance away, e.g. look_at the design's center, yaw 225, pitch -30, distance 40 views it from the
+    north-east, from above. Omitted values keep the current view; get_assembly_bounds gives the design's center and
+    size. The user's mouse orbits, pans and zooms on from the new view. Stops a scripted move or a playback."""
+    return call("set_desktop_camera", position=position, look_at=look_at, yaw=yaw, pitch=pitch, distance=distance,
+                field_of_view=field_of_view)
+
+
+@mcp.tool()
+def move_desktop_camera(
+    keyframes: Annotated[Optional[list[CameraKeyframe]], Field(description="Views to fly through, each like set_desktop_camera and relative to the one before; the move starts from the current view")] = None,
+    orbit: Annotated[Optional[CameraOrbit], Field(description="Circle a point instead, looking at it")] = None,
+    easing: Annotated[Literal["smooth", "linear"], Field(description="'smooth' starts and ends at rest, 'linear' moves evenly (for chaining moves or looping orbits)")] = "smooth",
+    record: RecordMode = "off",
+    queue: Annotated[bool, Field(description="Play after the running and queued moves (starting where they end) instead of replacing them")] = False,
+) -> dict:
+    """Fly the desktop (CAD) camera smoothly through keyframes on a spline, or orbit a point, in the background; give
+    keyframes or orbit. The camera turns smoothly, also on the spot, and keeps a point in view while consecutive
+    keyframes look at it. With record, the move goes into the camera recording exactly at its frame rate, so it plays
+    back (camera_recording play, or P) and exports to frames (export_camera_recording) like a path recorded with the
+    mouse; playback needs at least 100 poses (3.4 s at 30 fps). Moves from queue=true calls play one after the other;
+    with record='append' they make one take. Returns the resolved keyframes and the duration; get_desktop_camera shows
+    the progress, stop_desktop_camera ends it."""
+    return call(
+        "move_desktop_camera",
+        keyframes=[k.model_dump(exclude_none=True) for k in keyframes] if keyframes else None,
+        orbit=orbit.model_dump(exclude_none=True) if orbit else None,
+        easing=easing, record=record, queue=queue,
+    )
+
+
+@mcp.tool()
+def stop_desktop_camera() -> dict:
+    """Stop the scripted camera move where it is and drop the queued ones; a recording keeps what played of the move."""
+    return call("stop_desktop_camera")
+
+
+@mcp.tool()
+def camera_recording(
+    action: Annotated[Optional[Literal["status", "play", "stop", "record", "clear"]], Field(
+        description="'play' plays the recorded path from the start in a loop (as P), 'stop' stops playback or live "
+                    "recording, 'record' records the user's own mouse moves (as R; it continues the path unless the "
+                    "camera jumped), 'clear' empties the path, 'status' only reports")] = "status",
+    sampling_width: Annotated[Optional[float], Field(ge=1, le=1000, description="Playback and export smooth the path "
+                    "over this many poses (the record menu's slider, not updated here): 1 plays scripted moves exactly, "
+                    "larger values steady hand-made mouse paths")] = None,
+) -> dict:
+    """Control the desktop camera's recorder, which records a camera path and plays it back for review or export.
+    Returns its state."""
+    return call("camera_recording", action=action, sampling_width=sampling_width)
+
+
+@mcp.tool()
+def export_camera_recording(
+    kind: Annotated[Literal["video", "screenshot"], Field(description="'video' renders the recorded path to numbered PNG frames; 'screenshot' saves the current view as a 3840x2160 JPG")] = "video",
+    name: Annotated[Optional[str], Field(description="File name (letters, digits, spaces, - and _) in %APPDATA%/VRoxel/Recordings; video frames go into a folder of that name. Default: a timestamp")] = None,
+    path: Annotated[Optional[str], Field(description="Full path instead of a name: a .png name for the frames (name_00000.png, ...) or a .jpg file")] = None,
+    overwrite: Annotated[bool, Field(description="Replace an existing screenshot or the frames of an earlier export with that name")] = False,
+) -> dict:
+    """Export from the desktop camera as the record menu does, with VRoxel's interface hidden. A video plays the
+    recorded path once and writes one frame per pose, smoothed with the current sampling width; it runs in the
+    background and get_desktop_camera shows its progress. Join the frames into a video with ffmpeg at the frame rate
+    given."""
+    return call("export_camera_recording", kind=kind, name=name, path=path, overwrite=overwrite)
 
 
 @mcp.tool()
