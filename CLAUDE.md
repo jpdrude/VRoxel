@@ -70,6 +70,10 @@ VRoxel is a Unity 2021.3.45f2 VR application for 3D block-based assembly and geo
 - `AssistantTerminal.KeepOnTop` re-pins the terminal whenever it loses its always-on-top state (`AssistantTerminalWatcher` in Play mode, `AssistantTerminalMenu` in the editor)
 - `TerminalKeyboard` types into the terminal (paste, keys) and switches the focus on a thread of its own
 
+**Anaglyph view (`Scripts/VR_Input/AnaglyphMirror.cs`)**
+- `AnaglyphMirror` shows the VR view on the desktop window as a red/cyan anaglyph without rendering the scene again: it reads the OpenVR compositor's mirror textures of both eyes (D3D11 only) and composites them (`Resources/Shaders/VRoxelAnaglyph.shader`) through a hidden camera that renders no geometry. The desktop menu's `Btn_ToggleAnaglyph` calls `Toggle()` and is relabelled Enable/Disable Anaglyph
+- Without a headset, test it with SteamVR's null driver
+
 **Speech to text (`Scripts/SpeechToText/`)**
 - `SpeechToText` is push to talk (F8 or the `PushToTalk` action): hold to record, release to paste the transcription unsent, click to send, double click to clear. Whisper runs locally as whisper.cpp's server (`WhisperServer`), from the gitignored `Whisper/` folder in the editor and `Whisper\` (or `Whisper\Release\`) next to `VRoxel.exe` when installed
 
